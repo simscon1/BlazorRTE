@@ -11,11 +11,11 @@
 dotnet add package BlazorRTE
 
 ### Basic Usage
-
+```
 @using BlazorRTE.Components
 <RichTextEditor @bind-Value="@content" Placeholder="Start typing..." />
 @code { private string content = ""; }
-
+```
 ## ✨ Features
 
 ✅ **51 Features** - Complete formatting toolkit
@@ -71,6 +71,20 @@ string text = GetPlainText(); // Get plain text without HTML
 - ✅ Free for open-source projects
 - ✅ Community support via GitHub Issues
 - ⚠️ **GPL v3 Requirement:** Your application must also be open-source under GPL v3
+
+**See [LICENSE.txt](LICENSE.txt) for full GPL v3 terms.**
+
+### Commercial License (Coming in v1.1.0)
+For proprietary/closed-source applications, commercial licensing will be available in version 1.1.0.
+
+**Planned pricing tiers:**
+- **Professional** (~$79-99/year): Commercial license + email support
+- **Business** (~$149-199/year): Priority support + phone/video
+- **Enterprise** (~$499+/year): Source code + custom development + SLA
+
+**For early access or enterprise licensing inquiries:**  
+- 📧 Email: licensing@loneworx.com  (Coming soon)
+=======
 
 **See [LICENSE.txt](LICENSE.txt) for full GPL v3 terms.**
 
