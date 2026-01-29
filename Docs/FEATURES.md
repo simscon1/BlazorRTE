@@ -5,12 +5,14 @@ Zero JavaScript dependencies • 51 Features • Production-Ready
 
 ---
 
-## 🎯 Current Version: v1.1
+## 🎯 Current Version: v1.0.0 (Pre-Release)
 
+**Release Status:** Ready for initial NuGet publication ✅  
 **Total Features:** 51 ✅  
 **Visual Quality:** Commercial-grade ✅  
+**Code Quality:** Refactored & optimized ✅  
 **License:** GPL v3 (Community) / Commercial (Paid)  
-**Status:** Ready for separation & NuGet publication
+**Status:** Feature-complete, ready for NuGet publication
 
 ---
 
@@ -39,14 +41,22 @@ Zero JavaScript dependencies • 51 Features • Production-Ready
 - ✅ **Horizontal rule** - Insert divider line, SVG icon
 
 ### Typography ✅
-- ✅ **Font family selector** - 10 web-safe fonts
+- ✅ **Font family picker** - 10 web-safe fonts, button+popup interface
+  - Button shows "Aa" icon
+  - Dropdown palette with font previews (each option shows in its font)
   - Sans-serif: Arial, Helvetica, Tahoma, Trebuchet MS, Verdana
   - Serif: Garamond, Georgia, Times New Roman
   - Monospace: Courier New
   - Display: Impact
-- ✅ **Font size selector** - 6 preset sizes
+  - Smart edge detection (auto-repositions to stay visible)
+  - Saves ~140px toolbar space vs dropdown
+- ✅ **Font size picker** - 6 preset sizes, button+popup interface
+  - Button shows current size ("14")
+  - Dropdown palette with size options
   - Small (10px), Normal (14px), Medium (16px)
   - Large (18px), X-Large (24px), XX-Large (32px)
+  - Smart edge detection (auto-repositions to stay visible)
+  - Saves ~100px toolbar space vs dropdown
 
 ### Colors & Highlighting ✅
 - ✅ **Text color dropdown** - 9 preset colors
@@ -95,8 +105,21 @@ Zero JavaScript dependencies • 51 Features • Production-Ready
 - ✅ **Active state indicators** - Toolbar buttons show current format
 - ✅ **Selection preservation** - Formatting works when clicking toolbar
 - ✅ **Professional SVG icons** - 17 pixel-perfect vector icons
-- ✅ **Smart color picker positioning** - Auto-detects edges, repositions
-- ✅ **Compact toolbar design** - Fits in one row on desktop
+- ✅ **Compact toolbar with 4 pickers** - Button+popup for colors and fonts
+  - Text color picker (9 colors)
+  - Background color picker (7 colors)
+  - Font size picker (6 sizes)
+  - Font family picker (10 fonts)
+- ✅ **Smart popup positioning** - All 4 pickers auto-detect container edges
+  - Centers by default
+  - Aligns left when near left edge
+  - Aligns right when near right edge
+  - Works across toolbar wrapping scenarios
+- ✅ **Toolbar space optimization** - Compact design saves ~224px width
+  - Font size dropdown → button (saves ~100px)
+  - Font family dropdown → button (saves ~140px)
+  - Total: Fits in one row on most screens
+- ✅ **Click-outside-to-close** - All popups close when clicking elsewhere
 - ✅ **Paste as plain text** - Strips external formatting automatically
 - ✅ **Placeholder text** - Customizable empty state
 - ✅ **Two-way data binding** - `@bind-Value` support
@@ -150,58 +173,53 @@ Zero JavaScript dependencies • 51 Features • Production-Ready
 
 ## 🚀 Roadmap
 
-### v1.0 (Current - Ship First!):
-- ✅ All 51 features working
-- ✅ SVG icons integrated
-- ✅ Project separated into BlazorRTE
-- ⏳ Add README, LICENSE, NuGet metadata
-- ⏳ Commit & tag v1.0.0
-- ⏳ Publish to NuGet
+### Version 1.0.0 (Initial Release) - READY FOR PUBLICATION ✅
+**Core Features:**
+- ✅ All 51 features complete
+- ✅ Professional SVG icons (17 icons)
+- ✅ Smart color & font pickers (4 total)
+- ✅ Compact toolbar (fits in one row)
+- ✅ Built-in XSS protection
+- ✅ Dark mode support
 
-### Version 1.1 (Code Quality & Refactoring)
-- [ ] Code refactoring - Improve code organization and maintainability
-  - Extract FormatCommand enum to separate FormatCommand.cs file (58 values)
-  - Create RichTextEditorHelpers.cs for shared utility methods
-  - Extract color definitions to reduce duplication
-  - Improve testability with isolated helper classes
-	
-### Version 1.2 (Project Separation) - IN PROGRESS
-- [ ] **Separate BlazorRTE project** - Extract into standalone NuGet package
-  - Independent versioning
-  - Publish as `BlazorRTE` on NuGet
-  - Broader market reach (blogs, CMS, forms, email)
-- [ ] **GPL v3 licensing + commercial tiers** - License infrastructure
-  - Community (Free - GPL v3): All features, GitHub support
-  - Professional ($79-99/year): Commercial license, email support
-  - Business ($149-199/year): Priority support, phone/video
-  - Enterprise ($499+/year): Source code, custom dev, SLA
-- [ ] **Code refactoring** - Improve organization
-  - Extract FormatCommand enum (58 values)
-  - Create helper classes for shared utilities
-  - Extract color definitions
+**Code Quality:**
+- ✅ Refactored architecture (FormatCommand enum, ColorPalettes, HtmlSanitizer)
+- ✅ Clean separation of concerns
+- ✅ Helper classes at root level
+- ✅ ~600 lines in main component (down from ~700)
 
+**Documentation:**
+- ✅ Complete FEATURES.md
+- ✅ README.md with quick start
+- ✅ LICENSE.txt (GPL v3)
+- ✅ NuGet metadata configured
 
-### Version 2.0 (Premium Features) - FUTURE
-- [ ] **Collaborative editing** - Real-time multi-user editing
-- [ ] **Advanced themes** - Pre-built professional themes
-- [ ] **Image upload** - Built-in image handling with optimization
-- [ ] **Tables** - Advanced table editing
-- [ ] **Find & replace** - Search and replace text
-- [ ] **Spell check** - Built-in spell checking
-- [ ] **Auto-save** - Cloud storage integration
-- [ ] **Custom toolbar builder** - User-configurable toolbars
-- [ ] **Pre-built integrations** - Azure Blob, S3, etc.
+**Status:** Ready for NuGet publication & GitHub release
 
-### Version 2.5 (Advanced Features) - FUTURE
-- [ ] **Extended font library** - Additional fonts based on user feedback
-  - Specialty fonts (Arial Black, Book Antiqua, Palatino)
-  - Fun fonts (Comic Sans MS)
-  - Additional monospace (Lucida Console)
-  - Custom web fonts (Google Fonts integration)
-- [ ] **Markdown support** - Import/export Markdown
-- [ ] **Templates** - Pre-built document templates
-- [ ] **Comments & annotations** - Document review features
-- [ ] **Version history** - Track document changes
+### Version 1.1.0 (Future - After v1.0.0 Release) - PLANNED
+- [ ] GPL v3 licensing infrastructure - License service (non-enforcing)
+  - Community tier (Free - GPL v3)
+  - Professional tier ($79-99/year)
+  - Business tier ($149-199/year)
+  - Enterprise tier ($499+/year)
+- [ ] Dynamic button labels (show current font/size in button)
+- [ ] Additional code optimizations based on user feedback
+
+### Version 1.5.0 (Future Premium Features)
+Premium features for paid tiers:
+- [ ] Collaborative editing - Real-time multi-user
+- [ ] Advanced themes - Professional pre-built themes
+- [ ] Image upload - Built-in with optimization
+- [ ] Tables - Advanced table editing
+- [ ] Find & replace
+- [ ] Spell check
+
+### Version 2.0.0 (Future Major Features)
+- [ ] Extended font library (Google Fonts integration)
+- [ ] Markdown support (import/export)
+- [ ] Document templates
+- [ ] Comments & annotations
+- [ ] Version history
 
 ---
 
