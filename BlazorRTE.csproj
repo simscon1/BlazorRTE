@@ -11,10 +11,10 @@
     <Authors>LoneWorx LLC</Authors>
     <Company>LoneWorx LLC</Company>
     <Product>BlazorRTE</Product>
-    <Description>Professional rich text editor for Blazor. Native Blazor component with 51 features, zero JavaScript dependencies, professional SVG icons, built-in XSS protection, and dark mode support. GPL v3 for open-source, commercial license available for proprietary apps.</Description>
-    <PackageTags>blazor;rich-text-editor;wysiwyg;rte;editor;text-editor;formatting;blazor-component;razor;contenteditable</PackageTags>
-    <PackageProjectUrl>https://blazorrte.dev</PackageProjectUrl>
-    <RepositoryUrl>https://dev.azure.com/LoneWorxLLC/LoneWorx/_git/BlazorRTE</RepositoryUrl>
+    <Description>Professional rich text editor for Blazor. Native Blazor component with 51 features, zero JavaScript dependencies, professional SVG icons, built-in XSS protection, and dark mode support. GPL v3 for open-source, commercial license coming in v1.1.0.</Description>
+    <PackageTags>blazor;rich-text-editor;wysiwyg;rte;editor;text-editor;formatting;blazor-component;razor;contenteditable;gpl</PackageTags>
+    <PackageProjectUrl>https://github.com/simscon1/BlazorRTE</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/simscon1/BlazorRTE</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
