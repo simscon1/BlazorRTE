@@ -11,8 +11,9 @@ Zero JavaScript dependencies • 51 Features • Production-Ready
 **Total Features:** 51 ✅  
 **Visual Quality:** Commercial-grade ✅  
 **Code Quality:** Refactored & optimized ✅  
-**License:** GPL v3 (Community) / Commercial (Paid)  
+**License:** GPL v3 (Community Edition Only)
 **Status:** Feature-complete, ready for NuGet publication
+**No service registration required!** BlazorRTE works out of the box.
 
 ---
 
@@ -231,28 +232,38 @@ bash dotnet add package BlazorRTE
 
 ### Register Services
 
-```
-// Program.cs - Community (GPL v3) builder.Services.AddBlazorRTE();
-// Or with Commercial License builder.Services.AddBlazorRTE(options => { options.LicenseKey = "PRO-XXXX-XXXX-XXXX"; });
-```
+- No service registration required! BlazorRTE works out of the box.
 
----
+### Use Component
+
+- @using BlazorRTE.Components
+- <RichTextEditor @bind-Value="@content" Placeholder="Start typing..." MaxLength="5000" />
+- @code { private string content = ""; }
 
 ## 📜 License
 
 ### Community Edition (Free - GPL v3)
-- All 51 features included
-- Free for open-source projects
-- GitHub support
-- Must open-source your application under GPL v3
+**v1.0.0 is GPL v3 ONLY**
 
-### Commercial License (Paid)
-For proprietary/closed-source applications:
-- **Professional** ($79-99/year): Commercial license + email support
-- **Business** ($149-199/year): Priority support + phone/video
-- **Enterprise** ($499+/year): Source code + custom development + SLA
+- ✅ All 51 features included
+- ✅ Free for open-source projects
+- ✅ Community support via GitHub Issues
+- ⚠️ **GPL v3 Requirement:** Your application must also be open-source under GPL v3
 
-**Purchase:** https://blazorrte.dev/pricing
+**See [LICENSE.txt](LICENSE.txt) for full terms.**
+
+### Commercial License (Coming in v1.1.0)
+For proprietary/closed-source applications, commercial licensing will be available in version 1.1.0.
+
+**Planned pricing tiers:**
+- **Professional** (~$79-99/year): Commercial license + email support
+- **Business** (~$149-199/year): Priority support + phone/video
+- **Enterprise** (~$499+/year): Source code + custom development + SLA
+
+**For early access or enterprise licensing inquiries:**  
+📧 Email: licensing@loneworx.com  
+🌐 Website: https://www.loneworx.com  (Coming soon)
+📁 GitHub: https://github.com/simscon1/BlazorRTE
 
 ---
 
