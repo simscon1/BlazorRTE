@@ -12,29 +12,60 @@
                 <option value="h3" selected="@IsHeadingActive("h3")">Heading 3</option>
             </select>
 
-            @* ADD THIS DROPDOWN *@
-            <select class="rte-dropdown" @onchange="OnFontSizeChanged" title="Font Size">
-                <option value="1">Small (10px)</option>
-                <option value="3" selected>Normal (14px)</option>
-                <option value="4">Medium (16px)</option>
-                <option value="5">Large (18px)</option>
-                <option value="6">X-Large (24px)</option>
-                <option value="7">XX-Large (32px)</option>
-            </select>
+            @* Font Size Picker *@
+            <div class="rte-color-dropdown">
+                <button type="button" class="rte-btn" 
+                        @onclick="ToggleFontSizePicker"
+                        @onclick:stopPropagation
+                        title="Font Size">
+                    14
+                </button>
+                
+                @if (_showFontSizePicker)
+                {
+                    <div class="rte-color-palette" @onclick:stopPropagation>
+                        <div class="rte-color-palette-title">Font Size</div>
+                        <div class="rte-font-size-list">
+                            @foreach (var size in _fontSizes)
+                            {
+                                <button type="button" class="rte-font-option" 
+                                        @onclick="@(() => SelectFontSize(size.Key))"
+                                        title="@size.Value">
+                                    @size.Value
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
 
-            @* ADD THIS DROPDOWN *@
-            <select class="rte-dropdown rte-dropdown-wide" @onchange="OnFontFamilyChanged" title="Font Family">
-                <option value="Arial" selected>Arial</option>
-                <option value="Courier New">Courier New</option>
-                <option value="Garamond">Garamond</option>
-                <option value="Georgia">Georgia</option>
-                <option value="Helvetica">Helvetica</option>
-                <option value="Impact">Impact</option>
-                <option value="Tahoma">Tahoma</option>
-                <option value="Times New Roman">Times New Roman</option>
-                <option value="Trebuchet MS">Trebuchet MS</option>
-                <option value="Verdana">Verdana</option>
-            </select>
+            @* Font Family Picker *@
+            <div class="rte-color-dropdown">
+                <button type="button" class="rte-btn" 
+                        @onclick="ToggleFontFamilyPicker"
+                        @onclick:stopPropagation
+                        title="Font Family">
+                    Aa
+                </button>
+                
+                @if (_showFontFamilyPicker)
+                {
+                    <div class="rte-color-palette rte-font-family-palette" @onclick:stopPropagation>
+                        <div class="rte-color-palette-title">Font Family</div>
+                        <div class="rte-font-family-list">
+                            @foreach (var font in _fontFamilies)
+                            {
+                                <button type="button" class="rte-font-option" 
+                                        style="font-family: @font.Key;"
+                                        @onclick="@(() => SelectFontFamily(font.Key))"
+                                        title="@font.Value">
+                                    @font.Value
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
 
             <span class="rte-separator"></span>
 

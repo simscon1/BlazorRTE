@@ -6,7 +6,7 @@
     border: 1px solid #d1d5db;
     border-radius: 8px;
     background: white;
-    overflow: hidden;
+    overflow: visible;  /* ✅ Allow popups to extend outside */
     transition: border-color 0.2s ease;
 }
 
@@ -140,7 +140,7 @@
     border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     padding: 8px;
-    z-index: 1000;
+    z-index: 9999;   /* ✅ Much higher, always on top */
     min-width: 180px;
 }
 
@@ -364,6 +364,72 @@
     stroke: #3b82f6; /* Blue for active state */
 }
 
+/* Font Size Picker */
+.rte-font-size-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px;
+}
+
+.rte-font-option {
+    padding: 5px 16px;   /* ✅ More compact */
+    border: 1px solid transparent;
+    background: white;        /* ✅ White for light mode */
+    color: #1f2937;          /* ✅ Dark text for light mode */
+    text-align: left;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.rte-font-option:hover {
+    background: #f3f4f6;     /* ✅ Light gray hover */
+    border-color: #e5e7eb;   /* ✅ Light border */
+    transform: translateX(2px);
+}
+
+.rte-font-option:active {
+    background: #e5e7eb;     /* ✅ Slightly darker gray when clicked */
+}
+
+/* Font Family Picker - wider and taller for font names */
+.rte-font-family-palette {
+    min-width: 220px;
+    max-width: 280px;
+}
+
+.rte-font-family-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+/* Scrollbar for font family list */
+.rte-font-family-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.rte-font-family-list::-webkit-scrollbar-track {
+    background: #f9fafb;  /* ✅ Light gray for light mode */
+    border-radius: 3px;
+}
+
+.rte-font-family-list::-webkit-scrollbar-thumb {
+    background: #d1d5db;  /* ✅ Medium gray for light mode */
+    border-radius: 3px;
+}
+
+.rte-font-family-list::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;  /* ✅ Darker gray on hover */
+}
+
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
     .rich-text-editor {
@@ -442,6 +508,27 @@
     
     .rte-btn.active .rte-icon {
         stroke: #60a5fa;
+    }
+
+    .rte-font-option {
+        color: #d1d5db;
+    }
+
+    .rte-font-option:hover {
+        background: #374151;
+    }
+    
+    /* ADD THESE - Scrollbar dark mode colors */
+    .rte-font-family-list::-webkit-scrollbar-track {
+        background: #1f2937;
+    }
+
+    .rte-font-family-list::-webkit-scrollbar-thumb {
+        background: #4b5563;
+    }
+
+    .rte-font-family-list::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
     }
 }
 
