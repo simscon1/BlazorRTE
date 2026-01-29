@@ -246,6 +246,20 @@ namespace BlazorRTE.Components
             catch { }
         }
 
+        private async Task<bool> IsFormatActiveAsync(string format)
+        {
+            if (_jsModule == null) return false;
+            try
+            {
+                var formats = await _jsModule.InvokeAsync<string[]>("getActiveFormats");
+                return formats.Contains(format, StringComparer.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         protected async Task ExecuteCommand(FormatCommand command)
         {
             if (_jsModule == null)

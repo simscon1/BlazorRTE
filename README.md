@@ -12,9 +12,22 @@ dotnet add package BlazorRTE
 
 ### Basic Usage
 
-@using BlazorRTE.Components
+```
+@page "/editor" 
+
+@using BlazorRTE.Components 
+@rendermode InteractiveServer  @* Required for JS interop! *@
+
 <RichTextEditor @bind-Value="@content" Placeholder="Start typing..." />
+
 @code { private string content = ""; }
+ ```
+**Important:** BlazorRTE requires interactive rendering. Add `@rendermode InteractiveServer` to your page or component.
+
+**Why is @rendermode required?**
+- BlazorRTE uses JavaScript interop for contenteditable functionality
+- Static SSR mode won't work - the component needs client-side interactivity
+- Supported modes: `InteractiveServer`, `InteractiveWebAssembly`, or `InteractiveAuto`
 
 ## ✨ Features
 
