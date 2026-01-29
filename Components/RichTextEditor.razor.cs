@@ -29,8 +29,34 @@ namespace BlazorRTE.Components
         private bool _isUpdating;
         private string _previousValue = string.Empty;
         private string _currentHeadingLevel = "";
-        private bool _showTextColorPicker = false;      // ADD THIS
-        private bool _showBackgroundColorPicker = false; // ADD THIS
+        private bool _showTextColorPicker = false;
+        private bool _showBackgroundColorPicker = false;
+        private bool _showFontSizePicker = false;
+        private bool _showFontFamilyPicker = false;
+    
+        private readonly Dictionary<string, string> _fontSizes = new()
+        {
+            { "1", "Small (10px)" },
+            { "3", "Normal (14px)" },
+            { "4", "Medium (16px)" },
+            { "5", "Large (18px)" },
+            { "6", "X-Large (24px)" },
+            { "7", "XX-Large (32px)" }
+        };
+
+        private readonly Dictionary<string, string> _fontFamilies = new()
+        {
+            { "Arial", "Arial" },
+            { "Courier New", "Courier New" },
+            { "Garamond", "Garamond" },
+            { "Georgia", "Georgia" },
+            { "Helvetica", "Helvetica" },
+            { "Impact", "Impact" },
+            { "Tahoma", "Tahoma" },
+            { "Times New Roman", "Times New Roman" },
+            { "Trebuchet MS", "Trebuchet MS" },
+            { "Verdana", "Verdana" }
+        };
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -260,16 +286,16 @@ namespace BlazorRTE.Components
                     FormatCommand.FontSizeLarge => "fontSize:5",
                     FormatCommand.FontSizeXLarge => "fontSize:6",
                     FormatCommand.FontSizeXXLarge => "fontSize:7",
-                    FormatCommand.FontFamilyArial => "fontName:Arial",                    // ADD
-                    FormatCommand.FontFamilyCourierNew => "fontName:Courier New",         // ADD
-                    FormatCommand.FontFamilyGaramond => "fontName:Garamond",              // ADD
-                    FormatCommand.FontFamilyGeorgia => "fontName:Georgia",                // ADD
-                    FormatCommand.FontFamilyHelvetica => "fontName:Helvetica",            // ADD
-                    FormatCommand.FontFamilyImpact => "fontName:Impact",                  // ADD
-                    FormatCommand.FontFamilyTahoma => "fontName:Tahoma",                  // ADD
-                    FormatCommand.FontFamilyTimesNewRoman => "fontName:Times New Roman",  // ADD
-                    FormatCommand.FontFamilyTrebuchet => "fontName:Trebuchet MS",         // ADD
-                    FormatCommand.FontFamilyVerdana => "fontName:Verdana",                // ADD
+                    FormatCommand.FontFamilyArial => "fontName:Arial",
+                    FormatCommand.FontFamilyCourierNew => "fontName:Courier New",
+                    FormatCommand.FontFamilyGaramond => "fontName:Garamond",
+                    FormatCommand.FontFamilyGeorgia => "fontName:Georgia",
+                    FormatCommand.FontFamilyHelvetica => "fontName:Helvetica",
+                    FormatCommand.FontFamilyImpact => "fontName:Impact",
+                    FormatCommand.FontFamilyTahoma => "fontName:Tahoma",
+                    FormatCommand.FontFamilyTimesNewRoman => "fontName:Times New Roman",
+                    FormatCommand.FontFamilyTrebuchet => "fontName:Trebuchet MS",
+                    FormatCommand.FontFamilyVerdana => "fontName:Verdana",
                     _ => null
                 };
 
@@ -287,7 +313,7 @@ namespace BlazorRTE.Components
                         var size = commandName.Split(':')[1];
                         await _jsModule.InvokeVoidAsync("executeFontSize", size);
                     }
-                    else if (commandName.StartsWith("fontName:"))    // ADD THIS BLOCK
+                    else if (commandName.StartsWith("fontName:"))
                     {
                         var fontName = commandName.Split(':')[1];
                         await _jsModule.InvokeVoidAsync("executeFontName", fontName);
@@ -369,8 +395,8 @@ namespace BlazorRTE.Components
                 "h1" => FormatCommand.HeadingH1,
                 "h2" => FormatCommand.HeadingH2,
                 "h3" => FormatCommand.HeadingH3,
-                "" => FormatCommand.Paragraph,      // ADD THIS - handles "Normal" selection
-                "p" => FormatCommand.Paragraph,     // ADD THIS - alternative
+                "" => FormatCommand.Paragraph,
+                "p" => FormatCommand.Paragraph,
                 _ => (FormatCommand?)null
             };
 
@@ -519,6 +545,8 @@ namespace BlazorRTE.Components
         {
             _showTextColorPicker = !_showTextColorPicker;
             _showBackgroundColorPicker = false;
+            _showFontSizePicker = false;
+            _showFontFamilyPicker = false;
 
             if (_showTextColorPicker && _jsModule != null)
             {
@@ -536,6 +564,8 @@ namespace BlazorRTE.Components
         {
             _showBackgroundColorPicker = !_showBackgroundColorPicker;
             _showTextColorPicker = false;
+            _showFontSizePicker = false;
+            _showFontFamilyPicker = false;
 
             if (_showBackgroundColorPicker && _jsModule != null)
             {
@@ -549,13 +579,47 @@ namespace BlazorRTE.Components
             }
         }
 
+        protected async Task ToggleFontSizePicker()
+        {
+            _showFontSizePicker = !_showFontSizePicker;
+            _showFontFamilyPicker = false; // Close other pickers
+            _showTextColorPicker = false;
+            _showBackgroundColorPicker = false;
+            
+            if (_showFontSizePicker && _jsModule != null)
+            {
+                StateHasChanged();
+                await Task.Delay(50);
+                try { await _jsModule.InvokeVoidAsync("adjustColorPalettePosition"); }
+                catch { }
+            }
+        }
+
+        protected async Task ToggleFontFamilyPicker()
+        {
+            _showFontFamilyPicker = !_showFontFamilyPicker;
+            _showFontSizePicker = false; // Close other pickers
+            _showTextColorPicker = false;
+            _showBackgroundColorPicker = false;
+            
+            if (_showFontFamilyPicker && _jsModule != null)
+            {
+                StateHasChanged();
+                await Task.Delay(50);
+                try { await _jsModule.InvokeVoidAsync("adjustColorPalettePosition"); }
+                catch { }
+            }
+        }
+
         protected void CloseColorPickers()
         {
             _showTextColorPicker = false;
             _showBackgroundColorPicker = false;
+            _showFontSizePicker = false;        // ADD
+            _showFontFamilyPicker = false;      // ADD
         }
 
-        protected async Task SelectTextColor(string color)
+        protected async Task SelectTextColor(string color)  
         {
             await ApplyTextColor(color);
             _showTextColorPicker = false; // Close after selection
@@ -565,6 +629,50 @@ namespace BlazorRTE.Components
         {
             await ApplyBackgroundColor(color);
             _showBackgroundColorPicker = false; // Close after selection
+        }
+
+        protected async Task SelectFontSize(string size)
+        {
+            var command = size switch
+            {
+                "1" => FormatCommand.FontSizeSmall,
+                "3" => FormatCommand.FontSizeNormal,
+                "4" => FormatCommand.FontSizeMedium,
+                "5" => FormatCommand.FontSizeLarge,
+                "6" => FormatCommand.FontSizeXLarge,
+                "7" => FormatCommand.FontSizeXXLarge,
+                _ => (FormatCommand?)null
+            };
+
+            if (command.HasValue)
+            {
+                await ExecuteCommand(command.Value);
+                _showFontSizePicker = false; // Close after selection
+            }
+        }
+
+        protected async Task SelectFontFamily(string fontName)
+        {
+            var command = fontName switch
+            {
+                "Arial" => FormatCommand.FontFamilyArial,
+                "Courier New" => FormatCommand.FontFamilyCourierNew,
+                "Garamond" => FormatCommand.FontFamilyGaramond,
+                "Georgia" => FormatCommand.FontFamilyGeorgia,
+                "Helvetica" => FormatCommand.FontFamilyHelvetica,
+                "Impact" => FormatCommand.FontFamilyImpact,
+                "Tahoma" => FormatCommand.FontFamilyTahoma,
+                "Times New Roman" => FormatCommand.FontFamilyTimesNewRoman,
+                "Trebuchet MS" => FormatCommand.FontFamilyTrebuchet,
+                "Verdana" => FormatCommand.FontFamilyVerdana,
+                _ => (FormatCommand?)null
+            };
+
+            if (command.HasValue)
+            {
+                await ExecuteCommand(command.Value);
+                _showFontFamilyPicker = false; // Close after selection
+            }
         }
 
         private async Task ApplyTextColor(string color)
