@@ -83,8 +83,7 @@ For proprietary/closed-source applications, commercial licensing will be availab
 - **Enterprise** (~$499+/year): Source code + custom development + SLA
 
 **For early access or enterprise licensing inquiries:**  
-- 📧 Email: licensing@loneworx.com  (Coming soon)
-=======
+- 📧 Email: licensing@loneworx.com  (Coming soon) 
 
 **See [LICENSE.txt](LICENSE.txt) for full GPL v3 terms.**
 
@@ -97,7 +96,7 @@ For proprietary/closed-source applications, commercial licensing will be availab
 - **Enterprise** (~$499+/year): Source code + custom development + SLA
 
 **For early access or enterprise licensing inquiries:**  
-- 📧 Email: licensing@loneworx.com  
+- 📧 Email: licensing@loneworx.com  (Coming soon)   
 - 🌐 Website: https://www.loneworx.com  
 - 📁 GitHub: https://github.com/simscon1/BlazorRTE
 
