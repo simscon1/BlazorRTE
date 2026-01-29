@@ -84,6 +84,20 @@ For proprietary/closed-source applications, commercial licensing will be availab
 
 **For early access or enterprise licensing inquiries:**  
 - 📧 Email: licensing@loneworx.com  (Coming soon)
+=======
+
+**See [LICENSE.txt](LICENSE.txt) for full GPL v3 terms.**
+
+### Commercial License (Coming in v1.1.0)
+For proprietary/closed-source applications, commercial licensing will be available in version 1.1.0.
+
+**Planned pricing tiers:**
+- **Professional** (~$79-99/year): Commercial license + email support
+- **Business** (~$149-199/year): Priority support + phone/video
+- **Enterprise** (~$499+/year): Source code + custom development + SLA
+
+**For early access or enterprise licensing inquiries:**  
+- 📧 Email: licensing@loneworx.com  
 - 🌐 Website: https://www.loneworx.com  
 - 📁 GitHub: https://github.com/simscon1/BlazorRTE
 
