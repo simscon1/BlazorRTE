@@ -2,51 +2,10 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System.Text.RegularExpressions;
+using BlazorRTE;
 
 namespace BlazorRTE.Components
 {
-    public enum FormatCommand
-    {
-        Bold,
-        Italic,
-        Underline,
-        Strikethrough,
-        InsertUnorderedList,
-        InsertOrderedList,
-        CreateLink,
-        RemoveFormat,
-        Undo,
-        Redo,
-        HeadingH1,
-        HeadingH2,
-        HeadingH3,
-        Paragraph,
-        HorizontalRule,
-        Subscript,
-        Superscript,
-        Indent,
-        Outdent,
-        AlignLeft,
-        AlignCenter,
-        AlignRight,
-        AlignJustify,
-        FontSizeSmall,
-        FontSizeNormal,
-        FontSizeMedium,
-        FontSizeLarge,
-        FontSizeXLarge,
-        FontSizeXXLarge,
-        FontFamilyArial,         // ADD
-        FontFamilyCourierNew,    // ADD
-        FontFamilyGaramond,      // ADD
-        FontFamilyGeorgia,       // ADD
-        FontFamilyHelvetica,     // ADD
-        FontFamilyImpact,        // ADD
-        FontFamilyTahoma,        // ADD
-        FontFamilyTimesNewRoman, // ADD
-        FontFamilyTrebuchet,     // ADD
-        FontFamilyVerdana,        // ADD
-    }
 
     public partial class RichTextEditor : ComponentBase, IAsyncDisposable
     {
@@ -105,7 +64,7 @@ namespace BlazorRTE.Components
                 _isUpdating = true;
                 try
                 {
-                    var sanitized = SanitizeHtml(Value);
+                    var sanitized = HtmlSanitizer.Sanitize(Value);
                     await _jsModule.InvokeVoidAsync("setHtml", _editorRef, sanitized);
 
                     if (sanitized != Value)
@@ -153,8 +112,8 @@ namespace BlazorRTE.Components
                 _isUpdating = true;
 
                 var html = await GetHtmlAsync();
-                var sanitized = SanitizeHtml(html);
-                var textOnly = StripHtml(sanitized);
+                var sanitized = HtmlSanitizer.Sanitize(html);
+                var textOnly = HtmlSanitizer.StripHtml(sanitized);
 
                 if (textOnly.Length > MaxLength)
                 {
@@ -344,7 +303,7 @@ namespace BlazorRTE.Components
                     var html = await GetHtmlAsync();
 
                     _isUpdating = true;
-                    Value = SanitizeHtml(html);
+                    Value = HtmlSanitizer.Sanitize(html);
                     _previousValue = Value;
                     await ValueChanged.InvokeAsync(Value);
                     _isUpdating = false;
@@ -371,15 +330,15 @@ namespace BlazorRTE.Components
                         selectedText.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
                     {
                         url = selectedText;
-                      }
-                      else if (selectedText.Contains(".") && !selectedText.Contains(" "))
-                      {
-                          url = $"https://{selectedText}";
-                      }
-                      else
-                      {
-                          url = "https://example.com";
-                      }
+                    }
+                    else if (selectedText.Contains(".") && !selectedText.Contains(" "))
+                    {
+                        url = $"https://{selectedText}";
+                    }
+                    else
+                    {
+                        url = "https://example.com";
+                    }
                 }
                 else
                 {
@@ -390,7 +349,7 @@ namespace BlazorRTE.Components
 
                 var html = await GetHtmlAsync();
                 _isUpdating = true;
-                Value = SanitizeHtml(html);
+                Value = HtmlSanitizer.Sanitize(html);
                 _previousValue = Value;
                 await ValueChanged.InvokeAsync(Value);
                 _isUpdating = false;
@@ -473,13 +432,13 @@ namespace BlazorRTE.Components
 
         protected int GetCharacterCount()
         {
-            var plainText = StripHtml(Value);
+            var plainText = HtmlSanitizer.StripHtml(Value);
             return plainText.Length;
         }
 
         protected int GetWordCount()
         {
-            var plainText = StripHtml(Value);
+            var plainText = HtmlSanitizer.StripHtml(Value);
             if (string.IsNullOrWhiteSpace(plainText)) return 0;
 
             var words = plainText.Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries);
@@ -491,7 +450,7 @@ namespace BlazorRTE.Components
         {
             if (_isUpdating) return;
             _isUpdating = true;
-            var sanitized = SanitizeHtml(html);
+            var sanitized = HtmlSanitizer.Sanitize(html);
             Value = sanitized;
             _previousValue = sanitized;
             await ValueChanged.InvokeAsync(sanitized);
@@ -521,7 +480,7 @@ namespace BlazorRTE.Components
             try
             {
                 _isUpdating = true;
-                var sanitized = SanitizeHtml(html);
+                var sanitized = HtmlSanitizer.Sanitize(html);
                 await _jsModule.InvokeVoidAsync("setHtml", _editorRef, sanitized);
             }
             catch (Exception ex)
@@ -532,32 +491,6 @@ namespace BlazorRTE.Components
             {
                 _isUpdating = false;
             }
-        }
-
-        private string SanitizeHtml(string html)
-        {
-            if (string.IsNullOrEmpty(html)) return string.Empty;
-
-            html = Regex.Replace(html, @"<script[^>]*>.*?</script>", "", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-            html = Regex.Replace(html, @"\s*on\w+\s*=\s*[""'][^""']*[""']", "", RegexOptions.IgnoreCase);
-            html = Regex.Replace(html, @"\s*on\w+\s*=\s*\S+", "", RegexOptions.IgnoreCase);
-            html = Regex.Replace(html, @"javascript:", "", RegexOptions.IgnoreCase);
-            html = Regex.Replace(html, @"<(iframe|object|embed|applet|meta|link|style)[^>]*>.*?</\1>", "", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-            html = Regex.Replace(html, @"<(iframe|object|embed|applet|meta|link|style)[^>]*/>", "", RegexOptions.IgnoreCase);
-
-            // ADD "sub" and "sup" to allowed tags
-            var allowedTags = new[] { "p", "br", "strong", "b", "em", "i", "u", "s", "strike", "ul", "ol", "li", "a", "span", "div", "h1", "h2", "h3", "hr", "sub", "sup", "font" };
-            var allowedPattern = string.Join("|", allowedTags);
-            html = Regex.Replace(html, $@"<(?!/?({allowedPattern})\b)[^>]+>", "", RegexOptions.IgnoreCase);
-            html = Regex.Replace(html, @"<(\w+)[^>]*>\s*</\1>", "");
-
-            return html.Trim();
-        }
-
-        private string StripHtml(string html)
-        {
-            if (string.IsNullOrEmpty(html)) return string.Empty;
-            return Regex.Replace(html, @"<[^>]+>", "");
         }
 
         public async Task ClearAsync()
@@ -580,13 +513,13 @@ namespace BlazorRTE.Components
             }
         }
 
-        public string GetPlainText() => StripHtml(Value);
+        public string GetPlainText() => HtmlSanitizer.StripHtml(Value);
 
         protected async Task ToggleTextColorPicker()
         {
             _showTextColorPicker = !_showTextColorPicker;
             _showBackgroundColorPicker = false;
-            
+
             if (_showTextColorPicker && _jsModule != null)
             {
                 StateHasChanged();
@@ -603,7 +536,7 @@ namespace BlazorRTE.Components
         {
             _showBackgroundColorPicker = !_showBackgroundColorPicker;
             _showTextColorPicker = false;
-            
+
             if (_showBackgroundColorPicker && _jsModule != null)
             {
                 StateHasChanged();
@@ -647,7 +580,7 @@ namespace BlazorRTE.Components
                 var html = await GetHtmlAsync();
 
                 _isUpdating = true;
-                Value = SanitizeHtml(html);
+                Value = HtmlSanitizer.Sanitize(html);
                 _previousValue = Value;
                 await ValueChanged.InvokeAsync(Value);
                 _isUpdating = false;
@@ -661,17 +594,17 @@ namespace BlazorRTE.Components
         private async Task ApplyBackgroundColor(string color)
         {
             if (_jsModule == null) return;
-            
+
             try
             {
                 await _jsModule.InvokeVoidAsync("executeBackColor", color);
-                
+
                 await UpdateToolbarState();
                 await Task.Delay(50);
                 var html = await GetHtmlAsync();
-                
+
                 _isUpdating = true;
-                Value = SanitizeHtml(html);
+                Value = HtmlSanitizer.Sanitize(html);
                 _previousValue = Value;
                 await ValueChanged.InvokeAsync(Value);
                 _isUpdating = false;

@@ -4,8 +4,24 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    
+    <!-- NuGet Package Metadata -->
+    <PackageId>BlazorRTE</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>LoneWorx LLC</Authors>
+    <Company>LoneWorx LLC</Company>
+    <Product>BlazorRTE</Product>
+    <Description>Professional rich text editor for Blazor. Native Blazor component with 51 features, zero JavaScript dependencies, professional SVG icons, built-in XSS protection, and dark mode support. GPL v3 for open-source, commercial license available for proprietary apps.</Description>
+    <PackageTags>blazor;rich-text-editor;wysiwyg;rte;editor;text-editor;formatting;blazor-component;razor;contenteditable</PackageTags>
+    <PackageProjectUrl>https://blazorrte.dev</PackageProjectUrl>
+    <RepositoryUrl>https://dev.azure.com/LoneWorxLLC/LoneWorx/_git/BlazorRTE</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Copyright>Copyright (c) 2024 LoneWorx LLC</Copyright>
   </PropertyGroup>
-
 
   <ItemGroup>
     <SupportedPlatform Include="browser" />
@@ -15,8 +31,9 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.2" />
   </ItemGroup>
 
+  <!-- Include README and LICENSE in NuGet package -->
   <ItemGroup>
-    <Folder Include="Docs\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="LICENSE.txt" Pack="true" PackagePath="\" />
   </ItemGroup>
-
 </Project>
