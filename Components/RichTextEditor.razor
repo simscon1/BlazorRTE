@@ -1,0 +1,337 @@
+<div class="rich-text-editor @(IsFocused ? "focused" : "")" 
+     @onclick="CloseColorPickers" 
+     @onclick:stopPropagation>
+    @if (ShowToolbar)
+    {
+        <div class="rte-toolbar" @onmousedown="OnToolbarMouseDown">
+            @* Heading Dropdown *@
+            <select class="rte-dropdown" @onchange="OnHeadingChanged" title="Heading Level">
+                <option value="p" selected="@(_currentHeadingLevel == "" || _currentHeadingLevel == "p")">Normal</option>
+                <option value="h1" selected="@IsHeadingActive("h1")">Heading 1</option>
+                <option value="h2" selected="@IsHeadingActive("h2")">Heading 2</option>
+                <option value="h3" selected="@IsHeadingActive("h3")">Heading 3</option>
+            </select>
+
+            @* ADD THIS DROPDOWN *@
+            <select class="rte-dropdown" @onchange="OnFontSizeChanged" title="Font Size">
+                <option value="1">Small (10px)</option>
+                <option value="3" selected>Normal (14px)</option>
+                <option value="4">Medium (16px)</option>
+                <option value="5">Large (18px)</option>
+                <option value="6">X-Large (24px)</option>
+                <option value="7">XX-Large (32px)</option>
+            </select>
+
+            @* ADD THIS DROPDOWN *@
+            <select class="rte-dropdown rte-dropdown-wide" @onchange="OnFontFamilyChanged" title="Font Family">
+                <option value="Arial" selected>Arial</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Garamond">Garamond</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Helvetica">Helvetica</option>
+                <option value="Impact">Impact</option>
+                <option value="Tahoma">Tahoma</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Trebuchet MS">Trebuchet MS</option>
+                <option value="Verdana">Verdana</option>
+            </select>
+           
+            <span class="rte-separator"></span>
+
+            @* Undo/Redo *@
+            <button type="button" class="rte-btn" 
+                    @onclick="() => ExecuteCommand(FormatCommand.Undo)"
+                    title="Undo (Ctrl+Z)">
+                <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+                </svg>
+            </button>
+            
+            <button type="button" class="rte-btn" 
+                    @onclick="() => ExecuteCommand(FormatCommand.Redo)"
+                    title="Redo (Ctrl+Y)">
+                <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
+                </svg>
+            </button>
+
+            <span class="rte-separator"></span>
+
+            @* Format Buttons with SVG Icons *@
+            <button type="button" class="rte-btn @(IsFormatActive("bold") ? "active" : "")" 
+                    @onclick="() => ExecuteCommand(FormatCommand.Bold)"
+                    title="Bold (Ctrl+B)">
+                <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linejoin="round" d="M6.75 3.744h-.753v8.25h7.125a4.125 4.125 0 0 0 0-8.25H6.75Zm0 0v.38m0 16.122h6.747a4.5 4.5 0 0 0 0-9.001h-7.5v9h.753Zm0 0v-.37m0-15.751h6a3.75 3.75 0 1 1 0 7.5h-6m0-7.5v7.5m0 0v8.25m0-8.25h6.375a4.125 4.125 0 0 1 0 8.25H6.75m.747-15.38h4.875a3.375 3.375 0 0 1 0 6.75H7.497v-6.75Zm0 7.5h5.25a3.75 3.75 0 0 1 0 7.5h-5.25v-7.5Z" />
+                </svg>
+            </button>
+
+            <button type="button" class="rte-btn @(IsFormatActive("italic") ? "active" : "")" 
+                    @onclick="() => ExecuteCommand(FormatCommand.Italic)"
+                    title="Italic (Ctrl+I)">
+                <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5.248 20.246H9.05m0 0h3.696m-3.696 0 5.893-16.502m0 0h-3.697m3.697 0h3.803" />
+                </svg>
+            </button>
+
+            <button type="button" class="rte-btn @(IsFormatActive("underline") ? "active" : "")" 
+                    @onclick="() => ExecuteCommand(FormatCommand.Underline)"
+                    title="Underline (Ctrl+U)">
+                <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.995 3.744v7.5a6 6 0 1 1-12 0v-7.5m-2.25 16.502h16.5" />
+                </svg>
+            </button>
+            
+            <button type="button" class="rte-btn @(IsFormatActive("strikeThrough") ? "active" : "")" 
+                    @onclick="() => ExecuteCommand(FormatCommand.Strikethrough)"
+                    title="Strikethrough">
+                <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 12a8.912 8.912 0 0 1-.318-.079c-1.585-.424-2.904-1.247-3.76-2.236-.873-1.009-1.265-2.19-.968-3.301.59-2.2 3.663-3.29 6.863-2.432A8.186 8.186 0 0 1 16.5 5.21M6.42 17.81c.857.99 2.176 1.812 3.761 2.237 3.2.858 6.274-.23 6.863-2.431.233-.868.044-1.779-.465-2.617M3.75 12h16.5" />
+                </svg>
+            </button>
+
+            @* ADD THESE TWO BUTTONS *@
+            <button type="button" class="rte-btn @(IsFormatActive("subscript") ? "active" : "")" 
+                    @onclick="() => ExecuteCommand(FormatCommand.Subscript)"
+                    title="Subscript">
+                <span>x<sub>2</sub></span>
+            </button>
+
+            <button type="button" class="rte-btn @(IsFormatActive("superscript") ? "active" : "")" 
+                    @onclick="() => ExecuteCommand(FormatCommand.Superscript)"
+                    title="Superscript">
+                <span>x<sup>2</sup></span>
+            </button>
+
+            <span class="rte-separator"></span>
+
+            <button type="button" class="rte-btn" 
+                    @onclick="() => ExecuteCommand(FormatCommand.InsertUnorderedList)"
+                    title="Bullet List">
+                ☰
+            </button>
+            
+            <button type="button" class="rte-btn" 
+                    @onclick="() => ExecuteCommand(FormatCommand.InsertOrderedList)"
+                    title="Numbered List">
+                ≡
+            </button>
+
+            @* ADD THESE TWO BUTTONS *@
+            <button type="button" class="rte-btn" 
+                    @onclick="() => ExecuteCommand(FormatCommand.Indent)"
+                    title="Increase Indent">
+                <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+            </button>
+
+            <button type="button" class="rte-btn" 
+                    @onclick="() => ExecuteCommand(FormatCommand.Outdent)"
+                    title="Decrease Indent">
+                <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+            </button>
+
+            <span class="rte-separator"></span>
+
+            @* ADD THESE FOUR BUTTONS *@
+            <button type="button" class="rte-btn" 
+                    @onclick="() => ExecuteCommand(FormatCommand.AlignLeft)"
+                    title="Align Left">
+                <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
+                </svg>
+            </button>
+
+            <button type="button" class="rte-btn" 
+                    @onclick="() => ExecuteCommand(FormatCommand.AlignCenter)"
+                    title="Align Center">
+                <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M12 17.25h8.25" />
+                </svg>
+            </button>
+
+            <button type="button" class="rte-btn" 
+                    @onclick="() => ExecuteCommand(FormatCommand.AlignRight)"
+                    title="Align Right">
+                <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h16.5" />
+                </svg>
+            </button>
+
+            <button type="button" class="rte-btn" 
+                    @onclick="() => ExecuteCommand(FormatCommand.AlignJustify)"
+                    title="Justify">
+                <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+            </button>
+
+            <span class="rte-separator"></span>
+
+            @* Text Color Dropdown *@
+            <div class="rte-color-dropdown">
+                <button type="button" class="rte-btn" 
+                        @onclick="ToggleTextColorPicker"
+                        @onclick:stopPropagation
+                        title="Text Color">
+                    <span style="font-weight: bold; color: #000; border-bottom: 3px solid #FF0000; line-height: 1;">A</span>
+                </button>
+                
+                @if (_showTextColorPicker)
+                {
+                    <div class="rte-color-palette" @onclick:stopPropagation>
+                        <div class="rte-color-palette-title">Text Color</div>
+                        <div class="rte-color-palette-grid">
+                            <button type="button" class="rte-palette-color" 
+                                    style="background-color: #000000;" 
+                                    @onclick="@(() => SelectTextColor("#000000"))" 
+                                    title="Black"></button>
+                            <button type="button" class="rte-palette-color" 
+                                    style="background-color: #FF0000;" 
+                                    @onclick="@(() => SelectTextColor("#FF0000"))" 
+                                    title="Red"></button>
+                            <button type="button" class="rte-palette-color" 
+                                    style="background-color: #FF8800;" 
+                                    @onclick="@(() => SelectTextColor("#FF8800"))" 
+                                    title="Orange"></button>
+                            <button type="button" class="rte-palette-color" 
+                                    style="background-color: #FFFF00;" 
+                                    @onclick="@(() => SelectTextColor("#FFFF00"))" 
+                                    title="Yellow"></button>
+                            <button type="button" class="rte-palette-color" 
+                                    style="background-color: #00AA00;" 
+                                    @onclick="@(() => SelectTextColor("#00AA00"))" 
+                                    title="Green"></button>
+                            <button type="button" class="rte-palette-color" 
+                                    style="background-color: #0066CC;" 
+                                    @onclick="@(() => SelectTextColor("#0066CC"))" 
+                                    title="Blue"></button>
+                            <button type="button" class="rte-palette-color" 
+                                    style="background-color: #9933FF;" 
+                                    @onclick="@(() => SelectTextColor("#9933FF"))" 
+                                    title="Purple"></button>
+                            <button type="button" class="rte-palette-color" 
+                                    style="background-color: #666666;" 
+                                    @onclick="@(() => SelectTextColor("#666666"))" 
+                                    title="Gray"></button>
+                            <button type="button" class="rte-palette-color" 
+                                    style="background-color: #FFFFFF; border: 1px solid #ccc;" 
+                                    @onclick="@(() => SelectTextColor("#FFFFFF"))" 
+                                    title="White"></button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @* Background Color Dropdown *@
+            <div class="rte-color-dropdown">
+                <button type="button" class="rte-btn" 
+                        @onclick="ToggleBackgroundColorPicker"
+                        @onclick:stopPropagation
+                        title="Highlight Color">
+                    <span style="display: inline-block; padding: 3px 5px; background-color: #FFFF00; font-weight: bold; color: #000; border-radius: 2px;">A</span>
+                </button>
+                
+                @if (_showBackgroundColorPicker)
+                {
+                    <div class="rte-color-palette" @onclick:stopPropagation>
+                        <div class="rte-color-palette-title">Highlight Color</div>
+                        <div class="rte-color-palette-grid">
+                            <button type="button" class="rte-palette-color" 
+                                    style="background-color: #FFFF00;" 
+                                    @onclick="@(() => SelectBackgroundColor("#FFFF00"))" 
+                                    title="Yellow"></button>
+                            <button type="button" class="rte-palette-color" 
+                                    style="background-color: #CCFFCC;" 
+                                    @onclick="@(() => SelectBackgroundColor("#CCFFCC"))" 
+                                    title="Green"></button>
+                            <button type="button" class="rte-palette-color" 
+                                    style="background-color: #CCE5FF;" 
+                                    @onclick="@(() => SelectBackgroundColor("#CCE5FF"))" 
+                                    title="Blue"></button>
+                            <button type="button" class="rte-palette-color" 
+                                    style="background-color: #FFCCFF;" 
+                                    @onclick="@(() => SelectBackgroundColor("#FFCCFF"))" 
+                                    title="Pink"></button>
+                            <button type="button" class="rte-palette-color" 
+                                    style="background-color: #FFD699;" 
+                                    @onclick="@(() => SelectBackgroundColor("#FFD699"))" 
+                                    title="Orange"></button>
+                            <button type="button" class="rte-palette-color" 
+                                    style="background-color: #E0E0E0;" 
+                                    @onclick="@(() => SelectBackgroundColor("#E0E0E0"))" 
+                                    title="Gray"></button>
+                            <button type="button" class="rte-palette-color rte-palette-color-none" 
+                                    @onclick="@(() => SelectBackgroundColor("transparent"))" 
+                                    title="No Highlight">
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <span class="rte-separator"></span>
+
+            <button type="button" class="rte-btn" 
+                    @onclick="() => ExecuteCommand(FormatCommand.HorizontalRule)"
+                    title="Horizontal Rule">
+                <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+    </svg>
+            </button>
+
+            <span class="rte-separator"></span>
+
+            <button type="button" class="rte-btn" 
+                    @onclick="CreateLink"
+                    title="Insert Link">
+                <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+        <path d="M318-120q-82 0-140-58t-58-140q0-40 15-76t43-64l134-133 56 56-134 134q-17 17-25.5 38.5T200-318q0 49 34.5 83.5T318-200q23 0 45-8.5t39-25.5l133-134 57 57-134 133q-28 28-64 43t-76 15Zm79-220-57-57 223-223 57 57-223 223Zm251-28-56-57 134-133q17-17 25-38t8-44q0-50-34-85t-84-35q-23 0-44.5 8.5T558-726L425-592l-57-56 134-134q28-28 64-43t76-15q82 0 139.5 58T839-641q0 39-14.5 75T782-502L648-368Z"/>
+    </svg>
+            </button>
+
+            <button type="button" class="rte-btn" 
+                    @onclick="() => ExecuteCommand(FormatCommand.RemoveFormat)"
+                    title="Clear Formatting">
+                <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+    </svg>
+            </button>
+        </div>
+    }
+
+    <div class="rte-content-wrapper">
+        <div @ref="_editorRef"
+             contenteditable="true"
+             class="rte-content"
+             @oninput="OnInput"
+             @onkeydown="OnKeyDown"
+             @onpaste="OnPaste"
+             @onfocus="OnFocus"
+             @onblur="OnBlur"
+             @onmouseup="UpdateToolbarState"
+             @onkeyup="UpdateToolbarState"
+             placeholder="@Placeholder"
+             role="textbox"
+             aria-label="@AriaLabel"
+             aria-multiline="true"
+             spellcheck="true"></div>
+    </div>
+
+    @if (ShowCharacterCount)
+    {
+        <div class="rte-footer">
+            <span class="rte-char-count">
+                @GetCharacterCount() / @MaxLength characters
+                @if (GetWordCount() > 0)
+                {
+                    <span class="rte-word-count">(@GetWordCount() words)</span>
+                }
+            </span>
+        </div>
+    }
+</div>
