@@ -150,6 +150,21 @@ Zero JavaScript dependencies • 51 Features • Production-Ready
 
 ## 🚀 Roadmap
 
+### v1.0 (Current - Ship First!):
+- ✅ All 51 features working
+- ✅ SVG icons integrated
+- ✅ Project separated into BlazorRTE
+- ⏳ Add README, LICENSE, NuGet metadata
+- ⏳ Commit & tag v1.0.0
+- ⏳ Publish to NuGet
+
+### Version 1.1 (Code Quality & Refactoring)
+- [ ] Code refactoring - Improve code organization and maintainability
+  - Extract FormatCommand enum to separate FormatCommand.cs file (58 values)
+  - Create RichTextEditorHelpers.cs for shared utility methods
+  - Extract color definitions to reduce duplication
+  - Improve testability with isolated helper classes
+	
 ### Version 1.2 (Project Separation) - IN PROGRESS
 - [ ] **Separate BlazorRTE project** - Extract into standalone NuGet package
   - Independent versioning
@@ -164,6 +179,7 @@ Zero JavaScript dependencies • 51 Features • Production-Ready
   - Extract FormatCommand enum (58 values)
   - Create helper classes for shared utilities
   - Extract color definitions
+
 
 ### Version 2.0 (Premium Features) - FUTURE
 - [ ] **Collaborative editing** - Real-time multi-user editing
