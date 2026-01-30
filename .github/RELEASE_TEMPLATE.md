@@ -57,4 +57,4 @@ Thanks to all contributors who made this release possible!
 
 ---
 
-**Full Changelog**: https://github.com/simscon1/BlazorRTE/compare/vX.Y.Z-1...vX.Y.Z
+**Full Changelog**: https://github.com/simscon1/BlazorRTE/compare/vPREVIOUS_VERSION...vX.Y.Z
