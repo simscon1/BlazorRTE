@@ -3,7 +3,7 @@
     /// <summary>
     /// Predefined color palettes for text and background colors
     /// </summary>
-    public static class ColorPalettes
+    public static class ColorPalette
     {
         /// <summary>
         /// Text color options (9 colors)

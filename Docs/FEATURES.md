@@ -5,7 +5,7 @@ Zero JavaScript dependencies • 51 Features • Production-Ready
 
 ---
 
-## 🎯 Current Version: v1.0.0 (Pre-Release)
+## 🎯 Current Version: v1.0.1 (Bug Fix Release)
 
 **Release Status:** Ready for initial NuGet publication ✅  
 **Total Features:** 51 ✅  
@@ -156,19 +156,31 @@ Zero JavaScript dependencies • 51 Features • Production-Ready
 
 ```
 // Parameters 
-[Parameter] public string Value { get; set; }
+[Parameter] public string Value { get; set; } 
 [Parameter] public EventCallback<string> ValueChanged { get; set; } 
-[Parameter] public string Placeholder { get; set; } 
-[Parameter] public bool ShowToolbar { get; set; } 
-[Parameter] public bool ShowCharacterCount { get; set; } 
-[Parameter] public int MaxLength { get; set; } 
-[Parameter] public string AriaLabel { get; set; }
+[Parameter] public string Placeholder { get; set; } = "Type your message..."; 
+[Parameter] public bool ShowToolbar { get; set; } = true; 
+[Parameter] public bool ShowCharacterCount { get; set; } = true; 
+[Parameter] public int MaxLength { get; set; } = 5000; 
+[Parameter] public string MinHeight { get; set; } = "200px"; 
+
+// NEW in v1.0.1 
+[Parameter] public string MaxHeight { get; set; } = "600px";  
+[Parameter] public string AriaLabel { get; set; } = "Rich text editor";
 
 // Public Methods await ClearAsync();           
 // Clear all content await FocusAsync();           
 // Focus the editor string text = GetPlainText(); 
 // Get text without HTML
 ```
+
+---
+
+**Height Behavior (Industry Standard):**
+- Default: 200px minimum, 600px maximum (matches TinyMCE/CKEditor)
+- Content scrolls internally when exceeding max height
+- Supports CSS units: px, em, rem, vh, %
+- Auto-adds 'px' if no unit specified
 
 ---
 
@@ -196,6 +208,27 @@ Zero JavaScript dependencies • 51 Features • Production-Ready
 - ✅ NuGet metadata configured
 
 **Status:** Ready for NuGet publication & GitHub release
+
+### Version 1.0.1 (Bug Fix Release) - PUBLISHED ✅
+**Release Date:** January 2026
+
+**Fixes:**
+- ✅ Subscript/superscript toggle now properly removes formatting
+  - Added IsFormatActiveAsync to detect active formats
+  - Automatically removes opposite format when switching
+  - Clicking again properly returns text to normal
+  
+**Improvements:**
+- ✅ Industry-standard height management (200px-600px default)
+- ✅ MinHeight and MaxHeight parameters with flexible CSS unit support
+
+**Documentation:**
+- ✅ Added `@rendermode InteractiveServer` requirement
+- ✅ Explained why interactive rendering is needed
+- ✅ Listed all supported render modes
+- ✅ Documented height control parameters
+
+**Status:** Ready for NuGet publication
 
 ### Version 1.1.0 (Future - After v1.0.0 Release) - PLANNED
 - [ ] GPL v3 licensing infrastructure - License service (non-enforcing)
@@ -230,15 +263,27 @@ bash dotnet add package BlazorRTE
 
 ## 🚀 Quick Start
 
-### Register Services
+### Requirements
+- **Blazor Interactive rendering** - Static SSR not supported
+- Supports: Server, WebAssembly, or Auto render modes
+- .NET 8.0 or higher
 
-- No service registration required! BlazorRTE works out of the box.
+### Basic Usage
 
-### Use Component
+**⚠️ Important:** Add `@rendermode InteractiveServer` to your page or component.
 
-- @using BlazorRTE.Components
-- <RichTextEditor @bind-Value="@content" Placeholder="Start typing..." MaxLength="5000" />
-- @code { private string content = ""; }
+**Why InteractiveServer is required:**
+- BlazorRTE uses JavaScript interop for contenteditable functionality
+- Static SSR renders HTML but toolbar buttons won't work
+- Component needs client-side event handling and DOM manipulation
+
+**Supported Render Modes:**
+- ✅ `@rendermode InteractiveServer` (recommended for most apps)
+- ✅ `@rendermode InteractiveWebAssembly` (runs entirely in browser)
+- ✅ `@rendermode InteractiveAuto` (starts as Server, upgrades to WASM)
+- ❌ Static SSR (not supported - component requires JS interop)
+
+````````
 
 ## 📜 License
 
@@ -281,5 +326,6 @@ For proprietary/closed-source applications, commercial licensing will be availab
 ---
 
 **Built with ❤️ for the Blazor community**
+
 
 

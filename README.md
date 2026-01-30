@@ -6,15 +6,30 @@
 
 ## 🚀 Quick Start
 
+**⚠️ Important:** BlazorRTE requires interactive rendering. Add `@rendermode InteractiveServer` to your page.
+
 ### Installation
 
 dotnet add package BlazorRTE
 
 ### Basic Usage
 
-@using BlazorRTE.Components
+```
+@page "/editor" 
+
+@using BlazorRTE.Components 
+@rendermode InteractiveServer  @* Required for JS interop! *@
+
 <RichTextEditor @bind-Value="@content" Placeholder="Start typing..." />
+
 @code { private string content = ""; }
+ ```
+**Important:** BlazorRTE requires interactive rendering. Add `@rendermode InteractiveServer` to your page or component.
+
+**Why is @rendermode required?**
+- BlazorRTE uses JavaScript interop for contenteditable functionality
+- Static SSR mode won't work - the component needs client-side interactivity
+- Supported modes: `InteractiveServer`, `InteractiveWebAssembly`, or `InteractiveAuto`
 
 ## ✨ Features
 
@@ -63,39 +78,51 @@ await ClearAsync();           // Clear all content
 await FocusAsync();           // Focus the editor
 string text = GetPlainText(); // Get plain text without HTML
 ```
+### Height Control
+```
+<!-- Default: 200px min, 600px max (industry standard) --> <RichTextEditor @bind-Value="@content" />
+<!-- Custom heights --> <RichTextEditor MinHeight="300px" MaxHeight="800px" />
+<!-- Values without 'px' are auto-converted --> <RichTextEditor MinHeight="300" MaxHeight="800" />
+```
+--- 
 
 ## 📜 License
 
 ### Community Edition (Free - GPL v3)
 - ✅ All 51 features included
 - ✅ Free for open-source projects
-- ✅ GitHub support
-- ⚠️ **GPL v3 License:** Your application must also be GPL v3
+- ✅ Community support via GitHub Issues
+- ⚠️ **GPL v3 Requirement:** Your application must also be open-source under GPL v3
 
-### Commercial License (Paid)
-For proprietary/closed-source applications:
-- **Professional** ($79-99/year): Commercial license + email support
-- **Business** ($149-199/year): Priority support + phone/video
-- **Enterprise** ($499+/year): Source code + custom development + SLA
+**See [LICENSE.txt](LICENSE.txt) for full GPL v3 terms.**
 
-**Purchase:** [https://blazorrte.dev/pricing](https://blazorrte.dev/pricing)
+### Commercial License (Coming in v1.1.0)
+For proprietary/closed-source applications, commercial licensing will be available in version 1.1.0.
 
-See [LICENSE.txt](LICENSE.txt) for full GPL v3 terms.
+**Planned pricing tiers:**
+- **Professional** (~$79-99/year): Commercial license + email support
+- **Business** (~$149-199/year): Priority support + phone/video
+- **Enterprise** (~$499+/year): Source code + custom development + SLA
+
+**For early access or enterprise licensing inquiries:**  
+- 📧 Email: licensing@loneworx.com  
+- 🌐 Website: https://www.loneworx.com  (Coming Soon)
+- 📁 GitHub: https://github.com/simscon1/BlazorRTE
 
 ## 🛠️ Development
 
 ### Build from Source
 
-git clone https://dev.azure.com/LoneWorxLLC/LoneWorx/_git/BlazorRTE cd BlazorRTE dotnet build
+git clone https://github.com/simscon1/BlazorRTE.git cd BlazorRTE dotnet build
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please submit pull requests to our repository.
+Contributions are welcome! Please submit pull requests to our GitHub repository.
 
 ## 📞 Support
 
-- **Community (GPL v3):** [Azure DevOps Issues](https://dev.azure.com/LoneWorxLLC/LoneWorx/_git/BlazorRTE)
-- **Commercial:** support@loneworx.com
+- **Community (GPL v3):** [GitHub Issues](https://github.com/simscon1/BlazorRTE/issues)
+- **Commercial Inquiries:** licensing@loneworx.com
 
 ## 🙏 Acknowledgments
 

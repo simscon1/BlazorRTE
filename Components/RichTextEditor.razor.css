@@ -6,8 +6,10 @@
     border: 1px solid #d1d5db;
     border-radius: 8px;
     background: white;
-    overflow: visible;  /* ✅ Allow popups to extend outside */
+    overflow: visible;
     transition: border-color 0.2s ease;
+    min-height: var(--rte-min-height, 200px);  /* ✅ Industry standard min */
+    max-height: var(--rte-max-height, 600px);  /* ✅ Industry standard max, user customizable */
 }
 
 .rich-text-editor.focused {
@@ -24,6 +26,9 @@
     background: #f9fafb;
     border-bottom: 1px solid #e5e7eb;
     flex-wrap: wrap;
+    flex-shrink: 0;
+    border-top-left-radius: 8px;   /* ← ADD: Fix top-left corner */
+    border-top-right-radius: 8px;  /* ← ADD: Fix top-right corner */
 }
 
 /* Heading Dropdown */
@@ -202,13 +207,15 @@
 /* Content Area */
 .rte-content-wrapper {
     flex: 1;
-    min-height: 100px;
-    max-height: 300px;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    overflow: auto; /* Scrollbar when content overflows */
 }
 
 .rte-content {
-    min-height: 100px;
+    flex: 1;
     padding: 12px;
     outline: none;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -308,9 +315,14 @@
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    padding: 6px 12px;
+    padding: 8px 12px;
     background: #f9fafb;
     border-top: 1px solid #e5e7eb;
+    font-size: 12px;
+    color: #6b7280;
+    text-align: right;
+    border-bottom-left-radius: 8px;   /* ← ADD: Fix bottom-left corner */
+    border-bottom-right-radius: 8px;  /* ← ADD: Fix bottom-right corner */
 }
 
 .rte-char-count {
@@ -398,8 +410,7 @@
 
 /* Font Family Picker - wider and taller for font names */
 .rte-font-family-palette {
-    min-width: 220px;
-    max-width: 280px;
+    min-width: 200px;
 }
 
 .rte-font-family-list {
@@ -407,7 +418,7 @@
     flex-direction: column;
     gap: 4px;
     padding: 4px;
-    max-height: 320px;
+    max-height: 280px;
     overflow-y: auto;
 }
 
@@ -454,7 +465,7 @@
     }
 
     .rte-btn {
-        color: #e5e7eb;
+        color: #e7e9eb;
     }
 
     .rte-btn:hover {
