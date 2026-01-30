@@ -106,9 +106,13 @@ For proprietary/closed-source applications, commercial licensing will be availab
 
 git clone https://github.com/simscon1/BlazorRTE.git cd BlazorRTE dotnet build
 
+### Creating a Release
+
+For maintainers: See [RELEASE.md](RELEASE.md) for detailed instructions on creating and publishing releases.
+
 ## 🤝 Contributing
 
-Contributions are welcome! Please submit pull requests to our GitHub repository.
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute to this project.
 
 ## 📞 Support
 
