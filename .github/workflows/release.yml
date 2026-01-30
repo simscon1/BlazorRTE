@@ -9,6 +9,10 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     
+    permissions:
+      contents: write  # Required for creating releases
+      packages: write  # Required for package operations
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
