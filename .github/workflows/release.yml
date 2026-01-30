@@ -1,0 +1,82 @@
+name: Release and Publish to NuGet
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0, v1.2.3, etc.
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for proper versioning
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+    
+    - name: Extract version from tag
+      id: get_version
+      run: |
+        # Remove 'v' prefix from tag to get version number
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
+    
+    - name: Verify version matches csproj
+      run: |
+        CSPROJ_VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" BlazorRTE.csproj)
+        TAG_VERSION="${{ steps.get_version.outputs.VERSION }}"
+        echo "Tag version: $TAG_VERSION"
+        echo "csproj version: $CSPROJ_VERSION"
+        if [ "$CSPROJ_VERSION" != "$TAG_VERSION" ]; then
+          echo "::error::Version mismatch! Tag version ($TAG_VERSION) doesn't match csproj version ($CSPROJ_VERSION)"
+          exit 1
+        fi
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    
+    - name: Pack NuGet package
+      run: dotnet pack --configuration Release --no-build --output ./artifacts
+    
+    - name: Publish to NuGet.org
+      run: |
+        dotnet nuget push ./artifacts/BlazorRTE.${{ steps.get_version.outputs.VERSION }}.nupkg \
+          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --source https://api.nuget.org/v3/index.json \
+          --skip-duplicate
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        name: BlazorRTE v${{ steps.get_version.outputs.VERSION }}
+        body: |
+          ## BlazorRTE v${{ steps.get_version.outputs.VERSION }}
+          
+          ### Installation
+          ```bash
+          dotnet add package BlazorRTE --version ${{ steps.get_version.outputs.VERSION }}
+          ```
+          
+          ### NuGet Package
+          📦 [View on NuGet.org](https://www.nuget.org/packages/BlazorRTE/${{ steps.get_version.outputs.VERSION }})
+          
+          ### Changes
+          See commit history for details about changes in this release.
+        files: |
+          ./artifacts/*.nupkg
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
