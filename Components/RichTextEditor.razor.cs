@@ -17,6 +17,8 @@ namespace BlazorRTE.Components
         [Parameter] public int MaxLength { get; set; } = 5000;
         [Parameter] public EventCallback OnFocusChanged { get; set; }
         [Parameter] public bool ShowCharacterCount { get; set; } = true;
+        [Parameter] public string MinHeight { get; set; } = "200px";
+        [Parameter] public string MaxHeight { get; set; } = "600px"; // ← Changed from 300px
 
         [Inject] protected IJSRuntime JS { get; set; } = default!;
 
@@ -33,30 +35,30 @@ namespace BlazorRTE.Components
         private bool _showBackgroundColorPicker = false;
         private bool _showFontSizePicker = false;
         private bool _showFontFamilyPicker = false;
-    
+
         private readonly Dictionary<string, string> _fontSizes = new()
-        {
-            { "1", "Small (10px)" },
-            { "3", "Normal (14px)" },
-            { "4", "Medium (16px)" },
-            { "5", "Large (18px)" },
-            { "6", "X-Large (24px)" },
-            { "7", "XX-Large (32px)" }
-        };
+            {
+                { "1", "Small (10px)" },
+                { "3", "Normal (14px)" },
+                { "4", "Medium (16px)" },
+                { "5", "Large (18px)" },
+                { "6", "X-Large (24px)" },
+                { "7", "XX-Large (32px)" }
+            };
 
         private readonly Dictionary<string, string> _fontFamilies = new()
-        {
-            { "Arial", "Arial" },
-            { "Courier New", "Courier New" },
-            { "Garamond", "Garamond" },
-            { "Georgia", "Georgia" },
-            { "Helvetica", "Helvetica" },
-            { "Impact", "Impact" },
-            { "Tahoma", "Tahoma" },
-            { "Times New Roman", "Times New Roman" },
-            { "Trebuchet MS", "Trebuchet MS" },
-            { "Verdana", "Verdana" }
-        };
+            {
+                { "Arial", "Arial" },
+                { "Courier New", "Courier New" },
+                { "Garamond", "Garamond" },
+                { "Georgia", "Georgia" },
+                { "Helvetica", "Helvetica" },
+                { "Impact", "Impact" },
+                { "Tahoma", "Tahoma" },
+                { "Times New Roman", "Times New Roman" },
+                { "Trebuchet MS", "Trebuchet MS" },
+                { "Verdana", "Verdana" }
+            };
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -599,7 +601,7 @@ namespace BlazorRTE.Components
             _showFontFamilyPicker = false; // Close other pickers
             _showTextColorPicker = false;
             _showBackgroundColorPicker = false;
-            
+
             if (_showFontSizePicker && _jsModule != null)
             {
                 StateHasChanged();
@@ -615,7 +617,7 @@ namespace BlazorRTE.Components
             _showFontSizePicker = false; // Close other pickers
             _showTextColorPicker = false;
             _showBackgroundColorPicker = false;
-            
+
             if (_showFontFamilyPicker && _jsModule != null)
             {
                 StateHasChanged();
@@ -633,7 +635,7 @@ namespace BlazorRTE.Components
             _showFontFamilyPicker = false;      // ADD
         }
 
-        protected async Task SelectTextColor(string color)  
+        protected async Task SelectTextColor(string color)
         {
             await ApplyTextColor(color);
             _showTextColorPicker = false; // Close after selection
@@ -735,6 +737,26 @@ namespace BlazorRTE.Components
             {
                 Console.WriteLine($"ApplyBackgroundColor error: {ex.Message}");
             }
+        }
+
+        protected string GetEditorStyle()
+        {
+            return $"--rte-min-height: {EnsureUnit(MinHeight)}; --rte-max-height: {EnsureUnit(MaxHeight)};";
+        }
+
+        private string EnsureUnit(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return "200px"; // Fallback default
+
+            value = value.Trim();
+            
+            // Check if value already has a unit (px, em, rem, %, vh, etc.)
+            if (char.IsLetter(value[^1]) || value.EndsWith("%"))
+                return value;
+            
+            // No unit found, assume pixels
+            return value + "px";
         }
     }
 }

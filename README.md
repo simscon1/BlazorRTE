@@ -6,6 +6,8 @@
 
 ## 🚀 Quick Start
 
+**⚠️ Important:** BlazorRTE requires interactive rendering. Add `@rendermode InteractiveServer` to your page.
+
 ### Installation
 
 dotnet add package BlazorRTE
@@ -76,6 +78,13 @@ await ClearAsync();           // Clear all content
 await FocusAsync();           // Focus the editor
 string text = GetPlainText(); // Get plain text without HTML
 ```
+### Height Control
+```
+<!-- Default: 200px min, 600px max (industry standard) --> <RichTextEditor @bind-Value="@content" />
+<!-- Custom heights --> <RichTextEditor MinHeight="300px" MaxHeight="800px" />
+<!-- Values without 'px' are auto-converted --> <RichTextEditor MinHeight="300" MaxHeight="800" />
+```
+--- 
 
 ## 📜 License
 
