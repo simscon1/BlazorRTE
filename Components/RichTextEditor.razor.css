@@ -31,6 +31,13 @@
     border-top-right-radius: 8px;  /* ← ADD: Fix top-right corner */
 }
 
+/* Button groups - display inline */
+.rte-toolbar [role="group"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
 /* Heading Dropdown */
 .rte-dropdown {
     height: 32px;

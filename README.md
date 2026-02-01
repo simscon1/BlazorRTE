@@ -31,31 +31,19 @@ dotnet add package BlazorRTE
 - Static SSR mode won't work - the component needs client-side interactivity
 - Supported modes: `InteractiveServer`, `InteractiveWebAssembly`, or `InteractiveAuto`
 
-## ✨ Features
+## 🎯 Features
 
-✅ **51 Features** - Complete formatting toolkit
-- Text formatting (bold, italic, underline, strikethrough, sub/superscript)
-- Typography (10 fonts, 6 sizes)
-- Professional color pickers (9 text colors, 7 highlight colors)
-- Alignment (left, center, right, justify)
-- Lists (bullet, numbered) with indent/outdent
-- Links, horizontal rules, clear formatting
-- Undo/redo with keyboard shortcuts
-- Character/word count
-- Built-in XSS protection
+- ✅ Rich text formatting (Bold, Italic, Underline, Strikethrough)
+- ✅ Headings, Lists, Alignment
+- ✅ Text & Highlight Colors
+- ✅ Links, Horizontal Rules
+- ✅ Font Family & Size
+- ✅ Undo/Redo
+- ✅ Character & Word Count
+- ✅ **WCAG 2.1 AA Compliant** - Full accessibility support
+- ✅ **Industry Standard UX** - Follows Word/Google Docs patterns
 
-✅ **Professional UI**
-- Pixel-perfect SVG icons
-- Smart color picker positioning
-- Dark mode support
-- Responsive toolbar
-
-✅ **Zero Dependencies**
-- Native Blazor component (~25KB)
-- No JavaScript libraries required
-- No external icon fonts
-
-See [FEATURES.md](Docs/FEATURES.md) for complete feature list.
+> 📖 See [ACCESSIBILITY.md](./ACCESSIBILITY.md) for detailed compliance information.
 
 ## 📖 Documentation
 

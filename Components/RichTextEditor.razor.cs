@@ -60,6 +60,14 @@ namespace BlazorRTE.Components
                 { "Verdana", "Verdana" }
             };
 
+        // Accessibility state tracking
+        private bool isBold = false;
+        private bool isItalic = false;
+        private bool isUnderline = false;
+        private string alignment = "left";
+        private int focusedIndex = 0;
+        private const int ToolbarButtonCount = 6;
+
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
@@ -191,6 +199,28 @@ namespace BlazorRTE.Components
             {
                 await ExecuteCommand(FormatCommand.Redo);
             }
+            // Accessibility - keyboard navigation for toolbar
+            switch (e.Key)
+            {
+                case "ArrowRight":
+                case "ArrowDown":
+                    focusedIndex = (focusedIndex + 1) % ToolbarButtonCount;
+                    StateHasChanged();
+                    break;
+                case "ArrowLeft":
+                case "ArrowUp":
+                    focusedIndex = (focusedIndex - 1 + ToolbarButtonCount) % ToolbarButtonCount;
+                    StateHasChanged();
+                    break;
+                case "Home":
+                    focusedIndex = 0;
+                    StateHasChanged();
+                    break;
+                case "End":
+                    focusedIndex = ToolbarButtonCount - 1;
+                    StateHasChanged();
+                    break;
+            }
         }
 
         protected Task OnPaste(ClipboardEventArgs e) => Task.CompletedTask;
@@ -227,8 +257,27 @@ namespace BlazorRTE.Components
             if (_jsModule == null) return;
             try
             {
+                Console.WriteLine("UpdateToolbarState called"); // Debug
                 var formats = await _jsModule.InvokeAsync<string[]>("getActiveFormats");
+                Console.WriteLine($"Formats received: {string.Join(", ", formats)}"); // Debug
+                
                 _activeFormats = new HashSet<string>(formats);
+                
+                // Update accessibility state
+                isBold = _activeFormats.Contains("bold");
+                isItalic = _activeFormats.Contains("italic");
+                isUnderline = _activeFormats.Contains("underline");
+                
+                // Update alignment state - only one should be active
+                if (_activeFormats.Contains("justifyCenter"))
+                    alignment = "center";
+                else if (_activeFormats.Contains("justifyRight"))
+                    alignment = "right";
+                else if (_activeFormats.Contains("justifyFull"))
+                    alignment = "justify";
+                else
+                    alignment = "left"; // Default to left
+                
                 await UpdateHeadingState();
                 StateHasChanged();
             }
@@ -293,7 +342,7 @@ namespace BlazorRTE.Components
                     FormatCommand.Indent => "indent",
                     FormatCommand.Outdent => "outdent",
                     FormatCommand.AlignLeft => "justifyLeft",
-                    FormatCommand.AlignCenter => "justifyCenter",
+                    FormatCommand.AlignCenter => "justifyCenter",   
                     FormatCommand.AlignRight => "justifyRight",
                     FormatCommand.AlignJustify => "justifyFull",
                     FormatCommand.FontSizeSmall => "fontSize:1",
@@ -757,6 +806,75 @@ namespace BlazorRTE.Components
             
             // No unit found, assume pixels
             return value + "px";
+        }
+
+        private async Task ToggleBold()
+        {
+            await ExecuteCommand(FormatCommand.Bold);
+        }
+
+        private async Task ToggleItalic()
+        {
+            await ExecuteCommand(FormatCommand.Italic);
+        }
+
+        private async Task ToggleUnderline()
+        {
+            await ExecuteCommand(FormatCommand.Underline);
+        }
+
+        private async Task SetAlignment(string align)
+        {
+            // If clicking the same alignment, toggle back to left
+            if (alignment == align && align != "left")
+            {
+                alignment = "left";
+                await ExecuteCommand(FormatCommand.AlignLeft);
+            }
+            else
+            {
+                alignment = align;
+                var command = align switch
+                {
+                    "left" => FormatCommand.AlignLeft,
+                    "center" => FormatCommand.AlignCenter,
+                    "right" => FormatCommand.AlignRight,
+                    "justify" => FormatCommand.AlignJustify,
+                    _ => FormatCommand.AlignLeft
+                };
+                await ExecuteCommand(command);
+            }
+        }
+
+        private void HandleToolbarKeydown(KeyboardEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case "ArrowRight":
+                case "ArrowDown":
+                    focusedIndex = (focusedIndex + 1) % ToolbarButtonCount;
+                    StateHasChanged();
+                    break;
+                case "ArrowLeft":
+                case "ArrowUp":
+                    focusedIndex = (focusedIndex - 1 + ToolbarButtonCount) % ToolbarButtonCount;
+                    StateHasChanged();
+                    break;
+                case "Home":
+                    focusedIndex = 0;
+                    StateHasChanged();
+                    break;
+                case "End":
+                    focusedIndex = ToolbarButtonCount - 1;
+                    StateHasChanged();
+                    break;
+            }
+        }
+
+        private async Task OnEditorClick()
+        {
+            Console.WriteLine("Editor clicked!");
+            await UpdateToolbarState();
         }
     }
 }

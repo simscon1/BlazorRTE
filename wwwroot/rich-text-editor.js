@@ -140,14 +140,63 @@ export function getSelectedText() {
 export function getActiveFormats() {
     const formats = [];
     
+    // Check if cursor is inside a link first
+    const insideLink = isInsideLink();
+    if (insideLink) formats.push('link');
+    
     if (document.queryCommandState('bold')) formats.push('bold');
     if (document.queryCommandState('italic')) formats.push('italic');
-    if (document.queryCommandState('underline')) formats.push('underline');
+    
+    // Only report underline if NOT inside a link (links are underlined by default)
+    if (document.queryCommandState('underline') && !insideLink) {
+        formats.push('underline');
+    }
+    
     if (document.queryCommandState('strikeThrough')) formats.push('strikeThrough');
+    if (document.queryCommandState('subscript')) formats.push('subscript');
+    if (document.queryCommandState('superscript')) formats.push('superscript');
     if (document.queryCommandState('insertUnorderedList')) formats.push('insertUnorderedList');
     if (document.queryCommandState('insertOrderedList')) formats.push('insertOrderedList');
     
+    // Check if text has a foreground color applied (not black, not inside link)
+    const foreColor = document.queryCommandValue('foreColor');
+    if (foreColor && !isDefaultTextColor(foreColor) && !insideLink) {
+        formats.push('foreColor');
+    }
+    
+    // Check if text has a background/highlight color applied
+    const backColor = document.queryCommandValue('backColor');
+    if (backColor && !isDefaultBackgroundColor(backColor)) {
+        formats.push('backColor');
+    }
+    
+    // Alignment - only report ONE
+    if (document.queryCommandState('justifyCenter')) {
+        formats.push('justifyCenter');
+    } else if (document.queryCommandState('justifyRight')) {
+        formats.push('justifyRight');
+    } else if (document.queryCommandState('justifyFull')) {
+        formats.push('justifyFull');
+    } else if (document.queryCommandState('justifyLeft')) {
+        formats.push('justifyLeft');
+    }
+    
     return formats;
+}
+
+// Helper function to check if cursor is inside a link
+function isInsideLink() {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return false;
+    
+    let node = selection.getRangeAt(0).startContainer;
+    while (node && node !== document.body) {
+        if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'A') {
+            return true;
+        }
+        node = node.parentNode;
+    }
+    return false;
 }
 
 export function getCurrentBlock() {
@@ -234,4 +283,39 @@ export function adjustColorPalettePosition() {
             }
         }
     });
+}
+
+// Helper to check if color is default/black text
+function isDefaultTextColor(color) {
+    if (!color) return true;
+    const c = color.toLowerCase().replace(/\s/g, ''); // Remove all whitespace
+    
+    // Check for various black representations
+    return c === 'rgb(0,0,0)' || 
+           c === '#000000' || 
+           c === '#000' || 
+           c === 'black' ||
+           c === '' ||
+           // Also check for very dark colors that are essentially black
+           c === 'rgb(17,24,39)' ||  // Tailwind gray-900
+           c === 'rgb(31,41,55)' ||  // Tailwind gray-800
+           c === 'rgb(55,65,81)' ||  // Tailwind gray-700
+           c === 'rgb(0,0,0,1)' ||   // With alpha
+           c === 'rgba(0,0,0,1)';
+}
+
+// Helper to check if background is default/transparent/white
+function isDefaultBackgroundColor(color) {
+    if (!color) return true;
+    const c = color.toLowerCase().replace(/\s/g, ''); // Remove all whitespace
+    
+    return c === 'rgba(0,0,0,0)' || 
+           c === 'transparent' || 
+           c === 'rgb(255,255,255)' || 
+           c === '#ffffff' || 
+           c === '#fff' || 
+           c === 'white' ||
+           c === '' ||
+           c === 'initial' ||
+           c === 'inherit';
 }
