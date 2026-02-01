@@ -158,6 +158,18 @@ export function getActiveFormats() {
     if (document.queryCommandState('insertUnorderedList')) formats.push('insertUnorderedList');
     if (document.queryCommandState('insertOrderedList')) formats.push('insertOrderedList');
     
+    // Check if text has a foreground color applied (not black, not inside link)
+    const foreColor = document.queryCommandValue('foreColor');
+    if (foreColor && !isDefaultTextColor(foreColor) && !insideLink) {
+        formats.push('foreColor');
+    }
+    
+    // Check if text has a background/highlight color applied
+    const backColor = document.queryCommandValue('backColor');
+    if (backColor && !isDefaultBackgroundColor(backColor)) {
+        formats.push('backColor');
+    }
+    
     // Alignment - only report ONE
     if (document.queryCommandState('justifyCenter')) {
         formats.push('justifyCenter');
@@ -271,4 +283,39 @@ export function adjustColorPalettePosition() {
             }
         }
     });
+}
+
+// Helper to check if color is default/black text
+function isDefaultTextColor(color) {
+    if (!color) return true;
+    const c = color.toLowerCase().replace(/\s/g, ''); // Remove all whitespace
+    
+    // Check for various black representations
+    return c === 'rgb(0,0,0)' || 
+           c === '#000000' || 
+           c === '#000' || 
+           c === 'black' ||
+           c === '' ||
+           // Also check for very dark colors that are essentially black
+           c === 'rgb(17,24,39)' ||  // Tailwind gray-900
+           c === 'rgb(31,41,55)' ||  // Tailwind gray-800
+           c === 'rgb(55,65,81)' ||  // Tailwind gray-700
+           c === 'rgb(0,0,0,1)' ||   // With alpha
+           c === 'rgba(0,0,0,1)';
+}
+
+// Helper to check if background is default/transparent/white
+function isDefaultBackgroundColor(color) {
+    if (!color) return true;
+    const c = color.toLowerCase().replace(/\s/g, ''); // Remove all whitespace
+    
+    return c === 'rgba(0,0,0,0)' || 
+           c === 'transparent' || 
+           c === 'rgb(255,255,255)' || 
+           c === '#ffffff' || 
+           c === '#fff' || 
+           c === 'white' ||
+           c === '' ||
+           c === 'initial' ||
+           c === 'inherit';
 }
