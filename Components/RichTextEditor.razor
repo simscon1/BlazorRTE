@@ -3,7 +3,10 @@
      @onclick:stopPropagation>
     @if (ShowToolbar)
     {
-        <div class="rte-toolbar" @onmousedown="OnToolbarMouseDown">
+        <div class="rte-toolbar" 
+             role="toolbar" 
+             aria-label="Rich text formatting"
+             @onkeydown="HandleToolbarKeydown">
             @* Heading Dropdown *@
             <select class="rte-dropdown" @onchange="OnHeadingChanged" title="Heading Level">
                 <option value="p" selected="@(_currentHeadingLevel == "" || _currentHeadingLevel == "p")">Normal</option>
@@ -90,11 +93,12 @@
 
             @* Format Buttons with SVG Icons *@
             <button type="button" class="rte-btn @(IsFormatActive("bold") ? "active" : "")"
-                    @onclick="() => ExecuteCommand(FormatCommand.Bold)"
-                    title="Bold (Ctrl+B)">
-                <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linejoin="round" d="M6.75 3.744h-.753v8.25h7.125a4.125 4.125 0 0 0 0-8.25H6.75Zm0 0v.38m0 16.122h6.747a4.5 4.5 0 0 0 0-9.001h-7.5v9h.753ZM6.75 3.744h4.875a3.375 3.375 0 0 1 0 6.75H7.497v-6.75Zm0 7.5h5.25a3.75 3.75 0 0 1 0 7.5h-5.25v-7.5Z" />
-                </svg>
+                    aria-pressed="@isBold.ToString().ToLower()"
+                    aria-label="Bold"
+                    title="Bold (Ctrl+B)"
+                    tabindex="@(focusedIndex == 0 ? 0 : -1)"
+                    @onclick="ToggleBold">
+                <strong>B</strong>
             </button>
 
             <button type="button" class="rte-btn @(IsFormatActive("italic") ? "active" : "")"
@@ -136,13 +140,17 @@
 
             <span class="rte-separator"></span>
 
-            <button type="button" class="rte-btn"
+            <button type="button" class="rte-btn @(IsFormatActive("insertUnorderedList") ? "active" : "")"
+                    aria-pressed="@IsFormatActive("insertUnorderedList").ToString().ToLower()"
+                    aria-label="Bullet list"
                     @onclick="() => ExecuteCommand(FormatCommand.InsertUnorderedList)"
                     title="Bullet List">
                 ☰
             </button>
 
-            <button type="button" class="rte-btn"
+            <button type="button" class="rte-btn @(IsFormatActive("insertOrderedList") ? "active" : "")"
+                    aria-pressed="@IsFormatActive("insertOrderedList").ToString().ToLower()"
+                    aria-label="Numbered list"
                     @onclick="() => ExecuteCommand(FormatCommand.InsertOrderedList)"
                     title="Numbered List">
                 ≡
@@ -167,8 +175,10 @@
 
             <span class="rte-separator"></span>
 
-            @* ADD THESE FOUR BUTTONS *@
-            <button type="button" class="rte-btn"
+            @* Alignment buttons - use alignment variable instead of IsFormatActive *@
+            <button type="button" class="rte-btn @(alignment == "left" ? "active" : "")"
+                    aria-pressed="@(alignment == "left").ToString().ToLower()"
+                    aria-label="Align left"
                     @onclick="() => ExecuteCommand(FormatCommand.AlignLeft)"
                     title="Align Left">
                 <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -176,7 +186,9 @@
                 </svg>
             </button>
 
-            <button type="button" class="rte-btn"
+            <button type="button" class="rte-btn @(alignment == "center" ? "active" : "")"
+                    aria-pressed="@(alignment == "center").ToString().ToLower()"
+                    aria-label="Align center"
                     @onclick="() => ExecuteCommand(FormatCommand.AlignCenter)"
                     title="Align Center">
                 <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -184,16 +196,19 @@
                 </svg>
             </button>
 
-            <button type="button" class="rte-btn"
+            <button type="button" class="rte-btn @(alignment == "right" ? "active" : "")"
+                    aria-pressed="@(alignment == "right").ToString().ToLower()"
+                    aria-label="Align right"
                     @onclick="() => ExecuteCommand(FormatCommand.AlignRight)"
                     title="Align Right">
                 <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M12 17.25h8.25" />
-
                 </svg>
             </button>
 
-            <button type="button" class="rte-btn"
+            <button type="button" class="rte-btn @(alignment == "justify" ? "active" : "")"
+                    aria-pressed="@(alignment == "justify").ToString().ToLower()"
+                    aria-label="Justify"
                     @onclick="() => ExecuteCommand(FormatCommand.AlignJustify)"
                     title="Justify">
                 <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -278,13 +293,15 @@
 
             <span class="rte-separator"></span>
 
-            <button type="button" class="rte-btn"
+            <button type="button" class="rte-btn @(IsFormatActive("link") ? "active" : "")"
                     @onclick="CreateLink"
                     title="Insert Link">
                 <svg class="rte-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
                     <path d="M318-120q-82 0-140-58t-58-140q0-40 15-76t43-64l134-133 56 56-134 134q-17 17-25.5 38.5T200-318q0 49 34.5 83.5T318-200q23 0 45-8.5t39-25.5l133-134 57 57-134 133q-28 28-64 43t-76 15Zm79-220-57-57 223-223 57 57-223 223Zm251-28-56-57 134-133q17-17 25-38t8-44q0-50-34-85t-84-35q-23 0-44.5 8.5T558-726L425-592l-57-56 134-134q28-28 64-43t76-15q82 0 139.5 58T839-641q0 39-14.5 75T782-502L648-368Z" />
                 </svg>
             </button>
+
+            <span class="rte-separator"></span>
 
             <button type="button" class="rte-btn"
                     @onclick="() => ExecuteCommand(FormatCommand.RemoveFormat)"
@@ -305,6 +322,7 @@
              @onpaste="OnPaste"
              @onfocus="OnFocus"
              @onblur="OnBlur"
+             @onclick="OnEditorClick"
              @onmouseup="UpdateToolbarState"
              @onkeyup="UpdateToolbarState"
              placeholder="@Placeholder"

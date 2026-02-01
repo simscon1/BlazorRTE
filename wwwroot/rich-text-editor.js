@@ -140,14 +140,51 @@ export function getSelectedText() {
 export function getActiveFormats() {
     const formats = [];
     
+    // Check if cursor is inside a link first
+    const insideLink = isInsideLink();
+    if (insideLink) formats.push('link');
+    
     if (document.queryCommandState('bold')) formats.push('bold');
     if (document.queryCommandState('italic')) formats.push('italic');
-    if (document.queryCommandState('underline')) formats.push('underline');
+    
+    // Only report underline if NOT inside a link (links are underlined by default)
+    if (document.queryCommandState('underline') && !insideLink) {
+        formats.push('underline');
+    }
+    
     if (document.queryCommandState('strikeThrough')) formats.push('strikeThrough');
+    if (document.queryCommandState('subscript')) formats.push('subscript');
+    if (document.queryCommandState('superscript')) formats.push('superscript');
     if (document.queryCommandState('insertUnorderedList')) formats.push('insertUnorderedList');
     if (document.queryCommandState('insertOrderedList')) formats.push('insertOrderedList');
     
+    // Alignment - only report ONE
+    if (document.queryCommandState('justifyCenter')) {
+        formats.push('justifyCenter');
+    } else if (document.queryCommandState('justifyRight')) {
+        formats.push('justifyRight');
+    } else if (document.queryCommandState('justifyFull')) {
+        formats.push('justifyFull');
+    } else if (document.queryCommandState('justifyLeft')) {
+        formats.push('justifyLeft');
+    }
+    
     return formats;
+}
+
+// Helper function to check if cursor is inside a link
+function isInsideLink() {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return false;
+    
+    let node = selection.getRangeAt(0).startContainer;
+    while (node && node !== document.body) {
+        if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'A') {
+            return true;
+        }
+        node = node.parentNode;
+    }
+    return false;
 }
 
 export function getCurrentBlock() {
