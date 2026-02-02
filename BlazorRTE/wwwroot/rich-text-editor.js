@@ -92,10 +92,9 @@ export function disposeEditor(element) {
 }
 
 export function saveSelection() {
-    const sel = window.getSelection();
-    if (sel.rangeCount > 0) {
-        savedSelection = sel.getRangeAt(0);
-        console.log("Selection saved");
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        savedSelection = selection.getRangeAt(0).cloneRange();
     }
 }
 
@@ -178,14 +177,17 @@ export function setHtml(element, html) {
 }
 
 export function focusEditor(element) {
-    if (element) {
-        element.focus();
-        const range = document.createRange();
-        const selection = window.getSelection();
-        range.selectNodeContents(element);
-        range.collapse(false);
-        selection.removeAllRanges();
-        selection.addRange(range);
+    element.focus();
+    
+    // Restore the previously saved selection
+    if (savedSelection) {
+        try {
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(savedSelection);
+        } catch (e) {
+            console.warn('Could not restore selection:', e);
+        }
     }
 }
 
