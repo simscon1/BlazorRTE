@@ -204,37 +204,116 @@ namespace BlazorRTE.Components
         {
             if (e.CtrlKey || e.MetaKey)
             {
+                // Handle Ctrl+Alt shortcuts (Headings)
+                if (e.AltKey)
+                {
+                    switch (e.Key)
+                    {
+                        case "0":
+                            await ExecuteCommand(FormatCommand.Paragraph);
+                            return;
+                        case "1":
+                            await ExecuteCommand(FormatCommand.HeadingH1);
+                            return;
+                        case "2":
+                            await ExecuteCommand(FormatCommand.HeadingH2);
+                            return;
+                        case "3":
+                            await ExecuteCommand(FormatCommand.HeadingH3);
+                            return;
+                    }
+                }
+
+                // Handle Ctrl+Shift shortcuts
+                if (e.ShiftKey)
+                {
+                    switch (e.Key.ToLower())
+                    {
+                        case "x":
+                            await ExecuteCommand(FormatCommand.Strikethrough);
+                            return;
+                        case "z":
+                            await ExecuteCommand(FormatCommand.Redo);
+                            return;
+                        case "=":
+                        case "+":
+                            await ExecuteCommand(FormatCommand.Superscript);
+                            return;
+                        case "8":
+                            await ExecuteCommand(FormatCommand.InsertUnorderedList);
+                            return;
+                        case "7":
+                            await ExecuteCommand(FormatCommand.InsertOrderedList);
+                            return;
+                    }
+                    
+                    // Handle Ctrl+Shift+> and Ctrl+Shift+< (font size)
+                    // Note: > and < share keys with . and , respectively
+                    if (e.Key == ">" || e.Key == ".")
+                    {
+                        await IncreaseFontSize();
+                        return;
+                    }
+                    if (e.Key == "<" || e.Key == ",")
+                    {
+                        await DecreaseFontSize();
+                        return;
+                    }
+                }
+
+                // Handle regular Ctrl shortcuts
                 switch (e.Key.ToLower())
                 {
                     case "b":
                         await ExecuteCommand(FormatCommand.Bold);
-                        // REMOVED: await ReturnFocusToEditor(); 
                         break;
                     case "i":
                         await ExecuteCommand(FormatCommand.Italic);
-                        // REMOVED: await ReturnFocusToEditor();
                         break;
                     case "u":
                         await ExecuteCommand(FormatCommand.Underline);
-                        // REMOVED: await ReturnFocusToEditor();
                         break;
                     case "z":
-                        if (!e.ShiftKey)
-                            await ExecuteCommand(FormatCommand.Undo);
-                        else
-                            await ExecuteCommand(FormatCommand.Redo);
-                        // REMOVED: await ReturnFocusToEditor();
+                        await ExecuteCommand(FormatCommand.Undo);
                         break;
                     case "y":
                         await ExecuteCommand(FormatCommand.Redo);
-                        // REMOVED: await ReturnFocusToEditor();
                         break;
                     case "k":
-                        await CreateLink(); // Keep this - it needs focus after inserting
+                        await CreateLink();
+                        break;
+                    case "l":
+                        await ExecuteCommand(FormatCommand.AlignLeft);
+                        break;
+                    case "e":
+                        await ExecuteCommand(FormatCommand.AlignCenter);
+                        break;
+                    case "r":
+                        await ExecuteCommand(FormatCommand.AlignRight);
+                        break;
+                    case "j":
+                        await ExecuteCommand(FormatCommand.AlignJustify);
+                        break;
+                    case "[":
+                        await ExecuteCommand(FormatCommand.Outdent);
+                        break;
+                    case "]":
+                        await ExecuteCommand(FormatCommand.Indent);
+                        break;
+                    case "\\":
+                        await ExecuteCommand(FormatCommand.RemoveFormat);
+                        break;
+                    case "=":
+                        await ExecuteCommand(FormatCommand.Subscript);
                         break;
                 }
             }
-            // Removed: Duplicate Ctrl+Shift+Z handling (now handled above)
+            
+            // Handle Ctrl+Enter (Horizontal Rule)
+            if ((e.CtrlKey || e.MetaKey) && e.Key == "Enter")
+            {
+                await ExecuteCommand(FormatCommand.HorizontalRule);
+            }
         }
 
         protected Task OnPaste(ClipboardEventArgs e) => Task.CompletedTask;
@@ -1067,6 +1146,85 @@ namespace BlazorRTE.Components
                 {
                     Console.WriteLine($"ReturnFocusToEditor error: {ex.Message}");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Increase font size to next larger size
+        /// </summary>
+        private async Task IncreaseFontSize()
+        {
+            var sizes = new[] { "1", "3", "4", "5", "6", "7" };
+            var commands = new[] 
+            { 
+                FormatCommand.FontSizeSmall,
+                FormatCommand.FontSizeNormal,
+                FormatCommand.FontSizeMedium,
+                FormatCommand.FontSizeLarge,
+                FormatCommand.FontSizeXLarge,
+                FormatCommand.FontSizeXXLarge
+            };
+
+            // Get current font size from selection
+            var currentSize = await GetCurrentFontSize();
+            var currentIndex = Array.IndexOf(sizes, currentSize);
+            
+            // If current size not found or already at max, default to next size or stay at max
+            if (currentIndex == -1)
+            {
+                await ExecuteCommand(FormatCommand.FontSizeMedium); // Default to medium
+            }
+            else if (currentIndex < commands.Length - 1)
+            {
+                await ExecuteCommand(commands[currentIndex + 1]);
+            }
+        }
+
+        /// <summary>
+        /// Decrease font size to next smaller size
+        /// </summary>
+        private async Task DecreaseFontSize()
+        {
+            var sizes = new[] { "1", "3", "4", "5", "6", "7" };
+            var commands = new[] 
+            { 
+                FormatCommand.FontSizeSmall,
+                FormatCommand.FontSizeNormal,
+                FormatCommand.FontSizeMedium,
+                FormatCommand.FontSizeLarge,
+                FormatCommand.FontSizeXLarge,
+                FormatCommand.FontSizeXXLarge
+            };
+
+            // Get current font size from selection
+            var currentSize = await GetCurrentFontSize();
+            var currentIndex = Array.IndexOf(sizes, currentSize);
+            
+            // If current size not found or already at min, default to previous size or stay at min
+            if (currentIndex == -1)
+            {
+                await ExecuteCommand(FormatCommand.FontSizeNormal); // Default to normal
+            }
+            else if (currentIndex > 0)
+            {
+                await ExecuteCommand(commands[currentIndex - 1]);
+            }
+        }
+
+        /// <summary>
+        /// Get current font size of selection
+        /// </summary>
+        private async Task<string> GetCurrentFontSize()
+        {
+            if (_jsModule == null) return "3"; // Default to normal
+
+            try
+            {
+                return await _jsModule.InvokeAsync<string>("getCurrentFontSize");
+            }
+            catch
+            {
+                return "3"; // Default to normal if error
             }
         }
     }

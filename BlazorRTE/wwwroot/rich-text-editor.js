@@ -17,7 +17,31 @@ export function initializeEditor(element, dotNetRef) {
 
     element.addEventListener('keydown', (e) => {
         // Prevent default for shortcuts we handle
-        if ((e.ctrlKey || e.metaKey) && ['b', 'i', 'u', 'z', 'y', 'k'].includes(e.key.toLowerCase())) {
+        if (e.ctrlKey || e.metaKey) {
+            const key = e.key.toLowerCase();
+            
+            // Ctrl+Alt shortcuts (Headings)
+            if (e.altKey && ['0', '1', '2', '3'].includes(key)) {
+                e.preventDefault();
+                return;
+            }
+            
+            // Ctrl+Shift shortcuts
+            if (e.shiftKey) {
+                if (['x', 'z', '=', '+', '8', '7', '>', '<', '.', ','].includes(key)) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+            
+            // Regular Ctrl shortcuts
+            if (['b', 'i', 'u', 'z', 'y', 'k', 'l', 'e', 'r', 'j', '[', ']', '\\', '='].includes(key)) {
+                e.preventDefault();
+            }
+        }
+
+        // Ctrl+Enter for horizontal rule
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             e.preventDefault();
         }
 
@@ -716,4 +740,16 @@ export function getCurrentBackgroundColor() {
     }
     
     return color;
+}
+
+// Add after getCurrentBackgroundColor()
+export function getCurrentFontSize() {
+    const size = document.queryCommandValue('fontSize');
+    
+    // Font size is returned as 1-7 by execCommand
+    if (size && ['1', '2', '3', '4', '5', '6', '7'].includes(size)) {
+        return size;
+    }
+    
+    return '3'; // Default to normal (14px)
 }

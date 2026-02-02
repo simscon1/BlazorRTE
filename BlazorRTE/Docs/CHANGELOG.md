@@ -5,6 +5,54 @@ All notable changes to BlazorRTE will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-02-02
+
+### Added
+- ⌨️ **27 keyboard shortcuts** matching industry standards (Word, Google Docs)
+  - Text formatting: `Ctrl+B` (Bold), `Ctrl+I` (Italic), `Ctrl+U` (Underline), `Ctrl+Shift+X` (Strikethrough)
+  - Subscript/Superscript: `Ctrl+=`, `Ctrl+Shift+=`
+  - Alignment: `Ctrl+L/E/R/J` (Left/Center/Right/Justify)
+  - Lists: `Ctrl+Shift+8/7` (Bullet/Numbered), `Ctrl+[/]` (Indent/Outdent)
+  - Headings: `Ctrl+Alt+0/1/2/3` (Normal/H1/H2/H3)
+  - Font size: `Ctrl+Shift+>/<` (Increase/Decrease)
+  - Insert: `Ctrl+K` (Link), `Ctrl+Enter` (Horizontal Rule)
+  - Utility: `Ctrl+\` (Clear Formatting)
+- ♿ **Voice control support** (WCAG 2.5.3 compliance)
+  - Added `.sr-only` labels to all 15 icon-only buttons
+  - Screen reader-friendly button names match aria-labels
+  - Dragon NaturallySpeaking and Windows Speech Recognition compatible
+- **Heading picker UI redesign**
+  - Replaced native `<select>` with custom button + palette
+  - Matches font/size picker visual pattern
+  - Shows current heading level (H1/H2/H3/¶)
+  - Full keyboard navigation (arrows, Home, End, Escape)
+
+### Fixed
+- 🐛 Keyboard shortcuts (Ctrl+B/I/U/Z/Y) not working when typing
+  - JavaScript now intercepts and prevents browser defaults
+- 🐛 Cursor jumping to end of editor after applying formatting
+  - Smart selection restoration only when needed
+- 🐛 Font family and font size pickers closing immediately on click
+  - Added `@onclick:stopPropagation` to prevent parent handlers
+- 🐛 Selection lost when using toolbar buttons vs keyboard shortcuts
+  - Unified selection management logic
+
+### Changed
+- Removed 8 unused accessibility tracking fields
+  - Deleted `isBold`, `isItalic`, `isUnderline`, `isSubscript`, `isSuperscript`, `alignment` (write-only)
+  - Removed `IsFormatActiveAsync()` method (replaced by synchronous version)
+  - Removed duplicate `SelectHeadingLevel()` method
+- Improved selection preservation logic
+  - Only restores saved selection when no active selection exists
+  - Prevents overwriting current user selection with stale data
+- Updated all tooltips to include keyboard shortcuts
+  - Example: "Bold (Ctrl+B)", "Strikethrough (Ctrl+Shift+X)"
+
+### Documentation
+- Added [keyboard-shortcuts.md](keyboard-shortcuts.md) reference guide
+- Updated README.md with keyboard shortcuts section
+- Added comparison table with MS Word and Google Docs
+
 ## [1.0.2] - 2026-02-01
 
 ### Added
@@ -82,6 +130,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Paste as plain text (strips external formatting)
 - Accessible (ARIA labels, keyboard navigation)
 
+[1.1.0]: https://github.com/simscon1/BlazorRTE/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/simscon1/BlazorRTE/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/simscon1/BlazorRTE/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/simscon1/BlazorRTE/releases/tag/v1.0.0
