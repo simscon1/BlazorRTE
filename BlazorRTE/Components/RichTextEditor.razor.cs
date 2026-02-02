@@ -6,6 +6,20 @@ using BlazorRTE.HelperClasses;
 
 namespace BlazorRTE.Components
 {
+    // TODO: Add emoji support for rich text editor and text area
+    
+    // TODO: Accessibility improvements (v1.1.0)
+    // - Color/font pickers: Implement WAI-ARIA Menu pattern
+    //   - Arrow key navigation within popup
+    //   - Escape key to close popup
+    //   - Focus trap inside popup when open
+    // - High contrast mode: Add forced-colors media queries
+    //   - Test with Windows High Contrast (Dev Tools > Rendering > Emulate forced colors)
+    //   - Ensure UI remains usable when system colors override
+    // - Focus management: Review which buttons should return focus to editor vs stay in toolbar
+    // - Tooltips: Consider accessible tooltips (title only shows on hover, not keyboard)
+    // - Voice control: Ensure visible labels match aria-labels for voice users
+    // - Screen reader testing: Test with NVDA, JAWS, VoiceOver
 
     public partial class RichTextEditor : ComponentBase, IAsyncDisposable
     {
