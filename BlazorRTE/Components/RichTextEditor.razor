@@ -20,7 +20,7 @@
                         data-toolbar-item
                         @onfocus="() => focusedIndex = 0"
                         @onclick="() => ExecuteCommand(FormatCommand.Undo)"
-                        title="Undo (Ctrl+Z)">
+                        data-tooltip="Undo (Ctrl+Z)">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
                     </svg>
@@ -32,7 +32,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Redo)"
-                        title="Redo (Ctrl+Y)">
+                        data-tooltip="Redo (Ctrl+Y)">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m15 15 6-6m0 0-6-6m6 6H9a6 6 0 0 0 0 12h3" />
                     </svg>
@@ -49,7 +49,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onchange="OnHeadingChanged"
-                        title="Heading Level">
+                        data-tooltip="Heading Level">
                     <option value="p" selected="@(_currentHeadingLevel == "" || _currentHeadingLevel == "p")">Normal</option>
                     <option value="h1" selected="@IsHeadingActive("h1")">Heading 1</option>
                     <option value="h2" selected="@IsHeadingActive("h2")">Heading 2</option>
@@ -67,7 +67,7 @@
                             tabindex="-1"
                             data-toolbar-item
                             @onclick="ToggleFontFamilyPicker"
-                            title="Font Family">
+                            data-tooltip="Font Family">
                         Aa
                     </button>
 
@@ -89,7 +89,7 @@
                                             aria-label="@font.Value"
                                             style="font-family: @font.Key;"
                                             @onclick="@(() => SelectFontFamily(font.Key))"
-                                            title="@font.Value">
+                                            data-tooltip="@font.Value">
                                         @font.Value
                                     </button>
                                 }
@@ -109,7 +109,7 @@
                             tabindex="-1"
                             data-toolbar-item
                             @onclick="ToggleFontSizePicker"
-                            title="Font Size">
+                            data-tooltip="Font Size">
                         14
                     </button>
 
@@ -130,7 +130,7 @@
                                             tabindex="-1"
                                             aria-label="@size.Value"
                                             @onclick="@(() => SelectFontSize(size.Key))"
-                                            title="@size.Value">
+                                            data-tooltip="@size.Value">
                                         @size.Value
                                     </button>
                                 }
@@ -151,7 +151,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="ToggleBold"
-                        title="Bold (Ctrl+B)">
+                        data-tooltip="Bold (Ctrl+B)">
                     <strong aria-hidden="true">B</strong>
                 </button>
 
@@ -162,7 +162,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Italic)"
-                        title="Italic (Ctrl+I)">
+                        data-tooltip="Italic (Ctrl+I)">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5.248 20.246H9.05m0 0h3.696m-3.696 0 5.893-16.502m0 0h-3.697m3.697 0h3.803" />
                     </svg>
@@ -175,7 +175,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Underline)"
-                        title="Underline (Ctrl+U)">
+                        data-tooltip="Underline (Ctrl+U)">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.995 3.744v7.5a6 6 0 1 1-12 0v-7.5m-2.25 16.502h16.5" />
                     </svg>
@@ -188,7 +188,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Strikethrough)"
-                        title="Strikethrough">
+                        data-tooltip="Strikethrough">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 12a8.912 8.912 0 0 1-.318-.079c-1.585-.424-2.904-1.247-3.76-2.236-.873-1.009-1.265-2.19-.968-3.301.59-2.2 3.663-3.29 6.863-2.432A8.186 8.186 0 0 1 16.5 5.21M6.42 17.81c.857.99 2.176 1.812 3.761 2.237 3.2.858 6.274-.23 6.863-2.431.233-.868.044-1.779-.465-2.617M3.75 12h16.5" />
                     </svg>
@@ -201,7 +201,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Subscript)"
-                        title="Subscript">
+                        data-tooltip="Subscript">
                     <span aria-hidden="true">x<sub>2</sub></span>
                 </button>
 
@@ -212,7 +212,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Superscript)"
-                        title="Superscript">
+                        data-tooltip="Superscript">
                     <span aria-hidden="true">x<sup>2</sup></span>
                 </button>
             </div>
@@ -232,7 +232,7 @@
                             data-toolbar-item
                             @onclick="ToggleTextColorPicker"
                             @onclick:stopPropagation
-                            title="Text Color">
+                            data-tooltip="Text Color">
                         <span aria-hidden="true" style="font-weight: bold; color: #000; border-bottom: 3px solid @_currentTextColor; line-height: 1;">A</span>
                     </button>
 
@@ -254,7 +254,7 @@
                                             aria-label="@color.Value"
                                             style="background-color: @color.Key;"
                                             @onclick="@(() => SelectTextColor(color.Key))"
-                                            title="@color.Value"></button>
+                                            data-tooltip="@color.Value"></button>
                                 }
                             </div>
                         </div>
@@ -272,7 +272,7 @@
                             data-toolbar-item
                             @onclick="ToggleBackgroundColorPicker"
                             @onclick:stopPropagation
-                            title="Highlight Color">
+                            data-tooltip="Highlight Color">
                         <span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background-color: @_currentHighlightColor; font-weight: bold; color: #000; border: 1px solid #374151; border-radius: 4px; font-size: 12px;">A</span>
                     </button>
 
@@ -295,7 +295,7 @@
                                                 tabindex="-1"
                                                 aria-label="@color.Value"
                                                 @onclick="@(() => SelectBackgroundColor(color.Key))"
-                                                title="@color.Value">
+                                                data-tooltip="@color.Value">
                                             <span aria-hidden="true">✕</span>
                                         </button>
                                     }
@@ -308,7 +308,7 @@
                                                 aria-label="@color.Value"
                                                 style="background-color: @color.Key;"
                                                 @onclick="@(() => SelectBackgroundColor(color.Key))"
-                                                title="@color.Value"></button>
+                                                data-tooltip="@color.Value"></button>
                                     }
                                 }
                             </div>
@@ -328,7 +328,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.InsertUnorderedList)"
-                        title="Bullet List">
+                        data-tooltip="Bullet List">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                     </svg>
@@ -341,7 +341,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.InsertOrderedList)"
-                        title="Numbered List">
+                        data-tooltip="Numbered List">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.242 5.992h12m-12 6.003H20.24m-12 5.999h12M4.117 7.495v-3.75H2.99m1.125 3.75H2.99m1.125 0H5.24m-1.92 2.577a1.125 1.125 0 1 1 1.591 1.59l-1.83 1.83h2.16M2.99 15.745h1.125a1.125 1.125 0 0 1 0 2.25H3.74m0-.002h.375a1.125 1.125 0 0 1 0 2.25H2.99" />
                     </svg>
@@ -353,7 +353,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Outdent)"
-                        title="Decrease Indent">
+                        data-tooltip="Decrease Indent">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                     </svg>
@@ -365,7 +365,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Indent)"
-                        title="Increase Indent">
+                        data-tooltip="Increase Indent">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                     </svg>
@@ -383,7 +383,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.AlignLeft)"
-                        title="Align Left">
+                        data-tooltip="Align Left">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
                     </svg>
@@ -396,7 +396,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.AlignCenter)"
-                        title="Align Center">
+                        data-tooltip="Align Center">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h16.5" />
                     </svg>
@@ -409,7 +409,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.AlignRight)"
-                        title="Align Right">
+                        data-tooltip="Align Right">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M12 17.25h8.25" />
                     </svg>
@@ -422,7 +422,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.AlignJustify)"
-                        title="Justify">
+                        data-tooltip="Justify">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                     </svg>
@@ -440,7 +440,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="CreateLink"
-                        title="Insert Link">
+                        data-tooltip="Insert Link">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
                         <path d="M318-120q-82 0-140-58t-58-140q0-40 15-76t43-64l134-133 56 56-134 134q-17 17-25.5 38.5T200-318q0 49 34.5 83.5T318-200q23 0 45-8.5t39-25.5l133-134 57 57-134 133q-28 28-64 43t-76 15Zm79-220-57-57 223-223 57 57-223 223Zm251-28-56-57 134-133q17-17 25-38t8-44q0-50-34-85t-84-35q-23 0-44.5 8.5T558-726L425-592l-57-56 134-134q28-28 64-43t76-15q82 0 139.5 58T839-641q0 39-14.5 75T782-502L648-368Z" />
                     </svg>
@@ -452,7 +452,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.HorizontalRule)"
-                        title="Horizontal Rule">
+                        data-tooltip="Horizontal Rule">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
                     </svg>
@@ -468,7 +468,7 @@
                     tabindex="-1"
                     data-toolbar-item
                     @onclick="() => ExecuteCommand(FormatCommand.RemoveFormat)"
-                    title="Clear Formatting">
+                    data-tooltip="Clear Formatting">
                 <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
