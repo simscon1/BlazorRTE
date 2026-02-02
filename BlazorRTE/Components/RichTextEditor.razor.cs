@@ -80,7 +80,19 @@ namespace BlazorRTE.Components
         private bool isUnderline = false;
         private string alignment = "left";
         private int focusedIndex = 0;
-        private const int ToolbarButtonCount = 24; // 23 buttons + 1 select
+        private const int ToolbarButtonCount = 24; // Was 24, now includes font family and font size
+
+        // NEW: Element References for Accessibility
+        private ElementReference _fontFamilyButton;
+        private ElementReference _fontFamilyPalette;
+        private ElementReference _fontSizeButton;
+        private ElementReference _fontSizePalette;
+        private ElementReference _textColorButton;
+        private ElementReference _textColorPalette;
+        private ElementReference _bgColorButton;
+        private ElementReference _bgColorPalette;
+
+        private const int ColorGridColumns = 3; // 3 columns for color grids
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -616,6 +628,7 @@ namespace BlazorRTE.Components
                 try
                 {
                     await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
+                    await SetupColorPickerNavigation(_textColorPalette, ColorGridColumns);
                 }
                 catch { }
             }
@@ -635,6 +648,7 @@ namespace BlazorRTE.Components
                 try
                 {
                     await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
+                    await SetupColorPickerNavigation(_bgColorPalette, ColorGridColumns);
                 }
                 catch { }
             }
@@ -643,7 +657,7 @@ namespace BlazorRTE.Components
         protected async Task ToggleFontSizePicker()
         {
             _showFontSizePicker = !_showFontSizePicker;
-            _showFontFamilyPicker = false; // Close other pickers
+            _showFontFamilyPicker = false;
             _showTextColorPicker = false;
             _showBackgroundColorPicker = false;
 
@@ -651,7 +665,10 @@ namespace BlazorRTE.Components
             {
                 StateHasChanged();
                 await Task.Delay(50);
-                try { await _jsModule.InvokeVoidAsync("adjustColorPalettePosition"); }
+                try { 
+                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
+                    await SetupListPickerNavigation(_fontSizePalette);
+                }
                 catch { }
             }
         }
@@ -659,7 +676,7 @@ namespace BlazorRTE.Components
         protected async Task ToggleFontFamilyPicker()
         {
             _showFontFamilyPicker = !_showFontFamilyPicker;
-            _showFontSizePicker = false; // Close other pickers
+            _showFontSizePicker = false;
             _showTextColorPicker = false;
             _showBackgroundColorPicker = false;
 
@@ -667,7 +684,10 @@ namespace BlazorRTE.Components
             {
                 StateHasChanged();
                 await Task.Delay(50);
-                try { await _jsModule.InvokeVoidAsync("adjustColorPalettePosition"); }
+                try { 
+                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
+                    await SetupListPickerNavigation(_fontFamilyPalette);
+                }
                 catch { }
             }
         }
@@ -885,6 +905,144 @@ namespace BlazorRTE.Components
             Console.WriteLine("Editor clicked!");
             await UpdateToolbarState();
         }
-         
+
+        /// <summary>
+        /// Handle keyboard navigation in color picker palettes
+        /// </summary>
+        private async Task HandleColorPickerKeydown(KeyboardEventArgs e, string pickerType)
+        {
+            if (_jsModule == null) return;
+
+            try
+            {
+                // Handle Escape key
+                if (e.Key == "Escape")
+                {
+                    await ClosePickerAndFocusButton(pickerType);
+                    return;
+                }
+
+                // Let JavaScript handle arrow key navigation
+                if (e.Key.StartsWith("Arrow") || e.Key == "Home" || e.Key == "End")
+                {
+                    await _jsModule.InvokeVoidAsync("handleColorPickerKeydown", e, ColorGridColumns);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"HandleColorPickerKeydown error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle keyboard navigation in font/size picker lists
+        /// </summary>
+        private async Task HandleListPickerKeydown(KeyboardEventArgs e, string pickerType)
+        {
+            if (_jsModule == null) return;
+
+            try
+            {
+                // Handle Escape key
+                if (e.Key == "Escape")
+                {
+                    await ClosePickerAndFocusButton(pickerType);
+                    return;
+                }
+
+                // Let JavaScript handle arrow key navigation
+                if (e.Key.StartsWith("Arrow") || e.Key == "Home" || e.Key == "End")
+                {
+                    await _jsModule.InvokeVoidAsync("handleListPickerKeydown", e);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"HandleListPickerKeydown error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Close picker and return focus to trigger button
+        /// </summary>
+        private async Task ClosePickerAndFocusButton(string pickerType)
+        {
+            switch (pickerType)
+            {
+                case "textColor":
+                    _showTextColorPicker = false;
+                    await Task.Delay(10);
+                    await FocusElement(_textColorButton);
+                    break;
+                case "backgroundColor":
+                    _showBackgroundColorPicker = false;
+                    await Task.Delay(10);
+                    await FocusElement(_bgColorButton);
+                    break;
+                case "fontFamily":
+                    _showFontFamilyPicker = false;
+                    await Task.Delay(10);
+                    await FocusElement(_fontFamilyButton);
+                    break;
+                case "fontSize":
+                    _showFontSizePicker = false;
+                    await Task.Delay(10);
+                    await FocusElement(_fontSizeButton);
+                    break;
+            }
+            StateHasChanged();
+        }
+
+        /// <summary>
+        /// Focus an element reference
+        /// </summary>
+        private async Task FocusElement(ElementReference elementRef)
+        {
+            if (_jsModule == null) return;
+            
+            try
+            {
+                await _jsModule.InvokeVoidAsync("focusElement", elementRef);
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Setup keyboard navigation when color picker opens
+        /// </summary>
+        private async Task SetupColorPickerNavigation(ElementReference palette, int columns)
+        {
+            if (_jsModule == null) return;
+
+            try
+            {
+                // Pass the picker type so JS knows which button to focus on Escape
+                var buttonRef = palette.Equals(_textColorPalette) ? _textColorButton : _bgColorButton;
+                await _jsModule.InvokeVoidAsync("setupColorPickerNavigation", palette, columns, buttonRef);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SetupColorPickerNavigation error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Setup keyboard navigation when list picker opens
+        /// </summary>
+        private async Task SetupListPickerNavigation(ElementReference palette)
+        {
+            if (_jsModule == null) return;
+
+            try
+            {
+                // Pass the picker type so JS knows which button to focus on Escape
+                var buttonRef = palette.Equals(_fontFamilyPalette) ? _fontFamilyButton : _fontSizeButton;
+                await _jsModule.InvokeVoidAsync("setupListPickerNavigation", palette, buttonRef);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SetupListPickerNavigation error: {ex.Message}");
+            }
+        }
     }
 }

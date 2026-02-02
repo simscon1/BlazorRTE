@@ -12,14 +12,35 @@ export function initializeEditor(element, dotNetRef) {
 
     editorInstances.set(element, { dotNetRef });
 
-    // Prevent browser shortcuts BEFORE they're handled (capture phase)
+    // Track if Shift+Tab was pressed to navigate backwards
+    let shiftTabPressed = false;
+
     element.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab' && e.shiftKey) {
+            shiftTabPressed = true;
+        }
+        
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
             e.preventDefault();
             e.stopPropagation();
             console.log("Ctrl+K intercepted");
         }
-    }, true); // capture: true is important
+    }, true);
+
+    // When editor gains focus via Shift+Tab, focus the last toolbar button
+    element.addEventListener('focus', (e) => {
+        if (shiftTabPressed) {
+            shiftTabPressed = false;
+            const toolbar = document.querySelector('.rte-toolbar');
+            if (toolbar) {
+                const toolbarItems = toolbar.querySelectorAll('[data-toolbar-item]');
+                if (toolbarItems.length > 0) {
+                    e.preventDefault();
+                    toolbarItems[toolbarItems.length - 1].focus();
+                }
+            }
+        }
+    });
 
     // Save selection when toolbar is clicked
     element.addEventListener('blur', () => {
@@ -356,4 +377,224 @@ export function getToolbarFocusableCount() {
     if (!toolbar) return 0;
     
     return toolbar.querySelectorAll('button, select').length;
+}
+
+// NEW: Accessibility helper for picker navigation
+export function setupPickerNavigation(palette, trigger, dotNetRef) {
+    if (!palette) return;
+
+    // Find all focusable options (buttons with role="option")
+    const items = palette.querySelectorAll('[role="option"]');
+    if (items.length === 0) return;
+
+    // Focus the first item immediately
+    setTimeout(() => items[0].focus(), 10);
+
+    palette.addEventListener('keydown', (e) => {
+        const active = document.activeElement;
+        // Convert NodeList to Array to find index
+        const index = Array.from(items).indexOf(active);
+
+        // Escape: Close picker and return focus to trigger
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            dotNetRef.invokeMethodAsync('CloseActivePickers');
+            if (trigger) trigger.focus();
+        }
+        // Arrows: Navigate grid/list
+        else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            const next = (index + 1) % items.length;
+            items[next].focus();
+        }
+        else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            const prev = (index - 1 + items.length) % items.length;
+            items[prev].focus();
+        }
+        // Tab: Trap focus inside popup
+        else if (e.key === 'Tab') {
+            e.preventDefault();
+            if (e.shiftKey) {
+                const prev = (index - 1 + items.length) % items.length;
+                items[prev].focus();
+            } else {
+                const next = (index + 1) % items.length;
+                items[next].focus();
+            }
+        }
+        // Home: First item
+        else if (e.key === 'Home') {
+            e.preventDefault();
+            items[0].focus();
+        }
+        // End: Last item
+        else if (e.key === 'End') {
+            e.preventDefault();
+            items[items.length - 1].focus();
+        }
+    });
+}
+
+/**
+ * Setup keyboard navigation for color picker grids
+ * @param {HTMLElement} palette - The color palette container
+ * @param {number} columns - Number of columns in the grid
+ * @param {HTMLElement} triggerButton - The button that opened the picker
+ */
+export function setupColorPickerNavigation(palette, columns, triggerButton) {
+    if (!palette) return;
+
+    const colorButtons = Array.from(palette.querySelectorAll('.rte-palette-color'));
+    if (colorButtons.length === 0) return;
+
+    // Focus the first color button when palette opens
+    setTimeout(() => {
+        if (colorButtons[0]) {
+            colorButtons[0].focus();
+        }
+    }, 50);
+
+    // Attach keyboard handler directly to palette
+    const keydownHandler = (event) => {
+        const key = event.key;
+        if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Escape'].includes(key)) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const buttons = Array.from(palette.querySelectorAll('.rte-palette-color'));
+        const currentIndex = buttons.indexOf(event.target);
+        if (currentIndex === -1) return;
+
+        let newIndex = currentIndex;
+        const rows = Math.ceil(buttons.length / columns);
+
+        switch (key) {
+            case 'ArrowRight':
+                newIndex = (currentIndex + 1) % buttons.length;
+                break;
+            case 'ArrowLeft':
+                newIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+                break;
+            case 'ArrowDown':
+                newIndex = currentIndex + columns;
+                if (newIndex >= buttons.length) {
+                    // Wrap to top of same column
+                    newIndex = currentIndex % columns;
+                }
+                break;
+            case 'ArrowUp':
+                newIndex = currentIndex - columns;
+                if (newIndex < 0) {
+                    // Wrap to bottom of same column
+                    const column = currentIndex % columns;
+                    const lastRowStart = (rows - 1) * columns;
+                    newIndex = lastRowStart + column;
+                    if (newIndex >= buttons.length) {
+                        newIndex = lastRowStart + column - columns;
+                    }
+                }
+                break;
+            case 'Home':
+                newIndex = 0;
+                break;
+            case 'End':
+                newIndex = buttons.length - 1;
+                break;
+            case 'Escape':
+                if (triggerButton) {
+                    triggerButton.click(); // Close by clicking trigger again
+                    setTimeout(() => triggerButton.focus(), 10);
+                }
+                return;
+        }
+
+        if (newIndex >= 0 && newIndex < buttons.length) {
+            buttons[newIndex].focus();
+        }
+    };
+
+    palette.addEventListener('keydown', keydownHandler);
+    
+    // Store handler so it can be removed later
+    palette._keydownHandler = keydownHandler;
+}
+
+/**
+ * Setup keyboard navigation for font/size pickers (vertical list)
+ * @param {HTMLElement} palette - The palette container
+ * @param {HTMLElement} triggerButton - The button that opened the picker
+ */
+export function setupListPickerNavigation(palette, triggerButton) {
+    if (!palette) return;
+
+    const options = Array.from(palette.querySelectorAll('.rte-font-option'));
+    if (options.length === 0) return;
+
+    // Focus the first option when palette opens
+    setTimeout(() => {
+        if (options[0]) {
+            options[0].focus();
+        }
+    }, 50);
+
+    // Attach keyboard handler directly to palette
+    const keydownHandler = (event) => {
+        const key = event.key;
+        if (!['ArrowUp', 'ArrowDown', 'Home', 'End', 'Escape'].includes(key)) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const opts = Array.from(palette.querySelectorAll('.rte-font-option'));
+        const currentIndex = opts.indexOf(event.target);
+        if (currentIndex === -1) return;
+
+        let newIndex = currentIndex;
+
+        switch (key) {
+            case 'ArrowDown':
+                newIndex = (currentIndex + 1) % opts.length;
+                break;
+            case 'ArrowUp':
+                newIndex = (currentIndex - 1 + opts.length) % opts.length;
+                break;
+            case 'Home':
+                newIndex = 0;
+                break;
+            case 'End':
+                newIndex = opts.length - 1;
+                break;
+            case 'Escape':
+                if (triggerButton) {
+                    triggerButton.click(); // Close by clicking trigger again
+                    setTimeout(() => triggerButton.focus(), 10);
+                }
+                return;
+        }
+
+        if (newIndex >= 0 && newIndex < opts.length) {
+            opts[newIndex].focus();
+        }
+    };
+
+    palette.addEventListener('keydown', keydownHandler);
+    
+    // Store handler so it can be removed later
+    palette._keydownHandler = keydownHandler;
+}
+
+/**
+ * Focus an element
+ */
+export function focusElement(element) {
+    if (element) {
+        element.focus();
+    }
 }

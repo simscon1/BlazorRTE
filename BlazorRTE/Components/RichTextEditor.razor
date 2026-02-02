@@ -56,27 +56,28 @@
                     <option value="h3" selected="@IsHeadingActive("h3")">Heading 3</option>
                 </select>
 
-                @* Font Family Picker (before Font Size) *@
+                @* Font Family Picker *@
                 <div class="rte-color-dropdown">
                     <button type="button"
+                            @ref="_fontFamilyButton" 
                             class="rte-btn"
                             aria-label="Font family"
-                            aria-haspopup="listbox"
+                            aria-haspopup="true"
                             aria-expanded="@_showFontFamilyPicker.ToString().ToLower()"
                             tabindex="-1"
                             data-toolbar-item
                             @onclick="ToggleFontFamilyPicker"
-                            @onclick:stopPropagation
                             title="Font Family">
                         Aa
                     </button>
 
                     @if (_showFontFamilyPicker)
                     {
-                        <div class="rte-color-palette rte-font-family-palette"
+                        <div @ref="_fontFamilyPalette"
+                             class="rte-color-palette rte-font-family-palette"
                              role="listbox"
                              aria-label="Font families"
-                             @onclick:stopPropagation>
+                             @onkeydown="@(e => HandleListPickerKeydown(e, "fontFamily"))">
                             <div class="rte-color-palette-title" id="font-family-label">Font Family</div>
                             <div class="rte-font-family-list" aria-labelledby="font-family-label">
                                 @foreach (var font in _fontFamilies)
@@ -84,6 +85,7 @@
                                     <button type="button"
                                             class="rte-font-option"
                                             role="option"
+                                            tabindex="-1"
                                             aria-label="@font.Value"
                                             style="font-family: @font.Key;"
                                             @onclick="@(() => SelectFontFamily(font.Key))"
@@ -96,27 +98,28 @@
                     }
                 </div>
 
-                @* Font Size Picker (after Font Family) *@
+                @* Font Size Picker *@
                 <div class="rte-color-dropdown">
                     <button type="button"
+                            @ref="_fontSizeButton"
                             class="rte-btn"
                             aria-label="Font size"
-                            aria-haspopup="listbox"
+                            aria-haspopup="true"
                             aria-expanded="@_showFontSizePicker.ToString().ToLower()"
                             tabindex="-1"
                             data-toolbar-item
                             @onclick="ToggleFontSizePicker"
-                            @onclick:stopPropagation
                             title="Font Size">
                         14
                     </button>
 
                     @if (_showFontSizePicker)
                     {
-                        <div class="rte-color-palette"
+                        <div @ref="_fontSizePalette"
+                             class="rte-color-palette"
                              role="listbox"
                              aria-label="Font sizes"
-                             @onclick:stopPropagation>
+                             @onkeydown="@(e => HandleListPickerKeydown(e, "fontSize"))">
                             <div class="rte-color-palette-title" id="font-size-label">Font Size</div>
                             <div class="rte-font-size-list" aria-labelledby="font-size-label">
                                 @foreach (var size in _fontSizes)
@@ -124,6 +127,7 @@
                                     <button type="button"
                                             class="rte-font-option"
                                             role="option"
+                                            tabindex="-1"
                                             aria-label="@size.Value"
                                             @onclick="@(() => SelectFontSize(size.Key))"
                                             title="@size.Value">
@@ -219,6 +223,7 @@
             <div role="group" aria-label="Text colors">
                 <div class="rte-color-dropdown">
                     <button type="button"
+                            @ref="_textColorButton"
                             class="rte-btn @(IsFormatActive("foreColor") ? "active" : "")"
                             aria-label="Text color"
                             aria-haspopup="true"
@@ -233,8 +238,9 @@
 
                     @if (_showTextColorPicker)
                     {
-                        <div class="rte-color-palette"
-                             role="listbox"
+                        <div @ref="_textColorPalette"
+                             class="rte-color-palette"
+                             role="grid"
                              aria-label="Text colors"
                              @onclick:stopPropagation>
                             <div class="rte-color-palette-title" id="text-color-label">Text Color</div>
@@ -243,7 +249,8 @@
                                 {
                                     <button type="button"
                                             class="rte-palette-color"
-                                            role="option"
+                                            role="gridcell"
+                                            tabindex="-1"
                                             aria-label="@color.Value"
                                             style="background-color: @color.Key;"
                                             @onclick="@(() => SelectTextColor(color.Key))"
@@ -256,6 +263,7 @@
 
                 <div class="rte-color-dropdown">
                     <button type="button"
+                            @ref="_bgColorButton"
                             class="rte-btn @(IsFormatActive("backColor") ? "active" : "")"
                             aria-label="Highlight color"
                             aria-haspopup="true"
@@ -265,45 +273,48 @@
                             @onclick="ToggleBackgroundColorPicker"
                             @onclick:stopPropagation
                             title="Highlight Color">
-                        <span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background-color: #FFFF00; font-weight: bold; color: #000; border-radius: 2px; font-size: 12px;">A</span>
-                    </button>
+        <span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background-color: #FFFF00; font-weight: bold; color: #000; border-radius: 2px; font-size: 12px;">A</span>
+    </button>
 
-                    @if (_showBackgroundColorPicker)
+    @if (_showBackgroundColorPicker)
+    {
+        <div @ref="_bgColorPalette"
+             class="rte-color-palette"
+             role="grid"
+             aria-label="Highlight colors"
+             @onclick:stopPropagation>
+            <div class="rte-color-palette-title" id="bg-color-label">Highlight Color</div>
+            <div class="rte-color-palette-grid" aria-labelledby="bg-color-label">
+                @foreach (var color in ColorPalette.BackgroundColors)
+                {
+                    @if (color.Key == "transparent")
                     {
-                        <div class="rte-color-palette"
-                             role="listbox"
-                             aria-label="Highlight colors"
-                             @onclick:stopPropagation>
-                            <div class="rte-color-palette-title" id="bg-color-label">Highlight Color</div>
-                            <div class="rte-color-palette-grid" aria-labelledby="bg-color-label">
-                                @foreach (var color in ColorPalette.BackgroundColors)
-                                {
-                                    @if (color.Key == "transparent")
-                                    {
-                                        <button type="button"
-                                                class="rte-palette-color rte-palette-color-none"
-                                                role="option"
-                                                aria-label="@color.Value"
-                                                @onclick="@(() => SelectBackgroundColor(color.Key))"
-                                                title="@color.Value">
-                                            <span aria-hidden="true">✕</span>
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <button type="button"
-                                                class="rte-palette-color"
-                                                role="option"
-                                                aria-label="@color.Value"
-                                                style="background-color: @color.Key;"
-                                                @onclick="@(() => SelectBackgroundColor(color.Key))"
-                                                title="@color.Value"></button>
-                                    }
-                                }
-                            </div>
-                        </div>
+                        <button type="button"
+                                class="rte-palette-color rte-palette-color-none"
+                                role="gridcell"
+                                tabindex="-1"
+                                aria-label="@color.Value"
+                                @onclick="@(() => SelectBackgroundColor(color.Key))"
+                                title="@color.Value">
+                            <span aria-hidden="true">✕</span>
+                        </button>
                     }
-                </div>
+                    else
+                    {
+                        <button type="button"
+                                class="rte-palette-color"
+                                role="gridcell"
+                                tabindex="-1"
+                                aria-label="@color.Value"
+                                style="background-color: @color.Key;"
+                                @onclick="@(() => SelectBackgroundColor(color.Key))"
+                                title="@color.Value"></button>
+                    }
+                }
+            </div>
+        </div>
+    }
+</div>
             </div>
 
             <span class="rte-separator" role="separator" aria-orientation="vertical"></span>
