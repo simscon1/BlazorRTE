@@ -43,18 +43,44 @@
 
             @* ===== TEXT STYLE GROUP ===== *@
             <div role="group" aria-label="Text style">
-                @* Select - not a Tab stop *@
-                <select class="rte-dropdown"
-                        aria-label="Text style"
-                        tabindex="-1"
-                        data-toolbar-item
-                        @onchange="OnHeadingChanged"
-                        data-tooltip="Heading Level">
-                    <option value="p" selected="@(_currentHeadingLevel == "" || _currentHeadingLevel == "p")">Normal</option>
-                    <option value="h1" selected="@IsHeadingActive("h1")">Heading 1</option>
-                    <option value="h2" selected="@IsHeadingActive("h2")">Heading 2</option>
-                    <option value="h3" selected="@IsHeadingActive("h3")">Heading 3</option>
-                </select>
+                @* Heading Level Picker *@
+                <div class="rte-color-dropdown">
+                    <button type="button"
+                            @ref="_headingButton"
+                            class="rte-btn rte-btn-wide"
+                            aria-label="Heading level"
+                            aria-haspopup="true"
+                            aria-expanded="@_showHeadingPicker.ToString().ToLower()"
+                            tabindex="-1"
+                            data-toolbar-item
+                            @onclick="ToggleHeadingPicker"
+                            @onclick:stopPropagation
+                            data-tooltip="Heading Level">
+                        @GetCurrentHeadingLabel()
+                    </button>
+
+                    @if (_showHeadingPicker)
+                    {
+                        <div @ref="_headingPalette"
+                             class="rte-color-palette"
+                             role="listbox"
+                             aria-label="Heading levels"
+                             @onclick:stopPropagation
+                             @onkeydown="@(e => HandleListPickerKeydown(e, "heading"))">
+                            <div class="rte-color-palette-title">Heading Level</div>
+                            <div class="rte-font-size-list">
+                                <button type="button" class="rte-font-option" role="option" tabindex="-1" 
+                                        @onclick="@(() => SelectHeading("p"))">Normal</button>
+                                <button type="button" class="rte-font-option" role="option" tabindex="-1" 
+                                        @onclick="@(() => SelectHeading("h1"))">Heading 1</button>
+                                <button type="button" class="rte-font-option" role="option" tabindex="-1" 
+                                        @onclick="@(() => SelectHeading("h2"))">Heading 2</button>
+                                <button type="button" class="rte-font-option" role="option" tabindex="-1" 
+                                        @onclick="@(() => SelectHeading("h3"))">Heading 3</button>
+                            </div>
+                        </div>
+                    }
+                </div>
 
                 @* Font Family Picker *@
                 <div class="rte-color-dropdown">
@@ -486,7 +512,7 @@
              class="rte-content"
              style="@GetEditorStyle()"
              @oninput="OnInput"
-             @onkeydown="OnKeyDown"
+             @onkeydown="OnKeyDown" 
              @onpaste="OnPaste"
              @onfocus="OnFocus"
              @onblur="OnBlur"

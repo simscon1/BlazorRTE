@@ -101,6 +101,11 @@
     color: #1e40af;
 }
 
+/* ADD THIS - Wider buttons for typography options */
+.rte-btn-wide {
+    min-width: 48px;
+}
+
 .rte-separator {
     width: 1px;
     height: 24px;

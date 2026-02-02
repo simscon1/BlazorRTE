@@ -16,6 +16,11 @@ export function initializeEditor(element, dotNetRef) {
     let shiftTabPressed = false;
 
     element.addEventListener('keydown', (e) => {
+        // Prevent default for shortcuts we handle
+        if ((e.ctrlKey || e.metaKey) && ['b', 'i', 'u', 'z', 'y', 'k'].includes(e.key.toLowerCase())) {
+            e.preventDefault();
+        }
+
         if (e.key === 'Tab' && e.shiftKey) {
             shiftTabPressed = true;
         }
