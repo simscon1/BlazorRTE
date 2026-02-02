@@ -24,12 +24,6 @@ export function initializeEditor(element, dotNetRef) {
         if (e.key === 'Tab' && e.shiftKey) {
             shiftTabPressed = true;
         }
-        
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log("Ctrl+K intercepted");
-        }
     }, true);
 
     // When editor gains focus via Shift+Tab, focus the last toolbar button
@@ -109,7 +103,12 @@ export function restoreSelection() {
 
 export function executeCommand(command, value = null) {
     console.log("executeCommand:", command);
-    restoreSelection();
+    
+    // Only restore saved selection if there's no current selection
+    const currentSelection = window.getSelection();
+    if (!currentSelection || currentSelection.rangeCount === 0 || currentSelection.isCollapsed) {
+        restoreSelection();
+    }
 
     // Special handling for horizontal rule
     if (command === 'insertHorizontalRule') {
@@ -117,14 +116,12 @@ export function executeCommand(command, value = null) {
         return;
     }
 
-    // NEW: Handle subscript/superscript mutual exclusivity
+    // Handle subscript/superscript mutual exclusivity
     if (command === 'subscript') {
-        // If superscript is active, turn it off first
         if (document.queryCommandState('superscript')) {
             document.execCommand('superscript', false, null);
         }
     } else if (command === 'superscript') {
-        // If subscript is active, turn it off first
         if (document.queryCommandState('subscript')) {
             document.execCommand('subscript', false, null);
         }
@@ -135,31 +132,61 @@ export function executeCommand(command, value = null) {
 
 export function executeFormatBlock(blockType) {
     console.log("executeFormatBlock:", blockType);
-    restoreSelection();
+    
+    // Only restore saved selection if there's no current selection
+    const currentSelection = window.getSelection();
+    if (!currentSelection || currentSelection.rangeCount === 0 || currentSelection.isCollapsed) {
+        restoreSelection();
+    }
+    
     document.execCommand('formatBlock', false, blockType);
 }
 
 export function executeFontSize(size) {
     console.log("executeFontSize:", size);
-    restoreSelection();
+    
+    // Only restore saved selection if there's no current selection
+    const currentSelection = window.getSelection();
+    if (!currentSelection || currentSelection.rangeCount === 0 || currentSelection.isCollapsed) {
+        restoreSelection();
+    }
+    
     document.execCommand('fontSize', false, size);
 }
 
 export function executeFontName(fontName) {
     console.log("executeFontName:", fontName);
-    restoreSelection();
+    
+    // Only restore saved selection if there's no current selection
+    const currentSelection = window.getSelection();
+    if (!currentSelection || currentSelection.rangeCount === 0 || currentSelection.isCollapsed) {
+        restoreSelection();
+    }
+    
     document.execCommand('fontName', false, fontName);
 }
 
 export function executeForeColor(color) {
     console.log("executeForeColor:", color);
-    restoreSelection();
+    
+    // Only restore saved selection if there's no current selection
+    const currentSelection = window.getSelection();
+    if (!currentSelection || currentSelection.rangeCount === 0 || currentSelection.isCollapsed) {
+        restoreSelection();
+    }
+    
     document.execCommand('foreColor', false, color);
 }
  
 export function executeBackColor(color) {
     console.log("executeBackColor:", color);
-    restoreSelection();
+    
+    // Only restore saved selection if there's no current selection
+    const currentSelection = window.getSelection();
+    if (!currentSelection || currentSelection.rangeCount === 0 || currentSelection.isCollapsed) {
+        restoreSelection();
+    }
+    
     document.execCommand('backColor', false, color);
 }
 

@@ -12,8 +12,7 @@ namespace BlazorRTE.Components
     // - High contrast mode: Add forced-colors media queries
     //   - Test with Windows High Contrast (Dev Tools > Rendering > Emulate forced colors)
     //   - Ensure UI remains usable when system colors override
-    // - Focus management: Review which buttons should return focus to editor vs stay in toolbar
-
+ 
     // - Voice control: Ensure visible labels match aria-labels for voice users
     // - Screen reader testing: Test with NVDA, JAWS, VoiceOver
 
