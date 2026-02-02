@@ -5,18 +5,20 @@
      @onclick:stopPropagation>
     @if (ShowToolbar)
     {
-        <div class="rte-toolbar" 
-             role="toolbar" 
+        <div class="rte-toolbar"
+             role="toolbar"
              aria-label="Rich text formatting"
              aria-controls="rte-editor"
              @onkeydown="HandleToolbarKeydown">
-            
+
             @* ===== HISTORY GROUP ===== *@
             <div role="group" aria-label="History">
-                <button type="button" 
+                <button type="button"
                         class="rte-btn"
                         aria-label="Undo"
-                        tabindex="@(focusedIndex == 0 ? 0 : -1)"
+                        tabindex="0"
+                        data-toolbar-item
+                        @onfocus="() => focusedIndex = 0"
                         @onclick="() => ExecuteCommand(FormatCommand.Undo)"
                         title="Undo (Ctrl+Z)">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -24,10 +26,11 @@
                     </svg>
                 </button>
 
-                <button type="button" 
+                <button type="button"
                         class="rte-btn"
                         aria-label="Redo"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Redo)"
                         title="Redo (Ctrl+Y)">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -40,9 +43,12 @@
 
             @* ===== TEXT STYLE GROUP ===== *@
             <div role="group" aria-label="Text style">
-                <select class="rte-dropdown" 
+                @* Select - not a Tab stop *@
+                <select class="rte-dropdown"
                         aria-label="Text style"
-                        @onchange="OnHeadingChanged" 
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onchange="OnHeadingChanged"
                         title="Heading Level">
                     <option value="p" selected="@(_currentHeadingLevel == "" || _currentHeadingLevel == "p")">Normal</option>
                     <option value="h1" selected="@IsHeadingActive("h1")">Heading 1</option>
@@ -52,21 +58,22 @@
 
                 @* Font Family Picker (before Font Size) *@
                 <div class="rte-color-dropdown">
-                    <button type="button" 
-                            class="rte-btn" 
+                    <button type="button"
+                            class="rte-btn"
                             aria-label="Font family"
                             aria-haspopup="listbox"
                             aria-expanded="@_showFontFamilyPicker.ToString().ToLower()"
                             tabindex="-1"
+                            data-toolbar-item
                             @onclick="ToggleFontFamilyPicker"
                             @onclick:stopPropagation
                             title="Font Family">
                         Aa
                     </button>
-                    
+
                     @if (_showFontFamilyPicker)
                     {
-                        <div class="rte-color-palette rte-font-family-palette" 
+                        <div class="rte-color-palette rte-font-family-palette"
                              role="listbox"
                              aria-label="Font families"
                              @onclick:stopPropagation>
@@ -74,8 +81,8 @@
                             <div class="rte-font-family-list" aria-labelledby="font-family-label">
                                 @foreach (var font in _fontFamilies)
                                 {
-                                    <button type="button" 
-                                            class="rte-font-option" 
+                                    <button type="button"
+                                            class="rte-font-option"
                                             role="option"
                                             aria-label="@font.Value"
                                             style="font-family: @font.Key;"
@@ -91,21 +98,22 @@
 
                 @* Font Size Picker (after Font Family) *@
                 <div class="rte-color-dropdown">
-                    <button type="button" 
-                            class="rte-btn" 
+                    <button type="button"
+                            class="rte-btn"
                             aria-label="Font size"
                             aria-haspopup="listbox"
                             aria-expanded="@_showFontSizePicker.ToString().ToLower()"
                             tabindex="-1"
+                            data-toolbar-item
                             @onclick="ToggleFontSizePicker"
                             @onclick:stopPropagation
                             title="Font Size">
                         14
                     </button>
-                    
+
                     @if (_showFontSizePicker)
                     {
-                        <div class="rte-color-palette" 
+                        <div class="rte-color-palette"
                              role="listbox"
                              aria-label="Font sizes"
                              @onclick:stopPropagation>
@@ -113,8 +121,8 @@
                             <div class="rte-font-size-list" aria-labelledby="font-size-label">
                                 @foreach (var size in _fontSizes)
                                 {
-                                    <button type="button" 
-                                            class="rte-font-option" 
+                                    <button type="button"
+                                            class="rte-font-option"
                                             role="option"
                                             aria-label="@size.Value"
                                             @onclick="@(() => SelectFontSize(size.Key))"
@@ -132,21 +140,23 @@
 
             @* ===== TEXT FORMAT GROUP ===== *@
             <div role="group" aria-label="Text formatting">
-                <button type="button" 
+                <button type="button"
                         class="rte-btn @(IsFormatActive("bold") ? "active" : "")"
                         aria-pressed="@IsFormatActive("bold").ToString().ToLower()"
                         aria-label="Bold"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="ToggleBold"
                         title="Bold (Ctrl+B)">
                     <strong aria-hidden="true">B</strong>
                 </button>
 
-                <button type="button" 
+                <button type="button"
                         class="rte-btn @(IsFormatActive("italic") ? "active" : "")"
                         aria-pressed="@IsFormatActive("italic").ToString().ToLower()"
                         aria-label="Italic"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Italic)"
                         title="Italic (Ctrl+I)">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -154,11 +164,12 @@
                     </svg>
                 </button>
 
-                <button type="button" 
+                <button type="button"
                         class="rte-btn @(IsFormatActive("underline") ? "active" : "")"
                         aria-pressed="@IsFormatActive("underline").ToString().ToLower()"
                         aria-label="Underline"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Underline)"
                         title="Underline (Ctrl+U)">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -166,11 +177,12 @@
                     </svg>
                 </button>
 
-                <button type="button" 
+                <button type="button"
                         class="rte-btn @(IsFormatActive("strikeThrough") ? "active" : "")"
                         aria-pressed="@IsFormatActive("strikeThrough").ToString().ToLower()"
                         aria-label="Strikethrough"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Strikethrough)"
                         title="Strikethrough">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -178,21 +190,23 @@
                     </svg>
                 </button>
 
-                <button type="button" 
+                <button type="button"
                         class="rte-btn @(IsFormatActive("subscript") ? "active" : "")"
                         aria-pressed="@IsFormatActive("subscript").ToString().ToLower()"
                         aria-label="Subscript"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Subscript)"
                         title="Subscript">
                     <span aria-hidden="true">x<sub>2</sub></span>
                 </button>
 
-                <button type="button" 
+                <button type="button"
                         class="rte-btn @(IsFormatActive("superscript") ? "active" : "")"
                         aria-pressed="@IsFormatActive("superscript").ToString().ToLower()"
                         aria-label="Superscript"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Superscript)"
                         title="Superscript">
                     <span aria-hidden="true">x<sup>2</sup></span>
@@ -204,12 +218,13 @@
             @* ===== COLOR GROUP ===== *@
             <div role="group" aria-label="Text colors">
                 <div class="rte-color-dropdown">
-                    <button type="button" 
+                    <button type="button"
                             class="rte-btn @(IsFormatActive("foreColor") ? "active" : "")"
                             aria-label="Text color"
                             aria-haspopup="true"
                             aria-expanded="@_showTextColorPicker.ToString().ToLower()"
                             tabindex="-1"
+                            data-toolbar-item
                             @onclick="ToggleTextColorPicker"
                             @onclick:stopPropagation
                             title="Text Color">
@@ -218,7 +233,7 @@
 
                     @if (_showTextColorPicker)
                     {
-                        <div class="rte-color-palette" 
+                        <div class="rte-color-palette"
                              role="listbox"
                              aria-label="Text colors"
                              @onclick:stopPropagation>
@@ -226,7 +241,7 @@
                             <div class="rte-color-palette-grid" aria-labelledby="text-color-label">
                                 @foreach (var color in ColorPalette.TextColors)
                                 {
-                                    <button type="button" 
+                                    <button type="button"
                                             class="rte-palette-color"
                                             role="option"
                                             aria-label="@color.Value"
@@ -240,12 +255,13 @@
                 </div>
 
                 <div class="rte-color-dropdown">
-                    <button type="button" 
+                    <button type="button"
                             class="rte-btn @(IsFormatActive("backColor") ? "active" : "")"
                             aria-label="Highlight color"
                             aria-haspopup="true"
                             aria-expanded="@_showBackgroundColorPicker.ToString().ToLower()"
                             tabindex="-1"
+                            data-toolbar-item
                             @onclick="ToggleBackgroundColorPicker"
                             @onclick:stopPropagation
                             title="Highlight Color">
@@ -254,7 +270,7 @@
 
                     @if (_showBackgroundColorPicker)
                     {
-                        <div class="rte-color-palette" 
+                        <div class="rte-color-palette"
                              role="listbox"
                              aria-label="Highlight colors"
                              @onclick:stopPropagation>
@@ -264,7 +280,7 @@
                                 {
                                     @if (color.Key == "transparent")
                                     {
-                                        <button type="button" 
+                                        <button type="button"
                                                 class="rte-palette-color rte-palette-color-none"
                                                 role="option"
                                                 aria-label="@color.Value"
@@ -275,7 +291,7 @@
                                     }
                                     else
                                     {
-                                        <button type="button" 
+                                        <button type="button"
                                                 class="rte-palette-color"
                                                 role="option"
                                                 aria-label="@color.Value"
@@ -294,30 +310,33 @@
 
             @* ===== PARAGRAPH GROUP ===== *@
             <div role="group" aria-label="Paragraph formatting">
-                <button type="button" 
+                <button type="button"
                         class="rte-btn @(IsFormatActive("insertUnorderedList") ? "active" : "")"
                         aria-pressed="@IsFormatActive("insertUnorderedList").ToString().ToLower()"
                         aria-label="Bulleted list"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.InsertUnorderedList)"
                         title="Bullet List">
                     <span aria-hidden="true">☰</span>
                 </button>
 
-                <button type="button" 
+                <button type="button"
                         class="rte-btn @(IsFormatActive("insertOrderedList") ? "active" : "")"
                         aria-pressed="@IsFormatActive("insertOrderedList").ToString().ToLower()"
                         aria-label="Numbered list"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.InsertOrderedList)"
                         title="Numbered List">
                     <span aria-hidden="true">≡</span>
                 </button>
 
-                <button type="button" 
+                <button type="button"
                         class="rte-btn"
                         aria-label="Decrease indent"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Outdent)"
                         title="Decrease Indent">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -325,10 +344,11 @@
                     </svg>
                 </button>
 
-                <button type="button" 
+                <button type="button"
                         class="rte-btn"
                         aria-label="Increase indent"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Indent)"
                         title="Increase Indent">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -341,11 +361,12 @@
 
             @* ===== ALIGNMENT GROUP ===== *@
             <div role="group" aria-label="Text alignment">
-                <button type="button" 
+                <button type="button"
                         class="rte-btn @(alignment == "left" ? "active" : "")"
                         aria-pressed="@(alignment == "left").ToString().ToLower()"
                         aria-label="Align left"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.AlignLeft)"
                         title="Align Left">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -353,11 +374,12 @@
                     </svg>
                 </button>
 
-                <button type="button" 
+                <button type="button"
                         class="rte-btn @(alignment == "center" ? "active" : "")"
                         aria-pressed="@(alignment == "center").ToString().ToLower()"
                         aria-label="Align center"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.AlignCenter)"
                         title="Align Center">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -365,11 +387,12 @@
                     </svg>
                 </button>
 
-                <button type="button" 
+                <button type="button"
                         class="rte-btn @(alignment == "right" ? "active" : "")"
                         aria-pressed="@(alignment == "right").ToString().ToLower()"
                         aria-label="Align right"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.AlignRight)"
                         title="Align Right">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -377,11 +400,12 @@
                     </svg>
                 </button>
 
-                <button type="button" 
+                <button type="button"
                         class="rte-btn @(alignment == "justify" ? "active" : "")"
                         aria-pressed="@(alignment == "justify").ToString().ToLower()"
                         aria-label="Justify"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.AlignJustify)"
                         title="Justify">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -394,11 +418,12 @@
 
             @* ===== INSERT GROUP ===== *@
             <div role="group" aria-label="Insert">
-                <button type="button" 
+                <button type="button"
                         class="rte-btn @(IsFormatActive("link") ? "active" : "")"
                         aria-pressed="@IsFormatActive("link").ToString().ToLower()"
                         aria-label="Insert link"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="CreateLink"
                         title="Insert Link">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
@@ -406,10 +431,11 @@
                     </svg>
                 </button>
 
-                <button type="button" 
+                <button type="button"
                         class="rte-btn"
                         aria-label="Insert horizontal rule"
                         tabindex="-1"
+                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.HorizontalRule)"
                         title="Horizontal Rule">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -421,10 +447,11 @@
             <span class="rte-separator" role="separator" aria-orientation="vertical"></span>
 
             @* ===== CLEAR FORMATTING (always last) ===== *@
-            <button type="button" 
+            <button type="button"
                     class="rte-btn"
                     aria-label="Clear formatting"
                     tabindex="-1"
+                    data-toolbar-item
                     @onclick="() => ExecuteCommand(FormatCommand.RemoveFormat)"
                     title="Clear Formatting">
                 <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

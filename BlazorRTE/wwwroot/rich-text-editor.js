@@ -319,3 +319,22 @@ function isDefaultBackgroundColor(color) {
            c === 'initial' ||
            c === 'inherit';
 }
+
+export function focusToolbarButton(index) {
+    const toolbar = document.querySelector('.rte-toolbar');
+    if (!toolbar) return;
+    
+    // Only select elements marked as toolbar items (excludes picker buttons)
+    const focusableElements = toolbar.querySelectorAll('[data-toolbar-item]');
+    
+    if (index >= 0 && index < focusableElements.length) {
+        focusableElements[index].focus();
+    }
+}
+
+export function getToolbarFocusableCount() {
+    const toolbar = document.querySelector('.rte-toolbar');
+    if (!toolbar) return 0;
+    
+    return toolbar.querySelectorAll('button, select').length;
+}
