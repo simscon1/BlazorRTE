@@ -96,8 +96,8 @@ namespace BlazorRTE.Components
 
         private const int ColorGridColumns = 3; // 3 columns for color grids
 
-        private string _currentTextColor = "#FF0000"; // Default red
-        private string _currentHighlightColor = "#FFFFFF"; // Default yellow
+        private string _currentTextColor = "#000000"; // Default black
+        private string _currentHighlightColor = "#FFFFFF"; // Default white
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
