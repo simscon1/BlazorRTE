@@ -107,10 +107,23 @@ export function executeCommand(command, value = null) {
     console.log("executeCommand:", command);
     restoreSelection();
 
-    // Special handling for horizontal rule to prevent cursor getting stuck
+    // Special handling for horizontal rule
     if (command === 'insertHorizontalRule') {
         insertHorizontalRuleWithParagraph();
         return;
+    }
+
+    // NEW: Handle subscript/superscript mutual exclusivity
+    if (command === 'subscript') {
+        // If superscript is active, turn it off first
+        if (document.queryCommandState('superscript')) {
+            document.execCommand('superscript', false, null);
+        }
+    } else if (command === 'superscript') {
+        // If subscript is active, turn it off first
+        if (document.queryCommandState('subscript')) {
+            document.execCommand('subscript', false, null);
+        }
     }
 
     document.execCommand(command, false, value);
@@ -187,14 +200,35 @@ export function getActiveFormats() {
     if (document.queryCommandState('bold')) formats.push('bold');
     if (document.queryCommandState('italic')) formats.push('italic');
     
-    // Only report underline if NOT inside a link (links are underlined by default)
+    // Only report underline if NOT inside a link
     if (document.queryCommandState('underline') && !insideLink) {
         formats.push('underline');
     }
     
     if (document.queryCommandState('strikeThrough')) formats.push('strikeThrough');
-    if (document.queryCommandState('subscript')) formats.push('subscript');
-    if (document.queryCommandState('superscript')) formats.push('superscript');
+    
+    // FIXED: Always check DOM for subscript/superscript (queryCommandState is unreliable)
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        let node = selection.getRangeAt(0).startContainer;
+        
+        // Walk up the DOM tree to check for sub/sup tags
+        while (node && node !== document.body) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                const tagName = node.tagName?.toLowerCase();
+                if (tagName === 'sub') {
+                    formats.push('subscript');
+                    console.log('✓ Subscript detected via DOM'); // DEBUG
+                }
+                if (tagName === 'sup') {
+                    formats.push('superscript');
+                    console.log('✓ Superscript detected via DOM'); // DEBUG
+                }
+            }
+            node = node.parentNode;
+        }
+    }
+    
     if (document.queryCommandState('insertUnorderedList')) formats.push('insertUnorderedList');
     if (document.queryCommandState('insertOrderedList')) formats.push('insertOrderedList');
     
@@ -221,6 +255,7 @@ export function getActiveFormats() {
         formats.push('justifyLeft');
     }
     
+    console.log('Active formats:', formats); // DEBUG
     return formats;
 }
 

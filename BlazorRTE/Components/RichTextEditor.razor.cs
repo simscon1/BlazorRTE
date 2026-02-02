@@ -78,9 +78,11 @@ namespace BlazorRTE.Components
         private bool isBold = false;
         private bool isItalic = false;
         private bool isUnderline = false;
+        private bool isSubscript = false;   // ADD THIS
+        private bool isSuperscript = false; // ADD THIS
         private string alignment = "left";
         private int focusedIndex = 0;
-        private const int ToolbarButtonCount = 24; // Was 24, now includes font family and font size
+        private const int ToolbarButtonCount = 24; // Includes all toolbar buttons with data-toolbar-item attribute
 
         // NEW: Element References for Accessibility
         private ElementReference _fontFamilyButton;
@@ -265,9 +267,9 @@ namespace BlazorRTE.Components
             if (_jsModule == null) return;
             try
             {
-                Console.WriteLine("UpdateToolbarState called"); // Debug
+                Console.WriteLine("UpdateToolbarState called");
                 var formats = await _jsModule.InvokeAsync<string[]>("getActiveFormats");
-                Console.WriteLine($"Formats received: {string.Join(", ", formats)}"); // Debug
+                Console.WriteLine($"Formats received: {string.Join(", ", formats)}");
                 
                 _activeFormats = new HashSet<string>(formats);
                 
@@ -275,6 +277,8 @@ namespace BlazorRTE.Components
                 isBold = _activeFormats.Contains("bold");
                 isItalic = _activeFormats.Contains("italic");
                 isUnderline = _activeFormats.Contains("underline");
+                isSubscript = _activeFormats.Contains("subscript");       // ADD THIS
+                isSuperscript = _activeFormats.Contains("superscript");   // ADD THIS
                 
                 // Update alignment state - only one should be active
                 if (_activeFormats.Contains("justifyCenter"))
@@ -284,7 +288,7 @@ namespace BlazorRTE.Components
                 else if (_activeFormats.Contains("justifyFull"))
                     alignment = "justify";
                 else
-                    alignment = "left"; // Default to left
+                    alignment = "left";
                 
                 await UpdateHeadingState();
                 StateHasChanged();
