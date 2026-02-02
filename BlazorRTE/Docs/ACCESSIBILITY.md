@@ -40,6 +40,38 @@ BlazorRTE is designed to meet industry accessibility standards and follow establ
 | Character Count | `aria-live="polite"` for screen reader updates |
 | Keyboard Navigation | Roving `tabindex` per APG Toolbar Pattern |
 
+## Keyboard Navigation
+
+### Toolbar Navigation (Roving Tabindex)
+
+The toolbar follows the [WAI-ARIA Toolbar Pattern](https://www.w3.org/WAI/ARIA/apg/patterns/toolbar/):
+
+| Key | Action |
+|-----|--------|
+| `Tab` | Enter toolbar (focuses Undo button) |
+| `Tab` | Exit toolbar to editor content |
+| `←` / `→` | Move between toolbar buttons |
+| `Home` | Jump to first toolbar button (Undo) |
+| `End` | Jump to last toolbar button (Clear Formatting) |
+| `↑` / `↓` | Change heading level (when heading dropdown focused) |
+| `Enter` / `Space` | Activate focused button |
+
+**Note:** Toolbar navigation is primarily for accessibility compliance. For practical text formatting, use keyboard shortcuts while typing in the editor.
+
+### Editor Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+B` | Bold |
+| `Ctrl+I` | Italic |
+| `Ctrl+U` | Underline |
+| `Ctrl+Z` | Undo |
+| `Ctrl+Y` | Redo |
+| `Ctrl+Shift+Z` | Redo (alternative) |
+| `Ctrl+K` | Insert Link (browser may intercept) |
+
+**Tip:** Select text first, then use shortcuts to apply formatting.
+
 ## Industry Standard UX
 
 BlazorRTE follows the same patterns used by Microsoft Word, Google Docs, and other major editors:
@@ -51,17 +83,6 @@ BlazorRTE follows the same patterns used by Microsoft Word, Google Docs, and oth
 | **Alignment Buttons** | Mutually exclusive - only one active at a time |
 | **Link Selection** | Underline and color buttons don't highlight for default link styling |
 | **Color Buttons** | Highlight when non-default color is applied to selected text |
-
-## Keyboard Shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| Ctrl+B | Bold |
-| Ctrl+I | Italic |
-| Ctrl+U | Underline |
-| Ctrl+Z | Undo |
-| Ctrl+Y | Redo |
-| Ctrl+Shift+Z | Redo (alternative) |
 
 ## Screen Reader Support
 

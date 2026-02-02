@@ -74,6 +74,25 @@ string text = GetPlainText(); // Get plain text without HTML
 ```
 --- 
 
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+B` | Bold |
+| `Ctrl+I` | Italic |
+| `Ctrl+U` | Underline |
+| `Ctrl+Z` | Undo |
+| `Ctrl+Y` | Redo |
+| `Ctrl+Shift+Z` | Redo (alternative) |
+
+### Toolbar Navigation
+
+| Key | Action |
+|-----|--------|
+| `Tab` | Enter/exit toolbar |
+| `←` / `→` | Move between toolbar buttons |
+| `Home` / `End` | Jump to first/last button |
+
 ## 📜 License
 
 ### Community Edition (Free - GPL v3)

@@ -397,4 +397,45 @@ public class RichTextEditorTests : BunitContext
     }
 
     #endregion
+
+    #region Keyboard Navigation Tests
+
+    [Fact]
+    public void A11Y_ToolbarButtonCountMatchesActualButtons()
+    {
+        // Act
+        var cut = Render<RichTextEditor>();
+        
+        // Count all focusable toolbar elements (buttons AND select)
+        var buttons = cut.FindAll(".rte-toolbar button");
+        var selects = cut.FindAll(".rte-toolbar select");
+        var totalFocusable = buttons.Count + selects.Count;
+        
+        // Assert - 23 buttons + 1 select = 24 focusable elements
+        Assert.Equal(24, totalFocusable);
+    }
+
+    [Fact]
+    public void A11Y_FirstToolbarButtonHasTabIndexZero()
+    {
+        // Act
+        var cut = Render<RichTextEditor>();
+        
+        // Assert - Undo button should be the roving tabindex entry point
+        var undoButton = cut.Find("button[aria-label='Undo']");
+        Assert.Equal("0", undoButton.GetAttribute("tabindex"));
+    }
+
+    [Fact]
+    public void A11Y_OtherToolbarButtonsHaveTabIndexMinusOne()
+    {
+        // Act
+        var cut = Render<RichTextEditor>();
+        
+        // Assert - all buttons except the first should have tabindex="-1"
+        var boldButton = cut.Find("button[aria-label='Bold']");
+        Assert.Equal("-1", boldButton.GetAttribute("tabindex"));
+    }
+
+    #endregion
 }

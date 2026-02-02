@@ -5,6 +5,30 @@ All notable changes to BlazorRTE will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-02-01
+
+### Added
+- Full keyboard navigation for toolbar following WAI-ARIA Toolbar Pattern
+- Arrow key navigation between all 24 toolbar buttons
+- Home/End keys to jump to first/last toolbar button
+- Roving tabindex implementation for accessibility compliance
+- `data-toolbar-item` attributes for reliable element targeting
+- `Ctrl+K` keyboard shortcut for Insert Link (browser may intercept)
+
+### Fixed
+- Tab key now properly enters toolbar at Undo button
+- Tab key exits toolbar to editor content area
+- Left/Right arrow keys no longer change heading dropdown value
+- Focus index resets when re-entering toolbar via Tab
+
+### Changed
+- Highlight color button icon now uses fixed 18x18px square dimensions
+
+### Documentation
+- Added Keyboard Navigation section to ACCESSIBILITY.md
+- Added Keyboard Shortcuts table to README.md
+- Updated toolbar navigation documentation
+
 ## [1.0.1] - 2026-01-29
 
 ### Fixed
@@ -58,5 +82,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Paste as plain text (strips external formatting)
 - Accessible (ARIA labels, keyboard navigation)
 
+[1.0.2]: https://github.com/simscon1/BlazorRTE/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/simscon1/BlazorRTE/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/simscon1/BlazorRTE/releases/tag/v1.0.0

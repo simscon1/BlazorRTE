@@ -66,7 +66,7 @@ namespace BlazorRTE.Components
         private bool isUnderline = false;
         private string alignment = "left";
         private int focusedIndex = 0;
-        private const int ToolbarButtonCount = 6;
+        private const int ToolbarButtonCount = 24; // 23 buttons + 1 select
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -193,34 +193,16 @@ namespace BlazorRTE.Components
                     case "y":
                         await ExecuteCommand(FormatCommand.Redo);
                         break;
+                    case "k":
+                        await CreateLink();
+                        break;
                 }
             }
             else if (e.CtrlKey && e.ShiftKey && e.Key.ToLower() == "z")
             {
                 await ExecuteCommand(FormatCommand.Redo);
             }
-            // Accessibility - keyboard navigation for toolbar
-            switch (e.Key)
-            {
-                case "ArrowRight":
-                case "ArrowDown":
-                    focusedIndex = (focusedIndex + 1) % ToolbarButtonCount;
-                    StateHasChanged();
-                    break;
-                case "ArrowLeft":
-                case "ArrowUp":
-                    focusedIndex = (focusedIndex - 1 + ToolbarButtonCount) % ToolbarButtonCount;
-                    StateHasChanged();
-                    break;
-                case "Home":
-                    focusedIndex = 0;
-                    StateHasChanged();
-                    break;
-                case "End":
-                    focusedIndex = ToolbarButtonCount - 1;
-                    StateHasChanged();
-                    break;
-            }
+            // Removed: Arrow key handling for toolbar - this is handled by HandleToolbarKeydown
         }
 
         protected Task OnPaste(ClipboardEventArgs e) => Task.CompletedTask;
@@ -846,28 +828,41 @@ namespace BlazorRTE.Components
             }
         }
 
-        private void HandleToolbarKeydown(KeyboardEventArgs e)
+        private async Task HandleToolbarKeydown(KeyboardEventArgs e)
         {
             switch (e.Key)
             {
                 case "ArrowRight":
-                case "ArrowDown":
                     focusedIndex = (focusedIndex + 1) % ToolbarButtonCount;
-                    StateHasChanged();
+                    await FocusToolbarButton();
                     break;
                 case "ArrowLeft":
-                case "ArrowUp":
                     focusedIndex = (focusedIndex - 1 + ToolbarButtonCount) % ToolbarButtonCount;
-                    StateHasChanged();
+                    await FocusToolbarButton();
                     break;
                 case "Home":
                     focusedIndex = 0;
-                    StateHasChanged();
+                    await FocusToolbarButton();
                     break;
                 case "End":
                     focusedIndex = ToolbarButtonCount - 1;
-                    StateHasChanged();
+                    await FocusToolbarButton();
                     break;
+                // Note: ArrowUp/ArrowDown are intentionally NOT handled here
+                // They should be handled natively by dropdown/select elements
+            }
+        }
+
+        private async Task FocusToolbarButton()
+        {
+            if (_jsModule == null) return;
+            try
+            {
+                await _jsModule.InvokeVoidAsync("focusToolbarButton", focusedIndex);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"FocusToolbarButton error: {ex.Message}");
             }
         }
 
@@ -876,5 +871,6 @@ namespace BlazorRTE.Components
             Console.WriteLine("Editor clicked!");
             await UpdateToolbarState();
         }
+         
     }
 }
