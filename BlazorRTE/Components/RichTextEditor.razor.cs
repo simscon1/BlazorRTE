@@ -193,6 +193,9 @@ namespace BlazorRTE.Components
                     case "y":
                         await ExecuteCommand(FormatCommand.Redo);
                         break;
+                    case "k":
+                        await CreateLink();
+                        break;
                 }
             }
             else if (e.CtrlKey && e.ShiftKey && e.Key.ToLower() == "z")
