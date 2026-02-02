@@ -96,6 +96,9 @@ namespace BlazorRTE.Components
 
         private const int ColorGridColumns = 3; // 3 columns for color grids
 
+        private string _currentTextColor = "#FF0000"; // Default red
+        private string _currentHighlightColor = "#FFFFFF"; // Default yellow
+
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
@@ -277,10 +280,10 @@ namespace BlazorRTE.Components
                 isBold = _activeFormats.Contains("bold");
                 isItalic = _activeFormats.Contains("italic");
                 isUnderline = _activeFormats.Contains("underline");
-                isSubscript = _activeFormats.Contains("subscript");       // ADD THIS
-                isSuperscript = _activeFormats.Contains("superscript");   // ADD THIS
+                isSubscript = _activeFormats.Contains("subscript");
+                isSuperscript = _activeFormats.Contains("superscript");
                 
-                // Update alignment state - only one should be active
+                // Update alignment state
                 if (_activeFormats.Contains("justifyCenter"))
                     alignment = "center";
                 else if (_activeFormats.Contains("justifyRight"))
@@ -289,6 +292,26 @@ namespace BlazorRTE.Components
                     alignment = "justify";
                 else
                     alignment = "left";
+                
+                // Get current text color
+                try
+                {
+                    _currentTextColor = await _jsModule.InvokeAsync<string>("getCurrentTextColor");
+                }
+                catch
+                {
+                    _currentTextColor = "#FF0000"; // Fallback to red
+                }
+                
+                // NEW: Get current background/highlight color
+                try
+                {
+                    _currentHighlightColor = await _jsModule.InvokeAsync<string>("getCurrentBackgroundColor");
+                }
+                catch
+                {
+                    _currentHighlightColor = "#FFFF00"; // Fallback to yellow
+                }
                 
                 await UpdateHeadingState();
                 StateHasChanged();

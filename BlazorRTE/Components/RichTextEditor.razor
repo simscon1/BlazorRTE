@@ -59,7 +59,7 @@
                 @* Font Family Picker *@
                 <div class="rte-color-dropdown">
                     <button type="button"
-                            @ref="_fontFamilyButton" 
+                            @ref="_fontFamilyButton"
                             class="rte-btn"
                             aria-label="Font family"
                             aria-haspopup="true"
@@ -233,7 +233,7 @@
                             @onclick="ToggleTextColorPicker"
                             @onclick:stopPropagation
                             title="Text Color">
-                        <span aria-hidden="true" style="font-weight: bold; color: #000; border-bottom: 3px solid #FF0000; line-height: 1;">A</span>
+                        <span aria-hidden="true" style="font-weight: bold; color: #000; border-bottom: 3px solid @_currentTextColor; line-height: 1;">A</span>
                     </button>
 
                     @if (_showTextColorPicker)
@@ -273,48 +273,48 @@
                             @onclick="ToggleBackgroundColorPicker"
                             @onclick:stopPropagation
                             title="Highlight Color">
-        <span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background-color: #FFFF00; font-weight: bold; color: #000; border-radius: 2px; font-size: 12px;">A</span>
-    </button>
+                        <span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background-color: @_currentHighlightColor; font-weight: bold; color: #000; border: 1px solid #374151; border-radius: 4px; font-size: 12px;">A</span>
+                    </button>
 
-    @if (_showBackgroundColorPicker)
-    {
-        <div @ref="_bgColorPalette"
-             class="rte-color-palette"
-             role="grid"
-             aria-label="Highlight colors"
-             @onclick:stopPropagation>
-            <div class="rte-color-palette-title" id="bg-color-label">Highlight Color</div>
-            <div class="rte-color-palette-grid" aria-labelledby="bg-color-label">
-                @foreach (var color in ColorPalette.BackgroundColors)
-                {
-                    @if (color.Key == "transparent")
+                    @if (_showBackgroundColorPicker)
                     {
-                        <button type="button"
-                                class="rte-palette-color rte-palette-color-none"
-                                role="gridcell"
-                                tabindex="-1"
-                                aria-label="@color.Value"
-                                @onclick="@(() => SelectBackgroundColor(color.Key))"
-                                title="@color.Value">
-                            <span aria-hidden="true">✕</span>
-                        </button>
+                        <div @ref="_bgColorPalette"
+                             class="rte-color-palette"
+                             role="grid"
+                             aria-label="Highlight colors"
+                             @onclick:stopPropagation>
+                            <div class="rte-color-palette-title" id="bg-color-label">Highlight Color</div>
+                            <div class="rte-color-palette-grid" aria-labelledby="bg-color-label">
+                                @foreach (var color in ColorPalette.BackgroundColors)
+                                {
+                                    @if (color.Key == "transparent")
+                                    {
+                                        <button type="button"
+                                                class="rte-palette-color rte-palette-color-none"
+                                                role="gridcell"
+                                                tabindex="-1"
+                                                aria-label="@color.Value"
+                                                @onclick="@(() => SelectBackgroundColor(color.Key))"
+                                                title="@color.Value">
+                                            <span aria-hidden="true">✕</span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button"
+                                                class="rte-palette-color"
+                                                role="gridcell"
+                                                tabindex="-1"
+                                                aria-label="@color.Value"
+                                                style="background-color: @color.Key;"
+                                                @onclick="@(() => SelectBackgroundColor(color.Key))"
+                                                title="@color.Value"></button>
+                                    }
+                                }
+                            </div>
+                        </div>
                     }
-                    else
-                    {
-                        <button type="button"
-                                class="rte-palette-color"
-                                role="gridcell"
-                                tabindex="-1"
-                                aria-label="@color.Value"
-                                style="background-color: @color.Key;"
-                                @onclick="@(() => SelectBackgroundColor(color.Key))"
-                                title="@color.Value"></button>
-                    }
-                }
-            </div>
-        </div>
-    }
-</div>
+                </div>
             </div>
 
             <span class="rte-separator" role="separator" aria-orientation="vertical"></span>

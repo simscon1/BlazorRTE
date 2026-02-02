@@ -503,7 +503,7 @@ export function setupColorPickerNavigation(palette, columns, triggerButton) {
 
         const buttons = Array.from(palette.querySelectorAll('.rte-palette-color'));
         const currentIndex = buttons.indexOf(event.target);
-        if (currentIndex === -1) return;
+        if (currentIndex === -1) return;  // ← FIXED: Added opening parenthesis
 
         let newIndex = currentIndex;
         const rows = Math.ceil(buttons.length / columns);
@@ -632,4 +632,54 @@ export function focusElement(element) {
     if (element) {
         element.focus();
     }
+}
+
+// Add this function after getActiveFormats()
+export function getCurrentTextColor() {
+    const color = document.queryCommandValue('foreColor');
+    
+    // Convert to hex if it's RGB format
+    if (color && color.startsWith('rgb')) {
+        const rgb = color.match(/\d+/g);
+        if (rgb && rgb.length >= 3) {
+            const hex = '#' + 
+                parseInt(rgb[0]).toString(16).padStart(2, '0') +
+                parseInt(rgb[1]).toString(16).padStart(2, '0') +
+                parseInt(rgb[2]).toString(16).padStart(2, '0');
+            return hex.toUpperCase();
+        }
+    }
+    
+    // Return the color as-is (might be hex already) or default to red
+    return color && color !== 'rgb(0, 0, 0)' && color !== '#000000' ? color : '#FF0000';
+}
+
+// Add this function after getCurrentTextColor()
+export function getCurrentBackgroundColor() {
+    const color = document.queryCommandValue('backColor');
+    
+    // Convert to hex if it's RGB format
+    if (color && color.startsWith('rgb')) {
+        // Check for rgba with transparency
+        if (color.startsWith('rgba(0, 0, 0, 0)') || color.startsWith('rgba(0,0,0,0)')) {
+            return '#FFFFFF';
+        }
+        
+        const rgb = color.match(/\d+/g);
+        if (rgb && rgb.length >= 3) {
+            const hex = '#' + 
+                parseInt(rgb[0]).toString(16).padStart(2, '0') +
+                parseInt(rgb[1]).toString(16).padStart(2, '0') +
+                parseInt(rgb[2]).toString(16).padStart(2, '0');
+            return hex.toUpperCase();
+        }
+    }
+    
+    // Handle transparent/white as white (no highlight applied)
+    if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)' || 
+        color === '#FFFFFF' || color === '#FFF' || color === 'rgb(255, 255, 255)') {
+        return '#FFFFFF'; // Default to white
+    }
+    
+    return color;
 }
