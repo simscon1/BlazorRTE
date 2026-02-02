@@ -9,15 +9,11 @@ namespace BlazorRTE.Components
     // TODO: Add emoji support for rich text editor and text area
     
     // TODO: Accessibility improvements (v1.1.0)
-    // - Color/font pickers: Implement WAI-ARIA Menu pattern
-    //   - Arrow key navigation within popup
-    //   - Escape key to close popup
-    //   - Focus trap inside popup when open
     // - High contrast mode: Add forced-colors media queries
     //   - Test with Windows High Contrast (Dev Tools > Rendering > Emulate forced colors)
     //   - Ensure UI remains usable when system colors override
     // - Focus management: Review which buttons should return focus to editor vs stay in toolbar
-    // - Tooltips: Consider accessible tooltips (title only shows on hover, not keyboard)
+ 
     // - Voice control: Ensure visible labels match aria-labels for voice users
     // - Screen reader testing: Test with NVDA, JAWS, VoiceOver
 
@@ -210,30 +206,33 @@ namespace BlazorRTE.Components
                 {
                     case "b":
                         await ExecuteCommand(FormatCommand.Bold);
+                        // REMOVED: await ReturnFocusToEditor(); 
                         break;
                     case "i":
                         await ExecuteCommand(FormatCommand.Italic);
+                        // REMOVED: await ReturnFocusToEditor();
                         break;
                     case "u":
                         await ExecuteCommand(FormatCommand.Underline);
+                        // REMOVED: await ReturnFocusToEditor();
                         break;
                     case "z":
                         if (!e.ShiftKey)
                             await ExecuteCommand(FormatCommand.Undo);
+                        else
+                            await ExecuteCommand(FormatCommand.Redo);
+                        // REMOVED: await ReturnFocusToEditor();
                         break;
                     case "y":
                         await ExecuteCommand(FormatCommand.Redo);
+                        // REMOVED: await ReturnFocusToEditor();
                         break;
                     case "k":
-                        await CreateLink();
+                        await CreateLink(); // Keep this - it needs focus after inserting
                         break;
                 }
             }
-            else if (e.CtrlKey && e.ShiftKey && e.Key.ToLower() == "z")
-            {
-                await ExecuteCommand(FormatCommand.Redo);
-            }
-            // Removed: Arrow key handling for toolbar - this is handled by HandleToolbarKeydown
+            // Removed: Duplicate Ctrl+Shift+Z handling (now handled above)
         }
 
         protected Task OnPaste(ClipboardEventArgs e) => Task.CompletedTask;
@@ -479,6 +478,9 @@ namespace BlazorRTE.Components
                 _previousValue = Value;
                 await ValueChanged.InvokeAsync(Value);
                 _isUpdating = false;
+
+                // NEW: Return focus to editor after inserting link
+                await ReturnFocusToEditor();
             }
             catch (Exception ex)
             {
@@ -730,13 +732,19 @@ namespace BlazorRTE.Components
         protected async Task SelectTextColor(string color)
         {
             await ApplyTextColor(color);
-            _showTextColorPicker = false; // Close after selection
+            _showTextColorPicker = false;
+            
+            // NEW: Return focus to editor
+            await ReturnFocusToEditor();
         }
 
         protected async Task SelectBackgroundColor(string color)
         {
             await ApplyBackgroundColor(color);
-            _showBackgroundColorPicker = false; // Close after selection
+            _showBackgroundColorPicker = false;
+            
+            // NEW: Return focus to editor
+            await ReturnFocusToEditor();
         }
 
         protected async Task SelectFontSize(string size)
@@ -755,7 +763,10 @@ namespace BlazorRTE.Components
             if (command.HasValue)
             {
                 await ExecuteCommand(command.Value);
-                _showFontSizePicker = false; // Close after selection
+                _showFontSizePicker = false;
+                
+                // NEW: Return focus to editor
+                await ReturnFocusToEditor();
             }
         }
 
@@ -779,7 +790,10 @@ namespace BlazorRTE.Components
             if (command.HasValue)
             {
                 await ExecuteCommand(command.Value);
-                _showFontFamilyPicker = false; // Close after selection
+                _showFontFamilyPicker = false;
+                
+                // NEW: Return focus to editor
+                await ReturnFocusToEditor();
             }
         }
 
@@ -1069,6 +1083,24 @@ namespace BlazorRTE.Components
             catch (Exception ex)
             {
                 Console.WriteLine($"SetupListPickerNavigation error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Return focus to the editor after a command
+        /// </summary>
+        private async Task ReturnFocusToEditor()
+        {
+            if (_jsModule != null)
+            {
+                try
+                {
+                    await _jsModule.InvokeVoidAsync("focusEditor", _editorRef);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ReturnFocusToEditor error: {ex.Message}");
+                }
             }
         }
     }

@@ -67,6 +67,7 @@
                             tabindex="-1"
                             data-toolbar-item
                             @onclick="ToggleFontFamilyPicker"
+                            @onclick:stopPropagation
                             data-tooltip="Font Family">
                         Aa
                     </button>
@@ -77,6 +78,7 @@
                              class="rte-color-palette rte-font-family-palette"
                              role="listbox"
                              aria-label="Font families"
+                             @onclick:stopPropagation
                              @onkeydown="@(e => HandleListPickerKeydown(e, "fontFamily"))">
                             <div class="rte-color-palette-title" id="font-family-label">Font Family</div>
                             <div class="rte-font-family-list" aria-labelledby="font-family-label">
@@ -109,6 +111,7 @@
                             tabindex="-1"
                             data-toolbar-item
                             @onclick="ToggleFontSizePicker"
+                            @onclick:stopPropagation
                             data-tooltip="Font Size">
                         14
                     </button>
