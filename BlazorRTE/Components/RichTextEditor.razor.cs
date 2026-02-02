@@ -6,6 +6,15 @@ using BlazorRTE.HelperClasses;
 
 namespace BlazorRTE.Components
 {
+    // TODO: Add emoji support for rich text editor and text area
+
+    // TODO: Accessibility improvements (v1.1.0)
+    // - High contrast mode: Add forced-colors media queries
+    //   - Test with Windows High Contrast (Dev Tools > Rendering > Emulate forced colors)
+    //   - Ensure UI remains usable when system colors override
+ 
+    // - Voice control: Ensure visible labels match aria-labels for voice users
+    // - Screen reader testing: Test with NVDA, JAWS, VoiceOver
 
     public partial class RichTextEditor : ComponentBase, IAsyncDisposable
     {
@@ -35,6 +44,9 @@ namespace BlazorRTE.Components
         private bool _showBackgroundColorPicker = false;
         private bool _showFontSizePicker = false;
         private bool _showFontFamilyPicker = false;
+        private bool _showHeadingPicker = false; // NEW HEADING PICKER FLAG
+        private ElementReference _headingButton; // NEW: ElementReference for heading button
+        private ElementReference _headingPalette; // NEW: ElementReference for heading palette
 
         private readonly Dictionary<string, string> _fontSizes = new()
             {
@@ -64,9 +76,26 @@ namespace BlazorRTE.Components
         private bool isBold = false;
         private bool isItalic = false;
         private bool isUnderline = false;
+        private bool isSubscript = false;   // ADD THIS
+        private bool isSuperscript = false; // ADD THIS
         private string alignment = "left";
         private int focusedIndex = 0;
-        private const int ToolbarButtonCount = 24; // 23 buttons + 1 select
+        private const int ToolbarButtonCount = 24; // Includes all toolbar buttons with data-toolbar-item attribute
+
+        // NEW: Element References for Accessibility
+        private ElementReference _fontFamilyButton;
+        private ElementReference _fontFamilyPalette;
+        private ElementReference _fontSizeButton;
+        private ElementReference _fontSizePalette;
+        private ElementReference _textColorButton;
+        private ElementReference _textColorPalette;
+        private ElementReference _bgColorButton;
+        private ElementReference _bgColorPalette;
+
+        private const int ColorGridColumns = 3; // 3 columns for color grids
+
+        private string _currentTextColor = "#000000"; // Default black
+        private string _currentHighlightColor = "#FFFFFF"; // Default white
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -179,30 +208,33 @@ namespace BlazorRTE.Components
                 {
                     case "b":
                         await ExecuteCommand(FormatCommand.Bold);
+                        // REMOVED: await ReturnFocusToEditor(); 
                         break;
                     case "i":
                         await ExecuteCommand(FormatCommand.Italic);
+                        // REMOVED: await ReturnFocusToEditor();
                         break;
                     case "u":
                         await ExecuteCommand(FormatCommand.Underline);
+                        // REMOVED: await ReturnFocusToEditor();
                         break;
                     case "z":
                         if (!e.ShiftKey)
                             await ExecuteCommand(FormatCommand.Undo);
+                        else
+                            await ExecuteCommand(FormatCommand.Redo);
+                        // REMOVED: await ReturnFocusToEditor();
                         break;
                     case "y":
                         await ExecuteCommand(FormatCommand.Redo);
+                        // REMOVED: await ReturnFocusToEditor();
                         break;
                     case "k":
-                        await CreateLink();
+                        await CreateLink(); // Keep this - it needs focus after inserting
                         break;
                 }
             }
-            else if (e.CtrlKey && e.ShiftKey && e.Key.ToLower() == "z")
-            {
-                await ExecuteCommand(FormatCommand.Redo);
-            }
-            // Removed: Arrow key handling for toolbar - this is handled by HandleToolbarKeydown
+            // Removed: Duplicate Ctrl+Shift+Z handling (now handled above)
         }
 
         protected Task OnPaste(ClipboardEventArgs e) => Task.CompletedTask;
@@ -239,18 +271,20 @@ namespace BlazorRTE.Components
             if (_jsModule == null) return;
             try
             {
-                Console.WriteLine("UpdateToolbarState called"); // Debug
+                Console.WriteLine("UpdateToolbarState called");
                 var formats = await _jsModule.InvokeAsync<string[]>("getActiveFormats");
-                Console.WriteLine($"Formats received: {string.Join(", ", formats)}"); // Debug
-                
+                Console.WriteLine($"Formats received: {string.Join(", ", formats)}");
+
                 _activeFormats = new HashSet<string>(formats);
-                
+
                 // Update accessibility state
                 isBold = _activeFormats.Contains("bold");
                 isItalic = _activeFormats.Contains("italic");
                 isUnderline = _activeFormats.Contains("underline");
-                
-                // Update alignment state - only one should be active
+                isSubscript = _activeFormats.Contains("subscript");
+                isSuperscript = _activeFormats.Contains("superscript");
+
+                // Update alignment state
                 if (_activeFormats.Contains("justifyCenter"))
                     alignment = "center";
                 else if (_activeFormats.Contains("justifyRight"))
@@ -258,8 +292,28 @@ namespace BlazorRTE.Components
                 else if (_activeFormats.Contains("justifyFull"))
                     alignment = "justify";
                 else
-                    alignment = "left"; // Default to left
-                
+                    alignment = "left";
+
+                // Get current text color
+                try
+                {
+                    _currentTextColor = await _jsModule.InvokeAsync<string>("getCurrentTextColor");
+                }
+                catch
+                {
+                    _currentTextColor = "#FF0000"; // Fallback to red
+                }
+
+                // NEW: Get current background/highlight color
+                try
+                {
+                    _currentHighlightColor = await _jsModule.InvokeAsync<string>("getCurrentBackgroundColor");
+                }
+                catch
+                {
+                    _currentHighlightColor = "#FFFF00"; // Fallback to yellow
+                }
+
                 await UpdateHeadingState();
                 StateHasChanged();
             }
@@ -277,20 +331,6 @@ namespace BlazorRTE.Components
                 _currentHeadingLevel = await _jsModule.InvokeAsync<string>("getCurrentBlock");
             }
             catch { }
-        }
-
-        private async Task<bool> IsFormatActiveAsync(string format)
-        {
-            if (_jsModule == null) return false;
-            try
-            {
-                var formats = await _jsModule.InvokeAsync<string[]>("getActiveFormats");
-                return formats.Contains(format, StringComparer.OrdinalIgnoreCase);
-            }
-            catch
-            {
-                return false;
-            }
         }
 
         protected async Task ExecuteCommand(FormatCommand command)
@@ -324,7 +364,7 @@ namespace BlazorRTE.Components
                     FormatCommand.Indent => "indent",
                     FormatCommand.Outdent => "outdent",
                     FormatCommand.AlignLeft => "justifyLeft",
-                    FormatCommand.AlignCenter => "justifyCenter",   
+                    FormatCommand.AlignCenter => "justifyCenter",
                     FormatCommand.AlignRight => "justifyRight",
                     FormatCommand.AlignJustify => "justifyFull",
                     FormatCommand.FontSizeSmall => "fontSize:1",
@@ -426,76 +466,13 @@ namespace BlazorRTE.Components
                 _previousValue = Value;
                 await ValueChanged.InvokeAsync(Value);
                 _isUpdating = false;
+
+                // NEW: Return focus to editor after inserting link
+                await ReturnFocusToEditor();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"CreateLink error: {ex.Message}");
-            }
-        }
-
-        protected async Task OnHeadingChanged(ChangeEventArgs e)
-        {
-            var value = e.Value?.ToString() ?? "";
-
-            var command = value switch
-            {
-                "h1" => FormatCommand.HeadingH1,
-                "h2" => FormatCommand.HeadingH2,
-                "h3" => FormatCommand.HeadingH3,
-                "" => FormatCommand.Paragraph,
-                "p" => FormatCommand.Paragraph,
-                _ => (FormatCommand?)null
-            };
-
-            if (command.HasValue)
-            {
-                await ExecuteCommand(command.Value);
-            }
-        }
-
-        protected async Task OnFontSizeChanged(ChangeEventArgs e)
-        {
-            var value = e.Value?.ToString() ?? "";
-
-            var command = value switch
-            {
-                "1" => FormatCommand.FontSizeSmall,
-                "3" => FormatCommand.FontSizeNormal,
-                "4" => FormatCommand.FontSizeMedium,
-                "5" => FormatCommand.FontSizeLarge,
-                "6" => FormatCommand.FontSizeXLarge,
-                "7" => FormatCommand.FontSizeXXLarge,
-                _ => (FormatCommand?)null
-            };
-
-            if (command.HasValue)
-            {
-                await ExecuteCommand(command.Value);
-            }
-        }
-
-        protected async Task OnFontFamilyChanged(ChangeEventArgs e)
-        {
-            var value = e.Value?.ToString() ?? "";
-
-            var command = value switch
-            {
-                "Arial" => FormatCommand.FontFamilyArial,
-                "Courier New" => FormatCommand.FontFamilyCourierNew,
-                "Garamond" => FormatCommand.FontFamilyGaramond,
-                "Georgia" => FormatCommand.FontFamilyGeorgia,
-                "Helvetica" => FormatCommand.FontFamilyHelvetica,
-                "Impact" => FormatCommand.FontFamilyImpact,
-                "Tahoma" => FormatCommand.FontFamilyTahoma,
-                "Times New Roman" => FormatCommand.FontFamilyTimesNewRoman,
-                "Trebuchet MS" => FormatCommand.FontFamilyTrebuchet,
-                "Verdana" => FormatCommand.FontFamilyVerdana,
-                _ => (FormatCommand?)null
-            };
-
-            if (command.HasValue)
-            {
-                await ExecuteCommand(command.Value);
             }
         }
 
@@ -602,6 +579,7 @@ namespace BlazorRTE.Components
                 try
                 {
                     await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
+                    await SetupColorPickerNavigation(_textColorPalette, ColorGridColumns);
                 }
                 catch { }
             }
@@ -621,6 +599,7 @@ namespace BlazorRTE.Components
                 try
                 {
                     await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
+                    await SetupColorPickerNavigation(_bgColorPalette, ColorGridColumns);
                 }
                 catch { }
             }
@@ -629,7 +608,7 @@ namespace BlazorRTE.Components
         protected async Task ToggleFontSizePicker()
         {
             _showFontSizePicker = !_showFontSizePicker;
-            _showFontFamilyPicker = false; // Close other pickers
+            _showFontFamilyPicker = false;
             _showTextColorPicker = false;
             _showBackgroundColorPicker = false;
 
@@ -637,7 +616,11 @@ namespace BlazorRTE.Components
             {
                 StateHasChanged();
                 await Task.Delay(50);
-                try { await _jsModule.InvokeVoidAsync("adjustColorPalettePosition"); }
+                try
+                {
+                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
+                    await SetupListPickerNavigation(_fontSizePalette);
+                }
                 catch { }
             }
         }
@@ -645,7 +628,7 @@ namespace BlazorRTE.Components
         protected async Task ToggleFontFamilyPicker()
         {
             _showFontFamilyPicker = !_showFontFamilyPicker;
-            _showFontSizePicker = false; // Close other pickers
+            _showFontSizePicker = false;
             _showTextColorPicker = false;
             _showBackgroundColorPicker = false;
 
@@ -653,29 +636,88 @@ namespace BlazorRTE.Components
             {
                 StateHasChanged();
                 await Task.Delay(50);
-                try { await _jsModule.InvokeVoidAsync("adjustColorPalettePosition"); }
+                try
+                {
+                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
+                    await SetupListPickerNavigation(_fontFamilyPalette);
+                }
                 catch { }
             }
+        }
+
+        // NEW: Toggle for heading style picker
+        protected async Task ToggleHeadingPicker()
+        {
+            _showHeadingPicker = !_showHeadingPicker;
+            _showFontFamilyPicker = false;
+            _showFontSizePicker = false;
+            _showTextColorPicker = false;
+            _showBackgroundColorPicker = false;
+
+            if (_showHeadingPicker && _jsModule != null)
+            {
+                StateHasChanged();
+                await Task.Delay(50);
+                try
+                {
+                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
+                    await SetupListPickerNavigation(_headingPalette);
+                }
+                catch { }
+            }
+        }
+
+        protected async Task SelectHeading(string level)
+        {
+            var command = level switch
+            {
+                "h1" => FormatCommand.HeadingH1,
+                "h2" => FormatCommand.HeadingH2,
+                "h3" => FormatCommand.HeadingH3,
+                _ => FormatCommand.Paragraph
+            };
+
+            await ExecuteCommand(command);
+            _showHeadingPicker = false;
+            await ReturnFocusToEditor();
+        }
+
+        protected string GetCurrentHeadingLabel()
+        {
+            return _currentHeadingLevel switch
+            {
+                "h1" => "H1",
+                "h2" => "H2",
+                "h3" => "H3",
+                _ => "¶" // Paragraph symbol
+            };
         }
 
         protected void CloseColorPickers()
         {
             _showTextColorPicker = false;
             _showBackgroundColorPicker = false;
-            _showFontSizePicker = false;        // ADD
-            _showFontFamilyPicker = false;      // ADD
+            _showFontSizePicker = false;
+            _showFontFamilyPicker = false;
+            _showHeadingPicker = false; // ADD THIS
         }
 
         protected async Task SelectTextColor(string color)
         {
             await ApplyTextColor(color);
-            _showTextColorPicker = false; // Close after selection
+            _showTextColorPicker = false;
+
+            // NEW: Return focus to editor
+            await ReturnFocusToEditor();
         }
 
         protected async Task SelectBackgroundColor(string color)
         {
             await ApplyBackgroundColor(color);
-            _showBackgroundColorPicker = false; // Close after selection
+            _showBackgroundColorPicker = false;
+
+            // NEW: Return focus to editor
+            await ReturnFocusToEditor();
         }
 
         protected async Task SelectFontSize(string size)
@@ -694,7 +736,10 @@ namespace BlazorRTE.Components
             if (command.HasValue)
             {
                 await ExecuteCommand(command.Value);
-                _showFontSizePicker = false; // Close after selection
+                _showFontSizePicker = false;
+
+                // NEW: Return focus to editor
+                await ReturnFocusToEditor();
             }
         }
 
@@ -718,7 +763,31 @@ namespace BlazorRTE.Components
             if (command.HasValue)
             {
                 await ExecuteCommand(command.Value);
-                _showFontFamilyPicker = false; // Close after selection
+                _showFontFamilyPicker = false;
+
+                // NEW: Return focus to editor
+                await ReturnFocusToEditor();
+            }
+        }
+
+        // NEW: Select heading level
+        protected async Task SelectHeadingLevel(string level)
+        {
+            var command = level switch
+            {
+                "h1" => FormatCommand.HeadingH1,
+                "h2" => FormatCommand.HeadingH2,
+                "h3" => FormatCommand.HeadingH3,
+                _ => (FormatCommand?)null
+            };
+
+            if (command.HasValue)
+            {
+                await ExecuteCommand(command.Value);
+                _showHeadingPicker = false;
+
+                // NEW: Return focus to editor
+                await ReturnFocusToEditor();
             }
         }
 
@@ -781,11 +850,11 @@ namespace BlazorRTE.Components
                 return "200px"; // Fallback default
 
             value = value.Trim();
-            
+
             // Check if value already has a unit (px, em, rem, %, vh, etc.)
             if (char.IsLetter(value[^1]) || value.EndsWith("%"))
                 return value;
-            
+
             // No unit found, assume pixels
             return value + "px";
         }
@@ -793,39 +862,6 @@ namespace BlazorRTE.Components
         private async Task ToggleBold()
         {
             await ExecuteCommand(FormatCommand.Bold);
-        }
-
-        private async Task ToggleItalic()
-        {
-            await ExecuteCommand(FormatCommand.Italic);
-        }
-
-        private async Task ToggleUnderline()
-        {
-            await ExecuteCommand(FormatCommand.Underline);
-        }
-
-        private async Task SetAlignment(string align)
-        {
-            // If clicking the same alignment, toggle back to left
-            if (alignment == align && align != "left")
-            {
-                alignment = "left";
-                await ExecuteCommand(FormatCommand.AlignLeft);
-            }
-            else
-            {
-                alignment = align;
-                var command = align switch
-                {
-                    "left" => FormatCommand.AlignLeft,
-                    "center" => FormatCommand.AlignCenter,
-                    "right" => FormatCommand.AlignRight,
-                    "justify" => FormatCommand.AlignJustify,
-                    _ => FormatCommand.AlignLeft
-                };
-                await ExecuteCommand(command);
-            }
         }
 
         private async Task HandleToolbarKeydown(KeyboardEventArgs e)
@@ -848,8 +884,8 @@ namespace BlazorRTE.Components
                     focusedIndex = ToolbarButtonCount - 1;
                     await FocusToolbarButton();
                     break;
-                // Note: ArrowUp/ArrowDown are intentionally NOT handled here
-                // They should be handled natively by dropdown/select elements
+                    // Note: ArrowUp/ArrowDown are intentionally NOT handled here
+                    // They should be handled natively by dropdown/select elements
             }
         }
 
@@ -871,6 +907,167 @@ namespace BlazorRTE.Components
             Console.WriteLine("Editor clicked!");
             await UpdateToolbarState();
         }
-         
+
+        /// <summary>
+        /// Handle keyboard navigation in color picker palettes
+        /// </summary>
+        private async Task HandleColorPickerKeydown(KeyboardEventArgs e, string pickerType)
+        {
+            if (_jsModule == null) return;
+
+            try
+            {
+                // Handle Escape key
+                if (e.Key == "Escape")
+                {
+                    await ClosePickerAndFocusButton(pickerType);
+                    return;
+                }
+
+                // Let JavaScript handle arrow key navigation
+                if (e.Key.StartsWith("Arrow") || e.Key == "Home" || e.Key == "End")
+                {
+                    await _jsModule.InvokeVoidAsync("handleColorPickerKeydown", e, ColorGridColumns);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"HandleColorPickerKeydown error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle keyboard navigation in font/size picker lists
+        /// </summary>
+        private async Task HandleListPickerKeydown(KeyboardEventArgs e, string pickerType)
+        {
+            if (_jsModule == null) return;
+
+            try
+            {
+                // Handle Escape key
+                if (e.Key == "Escape")
+                {
+                    await ClosePickerAndFocusButton(pickerType);
+                    return;
+                }
+
+                // Let JavaScript handle arrow key navigation
+                if (e.Key.StartsWith("Arrow") || e.Key == "Home" || e.Key == "End")
+                {
+                    await _jsModule.InvokeVoidAsync("handleListPickerKeydown", e);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"HandleListPickerKeydown error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Close picker and return focus to trigger button
+        /// </summary>
+        private async Task ClosePickerAndFocusButton(string pickerType)
+        {
+            switch (pickerType)
+            {
+                case "textColor":
+                    _showTextColorPicker = false;
+                    await Task.Delay(10);
+                    await FocusElement(_textColorButton);
+                    break;
+                case "backgroundColor":
+                    _showBackgroundColorPicker = false;
+                    await Task.Delay(10);
+                    await FocusElement(_bgColorButton);
+                    break;
+                case "fontFamily":
+                    _showFontFamilyPicker = false;
+                    await Task.Delay(10);
+                    await FocusElement(_fontFamilyButton);
+                    break;
+                case "fontSize":
+                    _showFontSizePicker = false;
+                    await Task.Delay(10);
+                    await FocusElement(_fontSizeButton);
+                    break;
+                case "heading": // NEW: Close heading picker
+                    _showHeadingPicker = false;
+                    await Task.Delay(10);
+                    await FocusElement(_headingButton);
+                    break;
+            }
+            StateHasChanged();
+        }
+
+        /// <summary>
+        /// Focus an element reference
+        /// </summary>
+        private async Task FocusElement(ElementReference elementRef)
+        {
+            if (_jsModule == null) return;
+
+            try
+            {
+                await _jsModule.InvokeVoidAsync("focusElement", elementRef);
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Setup keyboard navigation when color picker opens
+        /// </summary>
+        private async Task SetupColorPickerNavigation(ElementReference palette, int columns)
+        {
+            if (_jsModule == null) return;
+
+            try
+            {
+                // Pass the picker type so JS knows which button to focus on Escape
+                var buttonRef = palette.Equals(_textColorPalette) ? _textColorButton : _bgColorButton;
+                await _jsModule.InvokeVoidAsync("setupColorPickerNavigation", palette, columns, buttonRef);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SetupColorPickerNavigation error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Setup keyboard navigation when list picker opens
+        /// </summary>
+        private async Task SetupListPickerNavigation(ElementReference palette)
+        {
+            if (_jsModule == null) return;
+
+            try
+            {
+                // Pass the picker type so JS knows which button to focus on Escape
+                var buttonRef = palette.Equals(_fontFamilyPalette) ? _fontFamilyButton : _fontSizeButton;
+                await _jsModule.InvokeVoidAsync("setupListPickerNavigation", palette, buttonRef);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SetupListPickerNavigation error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Return focus to the editor after a command
+        /// </summary>
+        private async Task ReturnFocusToEditor()
+        {
+            if (_jsModule != null)
+            {
+                try
+                {
+                    await _jsModule.InvokeVoidAsync("focusEditor", _editorRef);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ReturnFocusToEditor error: {ex.Message}");
+                }
+            }
+        }
     }
 }

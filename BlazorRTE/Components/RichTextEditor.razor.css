@@ -101,6 +101,11 @@
     color: #1e40af;
 }
 
+/* ADD THIS - Wider buttons for typography options */
+.rte-btn-wide {
+    min-width: 48px;
+}
+
 .rte-separator {
     width: 1px;
     height: 24px;
@@ -558,4 +563,66 @@
 .rte-content sup {
     font-size: 0.75em;
     vertical-align: super;
+}
+ 
+/* ========================================
+   CUSTOM TOOLTIPS
+   ======================================== */
+
+/* Tooltip container positioning */
+.rte-btn,
+.rte-dropdown {
+    position: relative;
+}
+
+/* Tooltip text - positioned BELOW button */
+.rte-btn[data-tooltip]:hover::after,
+.rte-font-option[data-tooltip]:hover::after,
+.rte-palette-color[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 8px);  /* BELOW the button */
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 10px;
+    background: #1f2937;
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 10001;
+    pointer-events: none;
+}
+
+/* Tooltip arrow - pointed UP (since tooltip is below) */
+.rte-btn[data-tooltip]:hover::before,
+.rte-font-option[data-tooltip]:hover::before,
+.rte-palette-color[data-tooltip]:hover::before {
+    content: '';
+    position: absolute;
+    top: calc(100% + 2px);  /* BELOW the button */
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-bottom-color: #1f2937;  /* Arrow points UP */
+    z-index: 10001;
+    pointer-events: none;
+}
+
+/* Dark mode tooltip colors */
+@media (prefers-color-scheme: dark) {
+    .rte-btn[data-tooltip]:hover::after,
+    .rte-font-option[data-tooltip]:hover::after,
+    .rte-palette-color[data-tooltip]:hover::after {
+        background: #374151;
+        color: #f9fafb;
+    }
+    
+    .rte-btn[data-tooltip]:hover::before,
+    .rte-font-option[data-tooltip]:hover::before,
+    .rte-palette-color[data-tooltip]:hover::before {
+        border-bottom-color: #374151;
+    }
 }

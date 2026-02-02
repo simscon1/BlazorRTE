@@ -12,14 +12,34 @@ export function initializeEditor(element, dotNetRef) {
 
     editorInstances.set(element, { dotNetRef });
 
-    // Prevent browser shortcuts BEFORE they're handled (capture phase)
+    // Track if Shift+Tab was pressed to navigate backwards
+    let shiftTabPressed = false;
+
     element.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        // Prevent default for shortcuts we handle
+        if ((e.ctrlKey || e.metaKey) && ['b', 'i', 'u', 'z', 'y', 'k'].includes(e.key.toLowerCase())) {
             e.preventDefault();
-            e.stopPropagation();
-            console.log("Ctrl+K intercepted");
         }
-    }, true); // capture: true is important
+
+        if (e.key === 'Tab' && e.shiftKey) {
+            shiftTabPressed = true;
+        }
+    }, true);
+
+    // When editor gains focus via Shift+Tab, focus the last toolbar button
+    element.addEventListener('focus', (e) => {
+        if (shiftTabPressed) {
+            shiftTabPressed = false;
+            const toolbar = document.querySelector('.rte-toolbar');
+            if (toolbar) {
+                const toolbarItems = toolbar.querySelectorAll('[data-toolbar-item]');
+                if (toolbarItems.length > 0) {
+                    e.preventDefault();
+                    toolbarItems[toolbarItems.length - 1].focus();
+                }
+            }
+        }
+    });
 
     // Save selection when toolbar is clicked
     element.addEventListener('blur', () => {
@@ -66,10 +86,9 @@ export function disposeEditor(element) {
 }
 
 export function saveSelection() {
-    const sel = window.getSelection();
-    if (sel.rangeCount > 0) {
-        savedSelection = sel.getRangeAt(0);
-        console.log("Selection saved");
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        savedSelection = selection.getRangeAt(0).cloneRange();
     }
 }
 
@@ -84,12 +103,28 @@ export function restoreSelection() {
 
 export function executeCommand(command, value = null) {
     console.log("executeCommand:", command);
-    restoreSelection();
+    
+    // Only restore saved selection if there's no current selection
+    const currentSelection = window.getSelection();
+    if (!currentSelection || currentSelection.rangeCount === 0 || currentSelection.isCollapsed) {
+        restoreSelection();
+    }
 
-    // Special handling for horizontal rule to prevent cursor getting stuck
+    // Special handling for horizontal rule
     if (command === 'insertHorizontalRule') {
         insertHorizontalRuleWithParagraph();
         return;
+    }
+
+    // Handle subscript/superscript mutual exclusivity
+    if (command === 'subscript') {
+        if (document.queryCommandState('superscript')) {
+            document.execCommand('superscript', false, null);
+        }
+    } else if (command === 'superscript') {
+        if (document.queryCommandState('subscript')) {
+            document.execCommand('subscript', false, null);
+        }
     }
 
     document.execCommand(command, false, value);
@@ -97,31 +132,61 @@ export function executeCommand(command, value = null) {
 
 export function executeFormatBlock(blockType) {
     console.log("executeFormatBlock:", blockType);
-    restoreSelection();
+    
+    // Only restore saved selection if there's no current selection
+    const currentSelection = window.getSelection();
+    if (!currentSelection || currentSelection.rangeCount === 0 || currentSelection.isCollapsed) {
+        restoreSelection();
+    }
+    
     document.execCommand('formatBlock', false, blockType);
 }
 
 export function executeFontSize(size) {
     console.log("executeFontSize:", size);
-    restoreSelection();
+    
+    // Only restore saved selection if there's no current selection
+    const currentSelection = window.getSelection();
+    if (!currentSelection || currentSelection.rangeCount === 0 || currentSelection.isCollapsed) {
+        restoreSelection();
+    }
+    
     document.execCommand('fontSize', false, size);
 }
 
 export function executeFontName(fontName) {
     console.log("executeFontName:", fontName);
-    restoreSelection();
+    
+    // Only restore saved selection if there's no current selection
+    const currentSelection = window.getSelection();
+    if (!currentSelection || currentSelection.rangeCount === 0 || currentSelection.isCollapsed) {
+        restoreSelection();
+    }
+    
     document.execCommand('fontName', false, fontName);
 }
 
 export function executeForeColor(color) {
     console.log("executeForeColor:", color);
-    restoreSelection();
+    
+    // Only restore saved selection if there's no current selection
+    const currentSelection = window.getSelection();
+    if (!currentSelection || currentSelection.rangeCount === 0 || currentSelection.isCollapsed) {
+        restoreSelection();
+    }
+    
     document.execCommand('foreColor', false, color);
 }
  
 export function executeBackColor(color) {
     console.log("executeBackColor:", color);
-    restoreSelection();
+    
+    // Only restore saved selection if there's no current selection
+    const currentSelection = window.getSelection();
+    if (!currentSelection || currentSelection.rangeCount === 0 || currentSelection.isCollapsed) {
+        restoreSelection();
+    }
+    
     document.execCommand('backColor', false, color);
 }
 
@@ -139,14 +204,17 @@ export function setHtml(element, html) {
 }
 
 export function focusEditor(element) {
-    if (element) {
-        element.focus();
-        const range = document.createRange();
-        const selection = window.getSelection();
-        range.selectNodeContents(element);
-        range.collapse(false);
-        selection.removeAllRanges();
-        selection.addRange(range);
+    element.focus();
+    
+    // Restore the previously saved selection
+    if (savedSelection) {
+        try {
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(savedSelection);
+        } catch (e) {
+            console.warn('Could not restore selection:', e);
+        }
     }
 }
 
@@ -166,14 +234,35 @@ export function getActiveFormats() {
     if (document.queryCommandState('bold')) formats.push('bold');
     if (document.queryCommandState('italic')) formats.push('italic');
     
-    // Only report underline if NOT inside a link (links are underlined by default)
+    // Only report underline if NOT inside a link
     if (document.queryCommandState('underline') && !insideLink) {
         formats.push('underline');
     }
     
     if (document.queryCommandState('strikeThrough')) formats.push('strikeThrough');
-    if (document.queryCommandState('subscript')) formats.push('subscript');
-    if (document.queryCommandState('superscript')) formats.push('superscript');
+    
+    // FIXED: Always check DOM for subscript/superscript (queryCommandState is unreliable)
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        let node = selection.getRangeAt(0).startContainer;
+        
+        // Walk up the DOM tree to check for sub/sup tags
+        while (node && node !== document.body) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                const tagName = node.tagName?.toLowerCase();
+                if (tagName === 'sub') {
+                    formats.push('subscript');
+                    console.log('✓ Subscript detected via DOM'); // DEBUG
+                }
+                if (tagName === 'sup') {
+                    formats.push('superscript');
+                    console.log('✓ Superscript detected via DOM'); // DEBUG
+                }
+            }
+            node = node.parentNode;
+        }
+    }
+    
     if (document.queryCommandState('insertUnorderedList')) formats.push('insertUnorderedList');
     if (document.queryCommandState('insertOrderedList')) formats.push('insertOrderedList');
     
@@ -200,6 +289,7 @@ export function getActiveFormats() {
         formats.push('justifyLeft');
     }
     
+    console.log('Active formats:', formats); // DEBUG
     return formats;
 }
 
@@ -356,4 +446,274 @@ export function getToolbarFocusableCount() {
     if (!toolbar) return 0;
     
     return toolbar.querySelectorAll('button, select').length;
+}
+
+// NEW: Accessibility helper for picker navigation
+export function setupPickerNavigation(palette, trigger, dotNetRef) {
+    if (!palette) return;
+
+    // Find all focusable options (buttons with role="option")
+    const items = palette.querySelectorAll('[role="option"]');
+    if (items.length === 0) return;
+
+    // Focus the first item immediately
+    setTimeout(() => items[0].focus(), 10);
+
+    palette.addEventListener('keydown', (e) => {
+        const active = document.activeElement;
+        // Convert NodeList to Array to find index
+        const index = Array.from(items).indexOf(active);
+
+        // Escape: Close picker and return focus to trigger
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            dotNetRef.invokeMethodAsync('CloseActivePickers');
+            if (trigger) trigger.focus();
+        }
+        // Arrows: Navigate grid/list
+        else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            const next = (index + 1) % items.length;
+            items[next].focus();
+        }
+        else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            const prev = (index - 1 + items.length) % items.length;
+            items[prev].focus();
+        }
+        // Tab: Trap focus inside popup
+        else if (e.key === 'Tab') {
+            e.preventDefault();
+            if (e.shiftKey) {
+                const prev = (index - 1 + items.length) % items.length;
+                items[prev].focus();
+            } else {
+                const next = (index + 1) % items.length;
+                items[next].focus();
+            }
+        }
+        // Home: First item
+        else if (e.key === 'Home') {
+            e.preventDefault();
+            items[0].focus();
+        }
+        // End: Last item
+        else if (e.key === 'End') {
+            e.preventDefault();
+            items[items.length - 1].focus();
+        }
+    });
+}
+
+/**
+ * Setup keyboard navigation for color picker grids
+ * @param {HTMLElement} palette - The color palette container
+ * @param {number} columns - Number of columns in the grid
+ * @param {HTMLElement} triggerButton - The button that opened the picker
+ */
+export function setupColorPickerNavigation(palette, columns, triggerButton) {
+    if (!palette) return;
+
+    const colorButtons = Array.from(palette.querySelectorAll('.rte-palette-color'));
+    if (colorButtons.length === 0) return;
+
+    // Focus the first color button when palette opens
+    setTimeout(() => {
+        if (colorButtons[0]) {
+            colorButtons[0].focus();
+        }
+    }, 50);
+
+    // Attach keyboard handler directly to palette
+    const keydownHandler = (event) => {
+        const key = event.key;
+        if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Escape'].includes(key)) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const buttons = Array.from(palette.querySelectorAll('.rte-palette-color'));
+        const currentIndex = buttons.indexOf(event.target);
+        if (currentIndex === -1) return;  // ← FIXED: Added opening parenthesis
+
+        let newIndex = currentIndex;
+        const rows = Math.ceil(buttons.length / columns);
+
+        switch (key) {
+            case 'ArrowRight':
+                newIndex = (currentIndex + 1) % buttons.length;
+                break;
+            case 'ArrowLeft':
+                newIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+                break;
+            case 'ArrowDown':
+                newIndex = currentIndex + columns;
+                if (newIndex >= buttons.length) {
+                    // Wrap to top of same column
+                    newIndex = currentIndex % columns;
+                }
+                break;
+            case 'ArrowUp':
+                newIndex = currentIndex - columns;
+                if (newIndex < 0) {
+                    // Wrap to bottom of same column
+                    const column = currentIndex % columns;
+                    const lastRowStart = (rows - 1) * columns;
+                    newIndex = lastRowStart + column;
+                    if (newIndex >= buttons.length) {
+                        newIndex = lastRowStart + column - columns;
+                    }
+                }
+                break;
+            case 'Home':
+                newIndex = 0;
+                break;
+            case 'End':
+                newIndex = buttons.length - 1;
+                break;
+            case 'Escape':
+                if (triggerButton) {
+                    triggerButton.click(); // Close by clicking trigger again
+                    setTimeout(() => triggerButton.focus(), 10);
+                }
+                return;
+        }
+
+        if (newIndex >= 0 && newIndex < buttons.length) {
+            buttons[newIndex].focus();
+        }
+    };
+
+    palette.addEventListener('keydown', keydownHandler);
+    
+    // Store handler so it can be removed later
+    palette._keydownHandler = keydownHandler;
+}
+
+/**
+ * Setup keyboard navigation for font/size pickers (vertical list)
+ * @param {HTMLElement} palette - The palette container
+ * @param {HTMLElement} triggerButton - The button that opened the picker
+ */
+export function setupListPickerNavigation(palette, triggerButton) {
+    if (!palette) return;
+
+    const options = Array.from(palette.querySelectorAll('.rte-font-option'));
+    if (options.length === 0) return;
+
+    // Focus the first option when palette opens
+    setTimeout(() => {
+        if (options[0]) {
+            options[0].focus();
+        }
+    }, 50);
+
+    // Attach keyboard handler directly to palette
+    const keydownHandler = (event) => {
+        const key = event.key;
+        if (!['ArrowUp', 'ArrowDown', 'Home', 'End', 'Escape'].includes(key)) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const opts = Array.from(palette.querySelectorAll('.rte-font-option'));
+        const currentIndex = opts.indexOf(event.target);
+        if (currentIndex === -1) return;
+
+        let newIndex = currentIndex;
+
+        switch (key) {
+            case 'ArrowDown':
+                newIndex = (currentIndex + 1) % opts.length;
+                break;
+            case 'ArrowUp':
+                newIndex = (currentIndex - 1 + opts.length) % opts.length;
+                break;
+            case 'Home':
+                newIndex = 0;
+                break;
+            case 'End':
+                newIndex = opts.length - 1;
+                break;
+            case 'Escape':
+                if (triggerButton) {
+                    triggerButton.click(); // Close by clicking trigger again
+                    setTimeout(() => triggerButton.focus(), 10);
+                }
+                return;
+        }
+
+        if (newIndex >= 0 && newIndex < opts.length) {
+            opts[newIndex].focus();
+        }
+    };
+
+    palette.addEventListener('keydown', keydownHandler);
+    
+    // Store handler so it can be removed later
+    palette._keydownHandler = keydownHandler;
+}
+
+/**
+ * Focus an element
+ */
+export function focusElement(element) {
+    if (element) {
+        element.focus();
+    }
+}
+
+// Add this function after getActiveFormats()
+export function getCurrentTextColor() {
+    const color = document.queryCommandValue('foreColor');
+    
+    // Convert to hex if it's RGB format
+    if (color && color.startsWith('rgb')) {
+        const rgb = color.match(/\d+/g);
+        if (rgb && rgb.length >= 3) {
+            const hex = '#' + 
+                parseInt(rgb[0]).toString(16).padStart(2, '0') +
+                parseInt(rgb[1]).toString(16).padStart(2, '0') +
+                parseInt(rgb[2]).toString(16).padStart(2, '0');
+            return hex.toUpperCase();
+        }
+    }
+    
+    // Return the color as-is (might be hex already) or default to red
+    return color && color !== 'rgb(0, 0, 0)' && color !== '#000000' ? color : '#FF0000';
+}
+
+// Add this function after getCurrentTextColor()
+export function getCurrentBackgroundColor() {
+    const color = document.queryCommandValue('backColor');
+    
+    // Convert to hex if it's RGB format
+    if (color && color.startsWith('rgb')) {
+        // Check for rgba with transparency
+        if (color.startsWith('rgba(0, 0, 0, 0)') || color.startsWith('rgba(0,0,0,0)')) {
+            return '#FFFFFF';
+        }
+        
+        const rgb = color.match(/\d+/g);
+        if (rgb && rgb.length >= 3) {
+            const hex = '#' + 
+                parseInt(rgb[0]).toString(16).padStart(2, '0') +
+                parseInt(rgb[1]).toString(16).padStart(2, '0') +
+                parseInt(rgb[2]).toString(16).padStart(2, '0');
+            return hex.toUpperCase();
+        }
+    }
+    
+    // Handle transparent/white as white (no highlight applied)
+    if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)' || 
+        color === '#FFFFFF' || color === '#FFF' || color === 'rgb(255, 255, 255)') {
+        return '#FFFFFF'; // Default to white
+    }
+    
+    return color;
 }
