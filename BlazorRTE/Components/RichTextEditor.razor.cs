@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using System.Text.RegularExpressions;
-using BlazorRTE;
+using BlazorRTE.HelperClasses;
 
 namespace BlazorRTE.Components
 {

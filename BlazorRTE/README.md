@@ -6,7 +6,7 @@
 
 ## 🚀 Quick Start
 
-**⚠️ Important:** BlazorRTE requires interactive rendering. Add `@rendermode InteractiveServer` to your page.
+**⚠️ Important:** BlazorRTE requires interactive rendering for Blazer Server apps. Add `@rendermode InteractiveServer` to your page.
 
 ### Installation
 
