@@ -1,4 +1,4 @@
-﻿namespace BlazorRTE
+﻿namespace BlazorRTE.HelperClasses
 {
     /// <summary>
     /// Predefined color palettes for text and background colors

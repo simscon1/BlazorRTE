@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace BlazorRTE
+namespace BlazorRTE.HelperClasses
 {
     /// <summary>
     /// HTML sanitization utility for RichTextEditor

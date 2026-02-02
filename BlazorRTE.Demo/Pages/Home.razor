@@ -1,0 +1,113 @@
+﻿@page "/"
+@using BlazorRTE.Components
+@* @rendermode InteractiveServer *@
+
+<PageTitle>BlazorRTE Demo</PageTitle>
+
+<div class="height-test-page">
+    <div class="output-panel">
+
+        <div class="output-section">
+            <h4>Rendered Preview:</h4>
+            <div class="preview-box">@((MarkupString)(content ?? ""))</div>
+        </div>
+    </div>
+
+    <div class="editor-wrapper">
+        <RichTextEditor @ref="editor"
+                        @bind-Value="content"
+                        MinHeight="@GetMinHeight()"
+                        MaxHeight="@GetMaxHeight()"
+                        Placeholder="Type to test height behavior..."
+                        ShowToolbar="true"
+                        ShowCharacterCount="true" />
+    </div>
+</div>
+
+<style>
+    .height-test-page {
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .output-panel {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #f9fafb;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .output-section {
+        margin: 15px 0;
+    }
+
+    .output-panel h3,
+    .output-panel h4 {
+        margin: 10px 0;
+        color: #374151;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .output-panel pre {
+        background: #1f2937;
+        color: #f9fafb;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-size: 12px;
+        font-family: 'Courier New', monospace;
+        overflow-y: auto;
+        margin: 10px 0;
+         
+    }
+
+    .preview-box {
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        background: white;
+        min-height: 50px;
+        max-height: 250px;
+        overflow-y: auto;
+    }
+</style>
+
+@code {
+    private string content = "";
+    private string minHeight = "100px";
+    private string maxHeight = "300px";
+    private RichTextEditor? editor;
+
+    protected override void OnInitialized()
+    {
+        content = """
+            <h2>Welcome to the Rich Text Editor</h2>
+            <p>This editor supports <strong>bold</strong>, <em>italic</em>, and <u>underlined</u> text formatting.</p>
+            <p>This tests <s>strikethrough</s>. This one test's subscript H<sub>2</sub>O and this one is for superscript X<sup>2</sup></p>
+            <p>You can also test lists:</p>
+            <ul>
+                <li>First bullet point item</li>
+                <li>Second bullet point item</li>
+            </ul>
+            <ol>
+                <li>First numbered list item</li>
+                <li>Second numbered list item</li>
+            </ol>
+            <p>Here is a link to <a href="https://www.loneworx.com" target="_blank">loneworx.com</a>.</p>
+            <p style="text-align: center;">This line has a <span style="color: blue;">blue</span> word and is centered.</p>
+            <p>This text has a <span style="background-color: #FFFF00;">yellow highlighted</span> word to test the highlight button.</p>
+            <hr>
+            <p style="text-align: justify;">This is a paragraph for testing. When you select this text and click the justify button, you should see the text spread out evenly. The spaces between words will adjust automatically to make both edges align perfectly with the container margins. Try it out!</p>
+            """;
+    }
+
+    private string GetMinHeight() => string.IsNullOrWhiteSpace(minHeight) ? "100px" : minHeight;
+    private string GetMaxHeight() => string.IsNullOrWhiteSpace(maxHeight) ? "300px" : maxHeight;
+
+    private void UpdateHeight()
+    {
+        StateHasChanged();
+    }
+}
