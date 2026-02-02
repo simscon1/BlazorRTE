@@ -1,4 +1,4 @@
-﻿namespace BlazorRTE
+﻿namespace BlazorRTE.HelperClasses
 {
     /// <summary>
     /// Formatting commands supported by RichTextEditor
