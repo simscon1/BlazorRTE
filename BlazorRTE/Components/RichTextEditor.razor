@@ -1,3 +1,5 @@
+@using BlazorRTE.HelperClasses
+
 <div class="rich-text-editor @(IsFocused ? "focused" : "")"
      @onclick="CloseColorPickers"
      @onclick:stopPropagation>
