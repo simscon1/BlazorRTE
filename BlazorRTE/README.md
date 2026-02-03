@@ -78,6 +78,20 @@ string text = GetPlainText(); // Get plain text without HTML
 
 The Rich Text Editor supports 27+ industry-standard keyboard shortcuts:
 
+### History
+- `Ctrl+Z` - Undo
+- `Ctrl+Y` or `Ctrl+Shift+Z` - Redo
+
+### Headings
+- `Ctrl+Alt+0` - Normal Text
+- `Ctrl+Alt+1` - Heading 1
+- `Ctrl+Alt+2` - Heading 2
+- `Ctrl+Alt+3` - Heading 3
+
+### Font Size
+- `Ctrl+Shift+>` - Increase Font Size
+- `Ctrl+Shift+<` - Decrease Font Size
+
 ### Text Formatting
 - `Ctrl+B` - Bold
 - `Ctrl+I` - Italic
@@ -85,10 +99,6 @@ The Rich Text Editor supports 27+ industry-standard keyboard shortcuts:
 - `Ctrl+Shift+X` - Strikethrough
 - `Ctrl+=` - Subscript
 - `Ctrl+Shift+=` - Superscript
-
-### History
-- `Ctrl+Z` - Undo
-- `Ctrl+Y` or `Ctrl+Shift+Z` - Redo
 
 ### Lists & Indentation
 - `Ctrl+Shift+8` - Bullet List
@@ -101,16 +111,6 @@ The Rich Text Editor supports 27+ industry-standard keyboard shortcuts:
 - `Ctrl+E` - Align Center
 - `Ctrl+R` - Align Right
 - `Ctrl+J` - Justify
-
-### Headings
-- `Ctrl+Alt+0` - Normal Text
-- `Ctrl+Alt+1` - Heading 1
-- `Ctrl+Alt+2` - Heading 2
-- `Ctrl+Alt+3` - Heading 3
-
-### Font Size
-- `Ctrl+Shift+>` - Increase Font Size
-- `Ctrl+Shift+<` - Decrease Font Size
 
 ### Insert
 - `Ctrl+K` - Insert Link

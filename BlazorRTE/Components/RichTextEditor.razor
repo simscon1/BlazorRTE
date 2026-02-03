@@ -147,7 +147,7 @@
                             data-toolbar-item
                             @onclick="ToggleFontSizePicker"
                             @onclick:stopPropagation
-                            data-tooltip="Font Size">
+                            data-tooltip="Font Size (Ctrl+Shift+> / Ctrl+Shift+<)">
                         14
                     </button>
 
@@ -412,7 +412,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Indent)"
-                        data-tooltip="Increase Indent (Ctrl+])">
+                        data-tooltip="Increase Indent (Ctrl+]">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                     </svg>
@@ -492,7 +492,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="CreateLink"
-                        data-tooltip="Insert Link">
+                        data-tooltip="Insert Link (Ctrl+K)">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
                         <path d="M318-120q-82 0-140-58t-58-140q0-40 15-76t43-64l134-133 56 56-134 134q-17 17-25.5 38.5T200-318q0 49 34.5 83.5T318-200q23 0 45-8.5t39-25.5l133-134 57 57-134 133q-28 28-64 43t-76 15Zm79-220-57-57 223-223 57 57-223 223Zm251-28-56-57 134-133q17-17 25-38t8-44q0-50-34-85t-84-35q-23 0-44.5 8.5T558-726L425-592l-57-56 134-134q28-28 64-43t76-15q82 0 139.5 58T839-641q0 39-14.5 75T782-502L648-368Z" />
                     </svg>
@@ -505,7 +505,7 @@
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.HorizontalRule)"
-                        data-tooltip="Horizontal Rule">
+                        data-tooltip="Horizontal Rule (Ctrl+Enter)">
                     <svg class="rte-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
                     </svg>
