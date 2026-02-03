@@ -73,7 +73,7 @@ namespace BlazorRTE.Components
 
         private string alignment = "left";
         private int focusedIndex = 0;
-        private const int ToolbarButtonCount = 24;
+        private const int ToolbarButtonCount = 25;
 
         private ElementReference _fontFamilyButton;
         private ElementReference _fontFamilyPalette;
@@ -88,6 +88,10 @@ namespace BlazorRTE.Components
 
         private string _currentTextColor = "#000000";
         private string _currentHighlightColor = "#FFFFFF";
+
+        private bool _showEmojiPicker = false;
+        private ElementReference _emojiButton;
+        private ElementReference _emojiPickerContainer;
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -568,6 +572,12 @@ namespace BlazorRTE.Components
             await RemoveLink();
         }
 
+        [JSInvokable]
+        public async Task HandleCtrlShiftE()
+        {
+            await ToggleEmojiPicker();
+        }
+
         private async Task<string> GetHtmlAsync()
         {
             if (_jsModule == null) return string.Empty;
@@ -754,6 +764,7 @@ namespace BlazorRTE.Components
             _showFontSizePicker = false;
             _showFontFamilyPicker = false;
             _showHeadingPicker = false;
+            _showEmojiPicker = false;  // ← Add this line
         }
 
         protected async Task SelectTextColor(string color)
@@ -1129,6 +1140,67 @@ namespace BlazorRTE.Components
         private async Task ToggleBold()
         {
             await ExecuteCommand(FormatCommand.Bold);
+        }
+
+        [JSInvokable]
+        protected async Task ToggleEmojiPicker()
+        {
+            _showEmojiPicker = !_showEmojiPicker;
+            
+            _showTextColorPicker = false;
+            _showBackgroundColorPicker = false;
+            _showFontSizePicker = false;
+            _showFontFamilyPicker = false;
+            _showHeadingPicker = false;
+            
+            StateHasChanged();
+            
+            if (_showEmojiPicker && _jsModule != null)
+            {
+                await Task.Delay(100); // Increased delay to ensure rendering
+                try
+                {
+                    await _jsModule.InvokeVoidAsync("adjustEmojiPickerPositionByQuery", _emojiButton);
+                }
+                catch { }
+            }
+        }
+
+        protected void CloseEmojiPicker()
+        {
+            _showEmojiPicker = false;
+            StateHasChanged();
+        }
+ 
+        protected async Task InsertEmoji(BlazorEmoji.Models.Emoji emoji)
+        {
+            if (_jsModule == null) return;
+            
+            try
+            {
+                // Insert emoji at cursor position
+                await _jsModule.InvokeVoidAsync("insertText", emoji.Char);
+                
+                // Close picker
+                _showEmojiPicker = false;
+                
+                // Update editor value
+                await Task.Delay(50);
+                var html = await GetHtmlAsync();
+                
+                _isUpdating = true;
+                Value = HtmlSanitizer.Sanitize(html);
+                _previousValue = Value;
+                await ValueChanged.InvokeAsync(Value);
+                _isUpdating = false;
+                
+                // Return focus to editor
+                await ReturnFocusToEditor();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inserting emoji: {ex.Message}");
+            }
         }
     }
 }
