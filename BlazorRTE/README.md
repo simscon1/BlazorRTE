@@ -76,22 +76,52 @@ string text = GetPlainText(); // Get plain text without HTML
 
 ## ⌨️ Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+B` | Bold |
-| `Ctrl+I` | Italic |
-| `Ctrl+U` | Underline |
-| `Ctrl+Z` | Undo |
-| `Ctrl+Y` | Redo |
-| `Ctrl+Shift+Z` | Redo (alternative) |
+The Rich Text Editor supports 27+ industry-standard keyboard shortcuts:
 
-### Toolbar Navigation
+### History
+- `Ctrl+Z` - Undo
+- `Ctrl+Y` or `Ctrl+Shift+Z` - Redo
 
-| Key | Action |
-|-----|--------|
-| `Tab` | Enter/exit toolbar |
-| `←` / `→` | Move between toolbar buttons |
-| `Home` / `End` | Jump to first/last button |
+### Headings
+- `Ctrl+Alt+0` - Normal Text
+- `Ctrl+Alt+1` - Heading 1
+- `Ctrl+Alt+2` - Heading 2
+- `Ctrl+Alt+3` - Heading 3
+
+### Font Size
+- `Ctrl+Shift+>` - Increase Font Size
+- `Ctrl+Shift+<` - Decrease Font Size
+
+### Text Formatting
+- `Ctrl+B` - Bold
+- `Ctrl+I` - Italic
+- `Ctrl+U` - Underline
+- `Ctrl+Shift+X` - Strikethrough
+- `Ctrl+=` - Subscript
+- `Ctrl+Shift+=` - Superscript
+
+### Lists & Indentation
+- `Ctrl+Shift+8` - Bullet List
+- `Ctrl+Shift+7` - Numbered List
+- `Ctrl+[` - Decrease Indent
+- `Ctrl+]` - Increase Indent
+
+### Alignment
+- `Ctrl+L` - Align Left
+- `Ctrl+E` - Align Center
+- `Ctrl+R` - Align Right
+- `Ctrl+J` - Justify
+
+### Insert
+- `Ctrl+K` - Insert Link
+- `Ctrl+Enter` - Horizontal Rule
+
+### Utility
+- `Ctrl+\` - Clear Formatting
+
+> **Note:** On macOS, use `Cmd` instead of `Ctrl`.
+
+[See full documentation](docs/keyboard-shortcuts.md)
 
 ## 📜 License
 
