@@ -35,6 +35,18 @@ export function initializeEditor(element, dotNetRef) {
             return;
         }
 
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'e') {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            try {
+                await dotNetRef.invokeMethodAsync('HandleCtrlShiftE');
+            } catch (err) {
+                console.error('Ctrl+Shift+E handler error:', err);
+            }
+            return;
+        }
+
         if (e.ctrlKey || e.metaKey) {
             const key = e.key.toLowerCase();
             if (e.altKey && ['0', '1', '2', '3'].includes(key)) {
@@ -515,4 +527,95 @@ export function getCurrentBackgroundColor() {
 export function getCurrentFontSize() {
     const size = document.queryCommandValue('fontSize');
     return (size && ['1', '2', '3', '4', '5', '6', '7'].includes(size)) ? size : '3';
+}
+
+export function insertText(text) {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+    
+    const range = selection.getRangeAt(0);
+    range.deleteContents();
+    
+    // Insert the text
+    const textNode = document.createTextNode(text);
+    range.insertNode(textNode);
+    
+    // Move cursor after inserted text
+    range.setStartAfter(textNode);
+    range.setEndAfter(textNode);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    
+    // Trigger input event to update Blazor
+    const editor = document.getElementById('rte-editor');
+    if (editor) {
+        editor.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+}
+
+export function adjustEmojiPickerPositionByQuery(buttonElement) {
+    if (!buttonElement) return;
+    
+    // Wait a bit for the picker to render
+    setTimeout(() => {
+        const pickerElement = document.querySelector('.emoji-picker');
+        if (pickerElement) {
+            adjustEmojiPickerPosition(pickerElement, buttonElement);
+        }
+    }, 10);
+}
+
+export function adjustEmojiPickerPosition(pickerElement, buttonElement) {
+    if (!pickerElement || !buttonElement) return;
+
+    // Remove existing alignment classes
+    pickerElement.classList.remove('align-left', 'align-right', 'align-center');
+    pickerElement.classList.remove('position-top', 'position-bottom');
+
+    const buttonRect = buttonElement.getBoundingClientRect();
+    const pickerWidth = 320; // Match CSS width
+    const pickerHeight = 400; // Match CSS max-height
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const margin = 16; // Safety margin from viewport edge
+
+    // === Horizontal Positioning ===
+    const pickerHalfWidth = pickerWidth / 2;
+    const buttonCenter = buttonRect.left + (buttonRect.width / 2);
+    
+    // Calculate how much space we have on each side of the button
+    const spaceOnLeft = buttonRect.left;
+    const spaceOnRight = viewportWidth - buttonRect.right;
+
+    // Check if centering the picker would go off-screen
+    const centeredLeft = buttonCenter - pickerHalfWidth;
+    const centeredRight = buttonCenter + pickerHalfWidth;
+
+    if (centeredRight > viewportWidth - margin) {
+        // Picker would overflow on the right, align to right edge of button
+        pickerElement.classList.add('align-right');
+        console.log('Emoji picker: aligned right (overflow prevention)');
+    } else if (centeredLeft < margin) {
+        // Picker would overflow on the left, align to left edge of button
+        pickerElement.classList.add('align-left');
+        console.log('Emoji picker: aligned left (overflow prevention)');
+    } else {
+        // Enough space to center
+        pickerElement.classList.add('align-center');
+        console.log('Emoji picker: aligned center');
+    }
+
+    // === Vertical Positioning ===
+    const spaceBelow = viewportHeight - buttonRect.bottom;
+    const spaceAbove = buttonRect.top;
+
+    if (spaceBelow < pickerHeight + margin && spaceAbove > spaceBelow) {
+        // Not enough space below and more space above, show above
+        pickerElement.classList.add('position-top');
+        console.log('Emoji picker: positioned above button');
+    } else {
+        // Default: show below
+        pickerElement.classList.add('position-bottom');
+        console.log('Emoji picker: positioned below button');
+    }
 }

@@ -1,4 +1,6 @@
 @using BlazorRTE.HelperClasses
+@using Blazor.Emoji.Components
+@using Blazor.Emoji.Models
 
 <div class="rich-text-editor @(IsFocused ? "focused" : "")"
      @onclick="CloseColorPickers"
@@ -515,6 +517,31 @@
                     </svg>
                     <span class="sr-only">Horizontal Rule</span>
                 </button>
+
+                @* ===== EMOJI PICKER ===== *@
+                <div class="rte-color-dropdown" style="display: inline-block;">
+                    <button type="button"
+                            @ref="_emojiButton"
+                            class="rte-btn"
+                            aria-label="Insert emoji"
+                            aria-haspopup="true"
+                            aria-expanded="@_showEmojiPicker.ToString().ToLower()"
+                            tabindex="-1"
+                            data-toolbar-item
+                            @onclick="ToggleEmojiPicker"
+                            @onclick:stopPropagation
+                            data-tooltip="Insert Emoji (Ctrl+Shift+E)">
+                        <span aria-hidden="true" style="font-size: 16px; line-height: 1;">😀</span>
+                        <span class="sr-only">Insert Emoji</span>
+                    </button>
+
+                    @if (_showEmojiPicker)
+                    {
+                        <EmojiPicker IsOpen="_showEmojiPicker" 
+                                     OnEmojiSelected="InsertEmoji"
+                                     OnClose="CloseEmojiPicker" />
+                    }
+                </div>
             </div>
 
             <span class="rte-separator" role="separator" aria-orientation="vertical"></span>
