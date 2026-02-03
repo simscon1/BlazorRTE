@@ -1172,7 +1172,7 @@ namespace BlazorRTE.Components
             StateHasChanged();
         }
  
-        protected async Task InsertEmoji(Blazor.Emoji.Models.Emoji emoji)
+        protected async Task InsertEmoji(BlazorEmoji.Models.Emoji emoji)
         {
             if (_jsModule == null) return;
             
