@@ -1,113 +1,188 @@
 ﻿@page "/"
 @using BlazorRTE.Components
-@* @rendermode InteractiveServer *@
 
 <PageTitle>BlazorRTE Demo</PageTitle>
 
-<div class="height-test-page">
-    <div class="output-panel">
+<div class="demo-container">
+    <div class="demo-header">
+        <h1>BlazorRTE - Rich Text Editor</h1>
+        <p class="lead">A fully accessible, keyboard-navigable rich text editor for Blazor WebAssembly with emoji support! 🎉</p>
+    </div>
 
-        <div class="output-section">
-            <h4>Rendered Preview:</h4>
-            <div class="preview-box">@((MarkupString)(content ?? ""))</div>
+    <div class="demo-content">
+        <div class="editor-section">
+            <h2>Try the Editor</h2>
+            <p class="text-muted">Click in the editor below and try formatting your text. Use the toolbar or keyboard shortcuts!</p>
+            
+            <RichTextEditor @bind-Value="@editorContent"
+                            Placeholder="Start typing here... Try using Ctrl+B for bold, Ctrl+Shift+E for emojis!"
+                            ShowToolbar="true"
+                            ShowCharacterCount="true"
+                            MinHeight="300px"
+                            MaxHeight="600px"
+                            MaxLength="5000"
+                            AriaLabel="Demo rich text editor"
+                            OnFocusChanged="HandleFocusChanged" />
+        </div>
+
+        <div class="controls-section">
+            <h3>Controls</h3>
+            <div class="btn-group">
+                <button class="btn btn-primary" @onclick="ClearEditor">
+                    Clear Editor
+                </button>
+                <button class="btn btn-secondary" @onclick="ToggleHtmlView">
+                    @(showHtml ? "Hide HTML" : "Show HTML")
+                </button>
+                <button class="btn btn-success" @onclick="LoadSampleContent">
+                    Load Sample
+                </button>
+            </div>
+        </div>
+
+        @if (showHtml)
+        {
+            <div class="html-output">
+                <h3>HTML Output</h3>
+                <pre><code>@editorContent</code></pre>
+            </div>
+        }
+
+        <div class="preview-section">
+            <h3>Live Preview</h3>
+            <div class="preview-box">
+                @((MarkupString)(editorContent ?? "<p class='text-muted'>Start typing to see the preview...</p>"))
+            </div>
         </div>
     </div>
 
-    <div class="editor-wrapper">
-        <RichTextEditor @ref="editor"
-                        @bind-Value="content"
-                        MinHeight="@GetMinHeight()"
-                        MaxHeight="@GetMaxHeight()"
-                        Placeholder="Type to test height behavior..."
-                        ShowToolbar="true"
-                        ShowCharacterCount="true" />
+    <div class="features-section">
+        <h2>Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h4>⌨️ Full Keyboard Support</h4>
+                <ul>
+                    <li>Ctrl+B - Bold</li>
+                    <li>Ctrl+I - Italic</li>
+                    <li>Ctrl+U - Underline</li>
+                    <li>Ctrl+K - Insert Link</li>
+                    <li>Ctrl+Shift+E - Emoji Picker</li>
+                    <li>Ctrl+Z/Y - Undo/Redo</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h4>♿ Accessibility</h4>
+                <ul>
+                    <li>WCAG 2.1 AA/AAA Compliant</li>
+                    <li>Screen Reader Support</li>
+                    <li>Keyboard Navigation</li>
+                    <li>ARIA Attributes</li>
+                    <li>Focus Management</li>
+                    <li>High Contrast Mode</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h4>🎨 Rich Formatting</h4>
+                <ul>
+                    <li>Text Styles (Bold, Italic, etc.)</li>
+                    <li>Headings (H1, H2, H3)</li>
+                    <li>Text & Highlight Colors</li>
+                    <li>Font Families & Sizes</li>
+                    <li>Lists & Alignment</li>
+                    <li>Links & Horizontal Rules</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h4>😀 Emoji Support</h4>
+                <ul>
+                    <li>Full Emoji Picker</li>
+                    <li>Search Functionality</li>
+                    <li>Recent Emojis (Persisted)</li>
+                    <li>Category Navigation</li>
+                    <li>Keyboard Accessible</li>
+                    <li>Screen Reader Friendly</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <h2>About</h2>
+        <p>
+            BlazorRTE is a modern, accessible rich text editor built for Blazor WebAssembly applications.
+            It features comprehensive keyboard support, ARIA attributes for screen readers, and a fully
+            accessible emoji picker powered by BlazorEmo.
+        </p>
+        <p>
+            <strong>Focus State:</strong> 
+            <span class="badge @(isFocused ? "badge-success" : "badge-secondary")">
+                @(isFocused ? "Editor is focused" : "Editor is not focused")
+            </span>
+        </p>
+        <p>
+            <strong>Content Length:</strong> 
+            <span class="badge badge-info">@GetPlainTextLength() characters</span>
+        </p>
     </div>
 </div>
 
-<style>
-    .height-test-page {
-        margin: 0 auto;
-        padding: 20px;
-    }
-
-    .output-panel {
-        margin-bottom: 20px;
-        padding: 15px;
-        background: #f9fafb;
-        border-radius: 6px;
-        border: 1px solid #e5e7eb;
-    }
-
-    .output-section {
-        margin: 15px 0;
-    }
-
-    .output-panel h3,
-    .output-panel h4 {
-        margin: 10px 0;
-        color: #374151;
-        font-size: 14px;
-        font-weight: 600;
-    }
-
-    .output-panel pre {
-        background: #1f2937;
-        color: #f9fafb;
-        padding: 10px;
-        border-radius: 4px;
-        overflow-x: auto;
-        font-size: 12px;
-        font-family: 'Courier New', monospace;
-        overflow-y: auto;
-        margin: 10px 0;
-         
-    }
-
-    .preview-box {
-        padding: 10px;
-        border: 1px solid #d1d5db;
-        border-radius: 4px;
-        background: white;
-        min-height: 50px;
-        max-height: 250px;
-        overflow-y: auto;
-    }
-</style>
-
 @code {
-    private string content = "";
-    private string minHeight = "100px";
-    private string maxHeight = "300px";
-    private RichTextEditor? editor;
+    private string? editorContent = "<p>Welcome to <strong>BlazorRTE</strong>! 👋</p><p>Try formatting this text or add your own content.</p>";
+    private bool showHtml = false;
+    private bool isFocused = false;
 
-    protected override void OnInitialized()
+    private void ClearEditor()
     {
-        content = """
-            <h2>Welcome to the Rich Text Editor</h2>
-            <p>This editor supports <strong>bold</strong>, <em>italic</em>, and <u>underlined</u> text formatting.</p>
-            <p>This tests <s>strikethrough</s>. This one test's subscript H<sub>2</sub>O and this one is for superscript X<sup>2</sup></p>
-            <p>You can also test lists:</p>
-            <ul>
-                <li>First bullet point item</li>
-                <li>Second bullet point item</li>
-            </ul>
-            <ol>
-                <li>First numbered list item</li>
-                <li>Second numbered list item</li>
-            </ol>
-            <p>Here is a link to <a href="https://www.loneworx.com" target="_blank">loneworx.com</a>.</p>
-            <p style="text-align: center;">This line has a <span style="color: blue;">blue</span> word and is centered.</p>
-            <p>This text has a <span style="background-color: #FFFF00;">yellow highlighted</span> word to test the highlight button.</p>
-            <hr>
-            <p style="text-align: justify;">This is a paragraph for testing. When you select this text and click the justify button, you should see the text spread out evenly. The spaces between words will adjust automatically to make both edges align perfectly with the container margins. Try it out!</p>
-            """;
+        editorContent = "";
     }
 
-    private string GetMinHeight() => string.IsNullOrWhiteSpace(minHeight) ? "100px" : minHeight;
-    private string GetMaxHeight() => string.IsNullOrWhiteSpace(maxHeight) ? "300px" : maxHeight;
-
-    private void UpdateHeight()
+    private void ToggleHtmlView()
     {
-        StateHasChanged();
+        showHtml = !showHtml;
+    }
+
+    private void LoadSampleContent()
+    {
+        editorContent = @"
+<h1>Welcome to BlazorRTE! 🚀</h1>
+<p>This is a <strong>rich text editor</strong> with full <em>formatting support</em>.</p>
+
+<h2>Key Features:</h2>
+<ul>
+    <li><strong>Bold</strong>, <em>Italic</em>, <u>Underline</u>, and <del>Strikethrough</del></li>
+    <li>Multiple heading levels</li>
+    <li>Text colors and <mark style=""background-color: yellow;"">highlights</mark></li>
+    <li>Emoji support 😀🎉✨</li>
+</ul>
+
+<h3>Code Example:</h3>
+<p style=""font-family: 'Courier New';"">Console.WriteLine(""Hello, BlazorRTE!"");</p>
+
+<hr>
+
+<p style=""text-align: center;"">
+    Try the toolbar above or use keyboard shortcuts! 
+    <br>
+    Made with ❤️ for Blazor developers.
+</p>
+";
+    }
+
+    private void HandleFocusChanged()
+    {
+        isFocused = !isFocused;
+    }
+
+    private int GetPlainTextLength()
+    {
+        if (string.IsNullOrEmpty(editorContent))
+            return 0;
+
+        // Simple HTML strip for length calculation
+        var text = System.Text.RegularExpressions.Regex.Replace(editorContent, "<.*?>", string.Empty);
+        return text.Length;
     }
 }
