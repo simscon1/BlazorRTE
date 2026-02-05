@@ -95,11 +95,13 @@
     background: #d1d5db;
 }
 
-.rte-btn.active {
-    background: #dbeafe;
-    border-color: #93c5fd;
-    color: #1e40af;
-}
+    .rte-btn.active {
+        background: #dbeafe;
+        border-color: #3b82f6;
+        color: #1e40af;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);        
+    }
+
 
 /* ADD THIS - Wider buttons for typography options */
 .rte-btn-wide {
@@ -625,6 +627,12 @@
     .rte-palette-color[data-tooltip]:hover::before {
         border-bottom-color: #374151;
     }
+
+    .rte-btn:focus {
+        border-color: #60a5fa;
+        background-color: #1e3a8a;
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+    }
 }
 
 /* Screen reader only text (visible to voice control) */
@@ -638,4 +646,11 @@
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border-width: 0;
+}
+
+.rte-btn:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
