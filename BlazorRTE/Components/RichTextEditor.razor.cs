@@ -2,7 +2,8 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using BlazorRTE.HelperClasses;
-using BlazorEmo.Models; // ← Correct namespace
+using BlazorEmo.Models;
+using BlazorEmo.Services;
 
 namespace BlazorRTE.Components
 {
@@ -29,8 +30,9 @@ namespace BlazorRTE.Components
         [Parameter] public bool ShowCharacterCount { get; set; } = true;
         [Parameter] public string MinHeight { get; set; } = "200px";
         [Parameter] public string MaxHeight { get; set; } = "600px";
-
+        [Parameter] public bool EnableEmojiShortcodes { get; set; } = true;
         [Inject] protected IJSRuntime JS { get; set; } = default!;
+        [Inject] protected IEmoService EmoService { get; set; } = default!;
 
         protected ElementReference _editorRef;
         protected bool IsFocused { get; set; }
@@ -94,6 +96,8 @@ namespace BlazorRTE.Components
         private bool _showEmojiPicker = false;
         private ElementReference _emojiButton;
         private ElementReference _emojiPickerContainer;
+        // Emoji shortcode support
+        private Dictionary<string, string>? _emojiShortcodeMap;
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -109,6 +113,11 @@ namespace BlazorRTE.Components
                     {
                         await SetHtmlAsync(Value);
                         _previousValue = Value;
+                    }
+
+                    if (EnableEmojiShortcodes)
+                    {
+                        _ = LoadEmojiShortcodesAsync();
                     }
                 }
                 catch
@@ -148,6 +157,60 @@ namespace BlazorRTE.Components
                     _isUpdating = false;
                 }
             }
+        }
+
+        private async Task LoadEmojiShortcodesAsync()
+        {
+            if (_emojiShortcodeMap != null) return;
+
+            _emojiShortcodeMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            // Add common emoticons first (these take priority)
+            _emojiShortcodeMap["D"] = "😀";  // :D
+            _emojiShortcodeMap["P"] = "😛";  // :P
+            _emojiShortcodeMap["p"] = "😛";  // :p
+            _emojiShortcodeMap["O"] = "😮";  // :O
+            _emojiShortcodeMap["o"] = "😮";  // :o
+            _emojiShortcodeMap[")"] = "😊";  // :)
+            _emojiShortcodeMap["("] = "😞";  // :(
+            _emojiShortcodeMap["/"] = "😕";  // :/
+            _emojiShortcodeMap["|"] = "😐";  // :|
+
+            try
+            {
+                var categories = await EmoService.GetAllCategoriesAsync(useCompleteDataset: false);
+                
+                foreach (var category in categories)
+                {
+                    foreach (var emoji in category.Emojis)
+                    {
+                        if (!string.IsNullOrEmpty(emoji.Code))
+                            _emojiShortcodeMap.TryAdd(emoji.Code, emoji.Char);
+
+                        if (!string.IsNullOrEmpty(emoji.Name))
+                            _emojiShortcodeMap.TryAdd(emoji.Name.ToLowerInvariant().Replace(' ', '_'), emoji.Char);
+
+                        foreach (var keyword in emoji.Keywords)
+                        {
+                            if (!string.IsNullOrEmpty(keyword))
+                                _emojiShortcodeMap.TryAdd(keyword.ToLowerInvariant(), emoji.Char);
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
+        [JSInvokable]
+        public async Task<string?> ProcessEmojiShortcode(string shortcode)
+        {
+            if (!EnableEmojiShortcodes || string.IsNullOrEmpty(shortcode))
+                return null;
+
+            if (_emojiShortcodeMap == null)
+                await LoadEmojiShortcodesAsync();
+
+            return _emojiShortcodeMap?.GetValueOrDefault(shortcode);
         }
 
         public async ValueTask DisposeAsync()
