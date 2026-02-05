@@ -2,16 +2,18 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using BlazorRTE.HelperClasses;
+using BlazorEmo.Models; // ← Correct namespace
 
 namespace BlazorRTE.Components
 {
     // TODO: Add emoji support for rich text editor and text area
-
+    //TODO : Add XML comments
+    //TODO : Support for typing emoji short codes (e.g., :smile:) and converting them to emojis in the editor
     // TODO: Accessibility improvements (v1.1.0)
     // - High contrast mode: Add forced-colors media queries
     //   - Test with Windows High Contrast (Dev Tools > Rendering > Emulate forced colors)
     //   - Ensure UI remains usable when system colors override
- 
+
     // - Voice control: Ensure visible labels match aria-labels for voice users
     // - Screen reader testing: Test with NVDA, JAWS, VoiceOver
 
@@ -764,7 +766,7 @@ namespace BlazorRTE.Components
             _showFontSizePicker = false;
             _showFontFamilyPicker = false;
             _showHeadingPicker = false;
-            _showEmojiPicker = false;  // ← Add this line
+            _showEmojiPicker = false;
         }
 
         protected async Task SelectTextColor(string color)
@@ -1172,7 +1174,7 @@ namespace BlazorRTE.Components
             StateHasChanged();
         }
  
-        protected async Task InsertEmoji(BlazorEmoji.Models.Emoji emoji)
+        protected async Task InsertEmoji(BlazorEmo.Models.Emo emoji)
         {
             if (_jsModule == null) return;
             

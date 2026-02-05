@@ -1,4 +1,4 @@
-using BlazorEmoji.Extensions;
+using BlazorEmo.Extensions;
 using BlazorRTE.Demo;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -9,7 +9,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-// Register emoji services
-builder.Services.AddEmojiServices();
+// Register BlazorEmo services (now includes HttpClient registration)
+builder.Services.AddEmoServices();
 
 await builder.Build().RunAsync();

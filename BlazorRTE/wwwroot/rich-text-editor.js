@@ -123,15 +123,17 @@ export function disposeEditor(element) {
 export function saveSelection() {
     const selection = window.getSelection();
     if (selection.rangeCount > 0) {
-        savedSelection = selection.getRangeAt(0).cloneRange();
+        savedSelection = selection.getRangeAt(0);
+        console.log('[RTE] Selection saved');
     }
 }
 
 export function restoreSelection() {
     if (savedSelection) {
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(savedSelection);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(savedSelection);
+        console.log('[RTE] Selection restored');
     }
 }
 
@@ -530,27 +532,35 @@ export function getCurrentFontSize() {
 }
 
 export function insertText(text) {
-    const selection = window.getSelection();
-    if (!selection.rangeCount) return;
+    console.log('[RTE] Inserting text:', text);
     
-    const range = selection.getRangeAt(0);
-    range.deleteContents();
-    
-    // Insert the text
-    const textNode = document.createTextNode(text);
-    range.insertNode(textNode);
-    
-    // Move cursor after inserted text
-    range.setStartAfter(textNode);
-    range.setEndAfter(textNode);
-    selection.removeAllRanges();
-    selection.addRange(range);
-    
-    // Trigger input event to update Blazor
-    const editor = document.getElementById('rte-editor');
-    if (editor) {
-        editor.dispatchEvent(new Event('input', { bubbles: true }));
+    // Restore the saved selection
+    if (savedSelection) {
+        try {
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(savedSelection);
+            console.log('[RTE] Restored selection');
+        } catch (e) {
+            console.error('[RTE] Could not restore selection:', e);
+        }
     }
+    
+    // Insert the text at the current cursor position
+    try {
+        document.execCommand('insertText', false, text);
+        console.log('[RTE] Text inserted successfully');
+    } catch (e) {
+        console.error('[RTE] Insert failed:', e);
+        // Fallback: just append to the end
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement.contentEditable === 'true') {
+            activeElement.innerHTML += text;
+        }
+    }
+    
+    // Save the new selection
+    saveSelection();
 }
 
 export function adjustEmojiPickerPositionByQuery(buttonElement) {
