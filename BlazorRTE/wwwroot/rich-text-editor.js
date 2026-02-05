@@ -112,6 +112,51 @@ export function initializeEditor(element, dotNetRef) {
             }
         }, true);
     }
+
+    // Emoji shortcode detection on keyup
+    element.addEventListener('keyup', async (e) => {
+        if (e.ctrlKey || e.metaKey || e.altKey || 
+            ['Shift', 'Control', 'Alt', 'Meta', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 
+             'Home', 'End', 'PageUp', 'PageDown', 'Escape', 'Tab', 'Enter'].includes(e.key)) {
+            return;
+        }
+
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+
+        const range = selection.getRangeAt(0);
+        const textNode = range.startContainer;
+        if (textNode.nodeType !== Node.TEXT_NODE) return;
+
+        const text = textNode.textContent;
+        const cursorPos = range.startOffset;
+        const beforeCursor = text.substring(0, cursorPos);
+
+        // Match :shortcode - allow any non-whitespace, non-colon characters
+        const match = beforeCursor.match(/:([^\s:]+)$/);
+        if (!match) return;
+
+        const shortcode = match[1];
+        const fullMatch = match[0];
+
+        try {
+            const emojiChar = await dotNetRef.invokeMethodAsync('ProcessEmojiShortcode', shortcode);
+            if (emojiChar) {
+                const shortcodeStart = cursorPos - fullMatch.length;
+                const newText = text.substring(0, shortcodeStart) + emojiChar + text.substring(cursorPos);
+                textNode.textContent = newText;
+
+                const newRange = document.createRange();
+                newRange.setStart(textNode, shortcodeStart + emojiChar.length);
+                newRange.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+
+                saveSelection();
+                await dotNetRef.invokeMethodAsync('OnContentChanged', element.innerHTML);
+            }
+        } catch (err) { }
+    });
 }
 
 export function disposeEditor(element) {
