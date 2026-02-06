@@ -3,22 +3,11 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using BlazorRTE.HelperClasses;
 using BlazorEmo.Models;
-using BlazorEmo.Services;
-using BlazorRTE.EventArgs; // NEW
+using BlazorEmo.Services; // This will now use EmojiProvider instead
+using BlazorRTE.EventArgs;
 
 namespace BlazorRTE.Components
 {
-    // TODO: Add emoji support for rich text editor and text area
-    //TODO : Add XML comments
-    //TODO : Support for typing emoji short codes (e.g., :smile:) and converting them to emojis in the editor
-    // TODO: Accessibility improvements (v1.1.0)
-    // - High contrast mode: Add forced-colors media queries
-    //   - Test with Windows High Contrast (Dev Tools > Rendering > Emulate forced colors)
-    //   - Ensure UI remains usable when system colors override
-
-    // - Voice control: Ensure visible labels match aria-labels for voice users
-    // - Screen reader testing: Test with NVDA, JAWS, VoiceOver
-
     public partial class RichTextEditor : ComponentBase, IAsyncDisposable
     {
         // ===== EXISTING PARAMETERS =====
@@ -34,63 +23,41 @@ namespace BlazorRTE.Components
         [Parameter] public string MaxHeight { get; set; } = "600px";
         [Parameter] public bool EnableEmojiShortcodes { get; set; } = true;
 
-        // ===== NEW EVENT CALLBACKS =====
-        
-        // Content Events
+        // ===== EVENT CALLBACKS ===== (keep all your existing event callbacks)
         [Parameter] public EventCallback<string> OnContentChanged { get; set; }
         [Parameter] public EventCallback<HtmlChangedEventArgs> OnHtmlChanged { get; set; }
-        
-        // Selection Events
         [Parameter] public EventCallback<SelectionChangedEventArgs> OnSelectionChanged { get; set; }
         [Parameter] public EventCallback<string> OnSelectedTextChanged { get; set; }
-        
-        // Format Events
         [Parameter] public EventCallback<FormatChangedEventArgs> OnFormatChanged { get; set; }
         [Parameter] public EventCallback<CommandEventArgs> OnBeforeCommand { get; set; }
         [Parameter] public EventCallback<CommandEventArgs> OnAfterCommand { get; set; }
-        
-        // Focus Events
         [Parameter] public EventCallback OnFocused { get; set; }
         [Parameter] public EventCallback OnBlurred { get; set; }
-        
-        // Input Events
         [Parameter] public EventCallback<PasteEventArgs> OnBeforePaste { get; set; }
         [Parameter] public EventCallback<PasteEventArgs> OnAfterPaste { get; set; }
         [Parameter] public EventCallback<ShortcutEventArgs> OnShortcutPressed { get; set; }
-        
-        // Validation Events
         [Parameter] public EventCallback OnMaxLengthReached { get; set; }
         [Parameter] public EventCallback<int> OnCharacterCountChanged { get; set; }
         [Parameter] public EventCallback<int> OnWordCountChanged { get; set; }
-        
-        // Link Events
         [Parameter] public EventCallback<LinkEventArgs> OnLinkCreated { get; set; }
         [Parameter] public EventCallback<LinkEventArgs> OnLinkRemoved { get; set; }
         [Parameter] public EventCallback<LinkEventArgs> OnLinkClicked { get; set; }
-        
-        // History Events
         [Parameter] public EventCallback OnUndo { get; set; }
         [Parameter] public EventCallback OnRedo { get; set; }
-        
-        // State Events
         [Parameter] public EventCallback<bool> OnDirtyStateChanged { get; set; }
-        
-        // Emoji Events
         [Parameter] public EventCallback<EmojiEventArgs> OnEmojiInserted { get; set; }
         [Parameter] public EventCallback OnEmojiPickerOpened { get; set; }
         [Parameter] public EventCallback OnEmojiPickerClosed { get; set; }
         [Parameter] public EventCallback<string> OnEmojiShortcodeProcessed { get; set; }
-        
-        // Picker Events
         [Parameter] public EventCallback<string> OnColorPickerOpened { get; set; }
         [Parameter] public EventCallback<string> OnColorPickerClosed { get; set; }
-        
-        // Error Events
         [Parameter] public EventCallback<EventArgs.ErrorEventArgs> OnError { get; set; }
 
-        // ===== EXISTING INJECTED SERVICES =====
+        // ===== ONLY INJECT JSRuntime - NO SERVICES! =====
         [Inject] protected IJSRuntime JS { get; set; } = default!;
-        [Inject] protected IEmoService EmoService { get; set; } = default!;
+
+        // ===== Use simple provider instead of injected service =====
+        private readonly EmojiProvider _emojiProvider = new();
 
         protected ElementReference _editorRef;
         protected bool IsFocused { get; set; }
@@ -154,7 +121,7 @@ namespace BlazorRTE.Components
         private bool _showEmojiPicker = false;
         private ElementReference _emojiButton;
         private ElementReference _emojiPickerContainer;
-     
+
         private Dictionary<string, string>? _emojiShortcodeMap;
 
         private bool _isEmojiSelected = false;
@@ -238,8 +205,9 @@ namespace BlazorRTE.Components
 
             try
             {
-                var categories = await EmoService.GetAllCategoriesAsync(useCompleteDataset: false);
-                
+                // Use the new EmojiProvider - no HTTP calls!
+                var categories = await _emojiProvider.GetAllCategoriesAsync();
+
                 foreach (var category in categories)
                 {
                     foreach (var emoji in category.Emojis)
@@ -271,13 +239,12 @@ namespace BlazorRTE.Components
                 await LoadEmojiShortcodesAsync();
 
             var emoji = _emojiShortcodeMap?.GetValueOrDefault(shortcode);
-            
-            // NEW: Raise emoji shortcode processed event
+
             if (emoji != null && OnEmojiShortcodeProcessed.HasDelegate)
             {
                 await OnEmojiShortcodeProcessed.InvokeAsync(shortcode);
             }
-            
+
             return emoji;
         }
 
@@ -320,10 +287,10 @@ namespace BlazorRTE.Components
                 Value = sanitized;
                 _previousValue = sanitized;
                 await ValueChanged.InvokeAsync(sanitized);
-                
+
                 // NEW: Raise content changed events
                 await RaiseContentChangedEvent(ChangeSource.User);
-                
+
                 await UpdateHeadingState();
             }
             catch (Exception ex)
@@ -388,7 +355,7 @@ namespace BlazorRTE.Components
                             await ExecuteCommand(FormatCommand.InsertOrderedList);
                             return;
                     }
-                    
+
                     if (e.Key == ">" || e.Key == ".")
                     {
                         await IncreaseFontSize();
@@ -445,7 +412,7 @@ namespace BlazorRTE.Components
                         break;
                 }
             }
-            
+
             if ((e.CtrlKey || e.MetaKey) && e.Key == "Enter")
             {
                 await ExecuteCommand(FormatCommand.HorizontalRule);
@@ -454,12 +421,12 @@ namespace BlazorRTE.Components
         }
 
         protected Task OnPaste(ClipboardEventArgs e) => Task.CompletedTask;
- 
+
         protected async Task OnFocus()
         {
             IsFocused = true;
             await OnFocusChanged.InvokeAsync();
-            
+
             // NEW: Raise focused event
             if (OnFocused.HasDelegate)
             {
@@ -471,7 +438,7 @@ namespace BlazorRTE.Components
         {
             IsFocused = false;
             await OnFocusChanged.InvokeAsync();
-            
+
             // NEW: Raise blurred event
             if (OnBlurred.HasDelegate)
             {
@@ -482,15 +449,15 @@ namespace BlazorRTE.Components
         protected async Task OnToolbarMouseDown(MouseEventArgs e)
         {
             // Save selection when interacting with toolbar
-    if (_jsModule != null)
-    {
-        try
-        {
-            await _jsModule.InvokeVoidAsync("saveSelection");
+            if (_jsModule != null)
+            {
+                try
+                {
+                    await _jsModule.InvokeVoidAsync("saveSelection");
+                }
+                catch { }
+            }
         }
-        catch { }
-    }
-}
 
         protected async Task UpdateToolbarState()
         {
@@ -537,13 +504,13 @@ namespace BlazorRTE.Components
                 }
 
                 await UpdateHeadingState();
-                
+
                 // NEW: Raise format changed event
                 await RaiseFormatChangedEvent();
-                
+
                 // NEW: Raise selection changed event  
                 await RaiseSelectionChangedEvent();
-                
+
                 StateHasChanged();
             }
             catch (Exception ex)
@@ -658,7 +625,7 @@ namespace BlazorRTE.Components
                     _previousValue = Value;
                     await ValueChanged.InvokeAsync(Value);
                     _isUpdating = false;
-                    
+
                     // NEW: Raise content changed and after command events
                     await RaiseContentChangedEvent(ChangeSource.Command);
                     await RaiseAfterCommandEvent(command, commandName, true);
@@ -674,12 +641,12 @@ namespace BlazorRTE.Components
         protected async Task CreateLink()
         {
             if (_jsModule == null) return;
-            
+
             await _jsModule.InvokeAsync<string>("getSelectedText");
-            
+
             // TODO: Show modal dialog for URL input
             string url = "https://example.com";
-            
+
             await _jsModule.InvokeVoidAsync("createLink", url);
 
             var html = await GetHtmlAsync();
@@ -695,22 +662,22 @@ namespace BlazorRTE.Components
         protected async Task RemoveLink()
         {
             if (_jsModule == null) return;
-            
+
             await UpdateToolbarState();
-            
+
             if (_activeFormats.Contains("link"))
             {
                 await _jsModule.InvokeVoidAsync("removeLink");
-                
+
                 await Task.Delay(50);
                 var html = await GetHtmlAsync();
-                
+
                 _isUpdating = true;
                 Value = HtmlSanitizer.Sanitize(html);
                 _previousValue = Value;
                 await ValueChanged.InvokeAsync(Value);
                 _isUpdating = false;
-                
+
                 await UpdateToolbarState();
             }
         }
@@ -735,7 +702,7 @@ namespace BlazorRTE.Components
         }
 
         // ===== EVENT HELPER METHODS =====
-        
+
         private int _previousCharCount = 0;
         private int _previousWordCount = 0;
         private bool _isDirty = false;
@@ -906,9 +873,9 @@ namespace BlazorRTE.Components
 
         [JSInvokable]
         public async Task HandleCtrlK()
-        {           
+        {
             await UpdateToolbarState();
-            
+
             if (_activeFormats.Contains("link"))
             {
                 await EditLink();
@@ -974,9 +941,9 @@ namespace BlazorRTE.Components
         public async Task FocusAsync()
         {
             if (_jsModule == null) return;
-            try 
-            { 
-                await _jsModule.InvokeVoidAsync("focusEditor", _editorRef); 
+            try
+            {
+                await _jsModule.InvokeVoidAsync("focusEditor", _editorRef);
             }
             catch { }
         }
@@ -998,7 +965,7 @@ namespace BlazorRTE.Components
                 {
                     await OnColorPickerOpened.InvokeAsync("text");
                 }
-                
+
                 StateHasChanged();
                 await Task.Delay(50);
                 try
@@ -1033,7 +1000,7 @@ namespace BlazorRTE.Components
                 {
                     await OnColorPickerOpened.InvokeAsync("background");
                 }
-                
+
                 StateHasChanged();
                 await Task.Delay(50);
                 try
@@ -1431,8 +1398,8 @@ namespace BlazorRTE.Components
         private async Task IncreaseFontSize()
         {
             var sizes = new[] { "1", "3", "4", "5", "6", "7" };
-            var commands = new[] 
-            { 
+            var commands = new[]
+            {
                 FormatCommand.FontSizeSmall,
                 FormatCommand.FontSizeNormal,
                 FormatCommand.FontSizeMedium,
@@ -1443,7 +1410,7 @@ namespace BlazorRTE.Components
 
             var currentSize = await GetCurrentFontSize();
             var currentIndex = Array.IndexOf(sizes, currentSize);
-            
+
             if (currentIndex == -1)
             {
                 await ExecuteCommand(FormatCommand.FontSizeMedium);
@@ -1457,8 +1424,8 @@ namespace BlazorRTE.Components
         private async Task DecreaseFontSize()
         {
             var sizes = new[] { "1", "3", "4", "5", "6", "7" };
-            var commands = new[] 
-            { 
+            var commands = new[]
+            {
                 FormatCommand.FontSizeSmall,
                 FormatCommand.FontSizeNormal,
                 FormatCommand.FontSizeMedium,
@@ -1469,7 +1436,7 @@ namespace BlazorRTE.Components
 
             var currentSize = await GetCurrentFontSize();
             var currentIndex = Array.IndexOf(sizes, currentSize);
-            
+
             if (currentIndex == -1)
             {
                 await ExecuteCommand(FormatCommand.FontSizeNormal);
@@ -1497,24 +1464,24 @@ namespace BlazorRTE.Components
         protected async Task EditLink()
         {
             if (_jsModule == null) return;
-            
+
             try
             {
                 await _jsModule.InvokeAsync<string>("getSelectedText");
                 await _jsModule.InvokeVoidAsync("removeLink");
-                
+
                 // TODO v1.2.0: Show dialog to edit the URL
                 string url = "https://example.com";
-                
+
                 await _jsModule.InvokeVoidAsync("createLink", url);
-                
+
                 var html = await GetHtmlAsync();
                 _isUpdating = true;
                 Value = HtmlSanitizer.Sanitize(html);
                 _previousValue = Value;
                 await ValueChanged.InvokeAsync(Value);
                 _isUpdating = false;
-                
+
                 await ReturnFocusToEditor();
             }
             catch { }
@@ -1587,7 +1554,7 @@ namespace BlazorRTE.Components
             _showEmojiPicker = false;
             StateHasChanged();
         }
- 
+
         protected async Task InsertEmoji(BlazorEmo.Models.Emo emoji)
         {
             if (_jsModule == null)
@@ -1595,35 +1562,35 @@ namespace BlazorRTE.Components
                 Console.WriteLine("[InsertEmoji] ERROR: _jsModule is null!");
                 return;
             }
-            
+
             Console.WriteLine($"[InsertEmoji] ===== STARTING EMOJI INSERTION =====");
             Console.WriteLine($"[InsertEmoji] Emoji: {emoji.Char}");
             Console.WriteLine($"[InsertEmoji] Current editor focus: {IsFocused}");
-            
+
             try
             {
                 // Step 1: Insert the emoji via JavaScript
                 Console.WriteLine("[InsertEmoji] Step 1: Calling JavaScript insertText");
                 await _jsModule.InvokeVoidAsync("insertText", emoji.Char);
                 Console.WriteLine("[InsertEmoji] Step 1: Complete");
-                
+
                 // Step 2: Close the picker FIRST (before any other operations)
                 Console.WriteLine("[InsertEmoji] Step 2: Closing emoji picker");
                 _showEmojiPicker = false;
-                
+
                 // Step 3: Force a render to close the picker UI
                 StateHasChanged();
                 Console.WriteLine("[InsertEmoji] Step 2: Picker closed, UI updated");
-                
+
                 // Step 4: Wait for the DOM to settle
                 Console.WriteLine("[InsertEmoji] Step 3: Waiting 100ms for DOM to settle");
                 await Task.Delay(100);
-                
+
                 // Step 5: Get updated HTML
                 Console.WriteLine("[InsertEmoji] Step 4: Getting HTML from editor");
                 var html = await GetHtmlAsync();
                 Console.WriteLine($"[InsertEmoji] Step 4: Got HTML, length={html?.Length ?? 0}");
-                
+
                 // Step 6: Update the value
                 Console.WriteLine("[InsertEmoji] Step 5: Updating editor value");
                 _isUpdating = true;
@@ -1632,16 +1599,16 @@ namespace BlazorRTE.Components
                 await ValueChanged.InvokeAsync(Value);
                 _isUpdating = false;
                 Console.WriteLine("[InsertEmoji] Step 5: Value updated");
-                
+
                 // Step 7: Return focus to editor
                 Console.WriteLine("[InsertEmoji] Step 6: Returning focus to editor");
                 await ReturnFocusToEditor();
                 Console.WriteLine("[InsertEmoji] Step 6: Focus returned");
-                
+
                 // DO NOT RAISE ANY EVENTS - they cause re-renders
                 // if (OnEmojiInserted.HasDelegate) { ... }
                 // await RaiseContentChangedEvent(ChangeSource.EmojiPicker);
-                
+
                 Console.WriteLine($"[InsertEmoji] ===== SUCCESS! Emoji inserted =====");
             }
             catch (Exception ex)
