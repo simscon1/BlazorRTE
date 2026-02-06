@@ -17,3 +17,4 @@
 /BlazorRTE.Tests/bin/Release/net10.0
 /BlazorRTE.Tests/bin/Release/net10.0/.msCoverageSourceRootsMapping_BlazorRTE.Tests
 /BlazorRTE.Tests/bin/Release/net10.0/CoverletSourceRootsMapping_BlazorRTE.Tests
+/obj

@@ -1528,40 +1528,58 @@ namespace BlazorRTE.Components
         [JSInvokable]
         protected async Task ToggleEmojiPicker()
         {
-            var wasOpen = _showEmojiPicker;
             _showEmojiPicker = !_showEmojiPicker;
-            
-            _showTextColorPicker = false;
-            _showBackgroundColorPicker = false;
-            _showFontSizePicker = false;
-            _showFontFamilyPicker = false;
-            _showHeadingPicker = false;
-            
-            StateHasChanged();
-            
-            if (_showEmojiPicker && _jsModule != null)
+
+            if (_showEmojiPicker)
             {
-                // NEW: Raise emoji picker opened event
+                // IMPORTANT: Save the current selection BEFORE opening the picker
+                if (_jsModule != null)
+                {
+                    try
+                    {
+                        await _jsModule.InvokeVoidAsync("saveSelection");
+                        Console.WriteLine("Selection saved before opening emoji picker");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Failed to save selection: {ex.Message}");
+                    }
+                }
+
+                // Close other pickers
+                _showTextColorPicker = false;
+                _showBackgroundColorPicker = false;
+                _showFontSizePicker = false;
+                _showFontFamilyPicker = false;
+                _showHeadingPicker = false;
+
+                // Raise event
                 if (OnEmojiPickerOpened.HasDelegate)
                 {
                     await OnEmojiPickerOpened.InvokeAsync();
                 }
-                
-                await Task.Delay(100);
-                try
+
+                // Position the picker
+                if (_jsModule != null && _showEmojiPicker)
                 {
-                    await _jsModule.InvokeVoidAsync("adjustEmojiPickerPositionByQuery", _emojiButton);
+                    await Task.Delay(10);
+                    try
+                    {
+                        await _jsModule.InvokeVoidAsync("adjustEmojiPickerPositionByQuery", _emojiButton);
+                    }
+                    catch { }
                 }
-                catch { }
             }
-            else if (!_showEmojiPicker && wasOpen)
+            else
             {
-                // NEW: Raise emoji picker closed event
+                // Raise event
                 if (OnEmojiPickerClosed.HasDelegate)
                 {
                     await OnEmojiPickerClosed.InvokeAsync();
                 }
             }
+
+            StateHasChanged();
         }
 
         protected void CloseEmojiPicker()
@@ -1572,47 +1590,66 @@ namespace BlazorRTE.Components
  
         protected async Task InsertEmoji(BlazorEmo.Models.Emo emoji)
         {
-            if (_jsModule == null) return;
+            if (_jsModule == null)
+            {
+                Console.WriteLine("[InsertEmoji] ERROR: _jsModule is null!");
+                return;
+            }
+            
+            Console.WriteLine($"[InsertEmoji] ===== STARTING EMOJI INSERTION =====");
+            Console.WriteLine($"[InsertEmoji] Emoji: {emoji.Char}");
+            Console.WriteLine($"[InsertEmoji] Current editor focus: {IsFocused}");
             
             try
             {
-                // Insert emoji at cursor position
+                // Step 1: Insert the emoji via JavaScript
+                Console.WriteLine("[InsertEmoji] Step 1: Calling JavaScript insertText");
                 await _jsModule.InvokeVoidAsync("insertText", emoji.Char);
+                Console.WriteLine("[InsertEmoji] Step 1: Complete");
                 
-                // Close picker
+                // Step 2: Close the picker FIRST (before any other operations)
+                Console.WriteLine("[InsertEmoji] Step 2: Closing emoji picker");
                 _showEmojiPicker = false;
                 
-                // Update editor value
-                await Task.Delay(50);
-                var html = await GetHtmlAsync();
+                // Step 3: Force a render to close the picker UI
+                StateHasChanged();
+                Console.WriteLine("[InsertEmoji] Step 2: Picker closed, UI updated");
                 
+                // Step 4: Wait for the DOM to settle
+                Console.WriteLine("[InsertEmoji] Step 3: Waiting 100ms for DOM to settle");
+                await Task.Delay(100);
+                
+                // Step 5: Get updated HTML
+                Console.WriteLine("[InsertEmoji] Step 4: Getting HTML from editor");
+                var html = await GetHtmlAsync();
+                Console.WriteLine($"[InsertEmoji] Step 4: Got HTML, length={html?.Length ?? 0}");
+                
+                // Step 6: Update the value
+                Console.WriteLine("[InsertEmoji] Step 5: Updating editor value");
                 _isUpdating = true;
                 Value = HtmlSanitizer.Sanitize(html);
                 _previousValue = Value;
                 await ValueChanged.InvokeAsync(Value);
                 _isUpdating = false;
+                Console.WriteLine("[InsertEmoji] Step 5: Value updated");
                 
-                // NEW: Raise emoji inserted event
-                if (OnEmojiInserted.HasDelegate)
-                {
-                    var eventArgs = new EmojiEventArgs
-                    {
-                        Emoji = emoji.Char,
-                        Category = emoji.Category
-                    };
-                    await OnEmojiInserted.InvokeAsync(eventArgs);
-                }
-                
-                // NEW: Raise content changed event
-                await RaiseContentChangedEvent(ChangeSource.EmojiPicker);
-                
-                // Return focus to editor
+                // Step 7: Return focus to editor
+                Console.WriteLine("[InsertEmoji] Step 6: Returning focus to editor");
                 await ReturnFocusToEditor();
+                Console.WriteLine("[InsertEmoji] Step 6: Focus returned");
+                
+                // DO NOT RAISE ANY EVENTS - they cause re-renders
+                // if (OnEmojiInserted.HasDelegate) { ... }
+                // await RaiseContentChangedEvent(ChangeSource.EmojiPicker);
+                
+                Console.WriteLine($"[InsertEmoji] ===== SUCCESS! Emoji inserted =====");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error inserting emoji: {ex.Message}");
-                await RaiseErrorEvent("Error inserting emoji", ex);
+                Console.WriteLine($"[InsertEmoji] ===== ERROR =====");
+                Console.WriteLine($"[InsertEmoji] Message: {ex.Message}");
+                Console.WriteLine($"[InsertEmoji] Type: {ex.GetType().Name}");
+                Console.WriteLine($"[InsertEmoji] Stack: {ex.StackTrace}");
             }
         }
     }

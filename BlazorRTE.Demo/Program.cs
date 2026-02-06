@@ -10,6 +10,6 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
 // Register BlazorEmo services (now includes HttpClient registration)
-builder.Services.AddEmoServices();
+builder.Services.AddBlazorEmo();
 
 await builder.Build().RunAsync();

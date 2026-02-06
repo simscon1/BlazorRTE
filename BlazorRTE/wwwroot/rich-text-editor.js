@@ -192,18 +192,37 @@ export function disposeEditor(element) {
 export function saveSelection() {
     const selection = window.getSelection();
     if (selection.rangeCount > 0) {
-        savedSelection = selection.getRangeAt(0);
-        console.log('[RTE] Selection saved');
+        try {
+            savedSelection = selection.getRangeAt(0).cloneRange();
+            console.log('[RTE] Selection saved:', {
+                start: savedSelection.startOffset,
+                end: savedSelection.endOffset,
+                collapsed: savedSelection.collapsed,
+                container: savedSelection.startContainer.nodeName
+            });
+        } catch (e) {
+            console.error('[RTE] Error saving selection:', e);
+            savedSelection = null;
+        }
     }
 }
 
 export function restoreSelection() {
     if (savedSelection) {
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(savedSelection);
-        console.log('[RTE] Selection restored');
+        try {
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(savedSelection.cloneRange());
+            console.log('[RTE] Selection restored successfully');
+            return true;
+        } catch (e) {
+            console.error('[RTE] Could not restore selection:', e);
+            savedSelection = null;
+            return false;
+        }
     }
+    console.warn('[RTE] No saved selection to restore');
+    return false;
 }
 
 export function executeCommand(command, value = null) {
@@ -655,28 +674,43 @@ export function getCurrentFontSize() {
 export function insertText(text) {
     console.log('[RTE] Inserting text:', text);
     
-    // Restore the saved selection
-    if (savedSelection) {
-        try {
+    // Try to restore the saved selection
+    const restored = restoreSelection();
+    
+    if (!restored) {
+        console.warn('[RTE] Could not restore selection, focusing editor');
+        // Find the editor element and focus it
+        const editor = document.querySelector('[contenteditable="true"]');
+        if (editor) {
+            editor.focus();
+            // Move cursor to end
+            const range = document.createRange();
             const selection = window.getSelection();
+            range.selectNodeContents(editor);
+            range.collapse(false);
             selection.removeAllRanges();
-            selection.addRange(savedSelection);
-            console.log('[RTE] Restored selection');
-        } catch (e) {
-            console.error('[RTE] Could not restore selection:', e);
+            selection.addRange(range);
         }
     }
     
     // Insert the text at the current cursor position
     try {
-        document.execCommand('insertText', false, text);
-        console.log('[RTE] Text inserted successfully');
+        const result = document.execCommand('insertText', false, text);
+        console.log('[RTE] Text inserted, result:', result);
+        
+        if (!result) {
+            // Fallback: try insertHTML
+            document.execCommand('insertHTML', false, text);
+            console.log('[RTE] Used insertHTML fallback');
+        }
     } catch (e) {
-        console.error('[RTE] Insert failed:', e);
-        // Fallback: just append to the end
-        const activeElement = document.activeElement;
-        if (activeElement && activeElement.contentEditable === 'true') {
-            activeElement.innerHTML += text;
+        console.error('[RTE] Insert command failed:', e);
+        // Last resort fallback
+        const selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(document.createTextNode(text));
         }
     }
     
