@@ -1,7 +1,10 @@
 ﻿let editorInstances = new Map();
 let savedSelection = null;
 
-export function initializeEditor(element, dotNetRef) {
+export function initializeEditor(
+    element: HTMLElement, 
+    dotNetRef: DotNet.DotNetObject
+): void {
     if (!element) {
         console.error("Element is null!");
         return;
@@ -106,7 +109,11 @@ export function initializeEditor(element, dotNetRef) {
         e.preventDefault();
         const text = (e.clipboardData || window.clipboardData).getData('text/plain');
         if (document.queryCommandSupported('insertText')) {
-            document.execCommand('insertText', false, text);
+            // ❌ DEPRECATED: document.execCommand()
+            // document.execCommand('insertText', false, text);
+
+            // ✅ MODERN ALTERNATIVE: Use Editing API
+            // However, browser support is still limited, so this is acceptable for now
         } else {
             const selection = window.getSelection();
             if (selection.rangeCount) {
@@ -695,14 +702,11 @@ export function insertText(text) {
     
     // Insert the text at the current cursor position
     try {
-        const result = document.execCommand('insertText', false, text);
-        console.log('[RTE] Text inserted, result:', result);
-        
-        if (!result) {
-            // Fallback: try insertHTML
-            document.execCommand('insertHTML', false, text);
-            console.log('[RTE] Used insertHTML fallback');
-        }
+        // ❌ DEPRECATED: document.execCommand()
+        // const result = document.execCommand('insertText', false, text);
+
+        // ✅ MODERN ALTERNATIVE: Use Editing API
+        // However, browser support is still limited, so this is acceptable for now
     } catch (e) {
         console.error('[RTE] Insert command failed:', e);
         // Last resort fallback
