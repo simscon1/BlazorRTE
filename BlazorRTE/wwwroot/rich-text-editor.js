@@ -289,17 +289,26 @@ export function getActiveFormats() {
     if (document.queryCommandState('insertUnorderedList')) formats.push('insertUnorderedList');
     if (document.queryCommandState('insertOrderedList')) formats.push('insertOrderedList');
 
+    // Improved foreColor detection
     const foreColor = document.queryCommandValue('foreColor');
-    if (foreColor && !isDefaultTextColor(foreColor) && !insideLink) formats.push('foreColor');
+    console.log('[DEBUG] foreColor value:', foreColor); // Debug log
+    if (foreColor && !isDefaultTextColor(foreColor) && !insideLink) {
+        formats.push('foreColor');
+    }
 
+    // Improved backColor detection
     const backColor = document.queryCommandValue('backColor');
-    if (backColor && !isDefaultBackgroundColor(backColor)) formats.push('backColor');
+    console.log('[DEBUG] backColor value:', backColor); // Debug log
+    if (backColor && !isDefaultBackgroundColor(backColor)) {
+        formats.push('backColor');
+    }
 
     if (document.queryCommandState('justifyCenter')) formats.push('justifyCenter');
     else if (document.queryCommandState('justifyRight')) formats.push('justifyRight');
     else if (document.queryCommandState('justifyFull')) formats.push('justifyFull');
     else if (document.queryCommandState('justifyLeft')) formats.push('justifyLeft');
 
+    console.log('[DEBUG] Active formats:', formats); // Debug log
     return formats;
 }
 
@@ -399,18 +408,61 @@ export function adjustColorPalettePosition() {
 
 function isDefaultTextColor(color) {
     if (!color) return true;
-    const c = color.toLowerCase().replace(/\s/g, '');
-    return c === 'rgb(0,0,0)' || c === '#000000' || c === '#000' || c === 'black' ||
-        c === '' || c === 'rgb(17,24,39)' || c === 'rgb(31,41,55)' ||
-        c === 'rgb(55,65,81)' || c === 'rgb(0,0,0,1)' || c === 'rgba(0,0,0,1)';
+    
+    // Normalize the color string
+    const normalized = color.toLowerCase().replace(/\s+/g, '');
+    
+    // List of default/inherited text colors
+    const defaultColors = [
+        'rgb(0,0,0)',
+        'rgb(0,0,0,1)',
+        'rgba(0,0,0,1)',
+        '#000000',
+        '#000',
+        'black',
+        '',
+        'inherit',
+        'initial',
+        'currentcolor',
+        // Bootstrap and common framework default text colors
+        'rgb(33,37,41)',      // Bootstrap's $body-color (#212529)
+        'rgb(52,58,64)',      // Bootstrap gray-800
+        'rgb(73,80,87)',      // Bootstrap gray-700
+        // Dark theme colors that might be considered "default"
+        'rgb(17,24,39)',      // Tailwind gray-900
+        'rgb(31,41,55)',      // Tailwind gray-800
+        'rgb(55,65,81)',      // Tailwind gray-700
+        'rgb(75,85,99)',      // Tailwind gray-600
+        // Add hex equivalents for the main ones
+        '#212529',            // Bootstrap default
+        '#343a40',            // Bootstrap gray-800
+        '#495057'             // Bootstrap gray-700
+    ];
+    
+    return defaultColors.includes(normalized);
 }
 
 function isDefaultBackgroundColor(color) {
     if (!color) return true;
-    const c = color.toLowerCase().replace(/\s/g, '');
-    return c === 'rgba(0,0,0,0)' || c === 'transparent' || c === 'rgb(255,255,255)' ||
-        c === '#ffffff' || c === '#fff' || c === 'white' || c === '' ||
-        c === 'initial' || c === 'inherit';
+    
+    // Normalize the color string
+    const normalized = color.toLowerCase().replace(/\s+/g, '');
+    
+    // List of default/transparent/white backgrounds
+    const defaultBackgrounds = [
+        'rgba(0,0,0,0)',
+        'transparent',
+        'rgb(255,255,255)',
+        '#ffffff',
+        '#fff',
+        'white',
+        '',
+        'initial',
+        'inherit',
+        'none'
+    ];
+    
+    return defaultBackgrounds.includes(normalized);
 }
 
 export function focusToolbarButton(index) {
@@ -673,4 +725,50 @@ export function adjustEmojiPickerPosition(pickerElement, buttonElement) {
         pickerElement.classList.add('position-bottom');
         console.log('Emoji picker: positioned below button');
     }
+}
+
+// Add this function after the getActiveFormats function
+
+export function isEmojiSelected() {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return false;
+    
+    const range = selection.getRangeAt(0);
+    
+    // If selection is collapsed (just a cursor), check the character at cursor position
+    if (range.collapsed) {
+        const node = range.startContainer;
+        if (node.nodeType === Node.TEXT_NODE) {
+            const offset = range.startOffset;
+            const text = node.textContent;
+            
+            // Check character before cursor
+            if (offset > 0) {
+                const charBefore = text.charAt(offset - 1);
+                if (isEmoji(charBefore)) return true;
+            }
+            
+            // Check character at cursor
+            if (offset < text.length) {
+                const charAt = text.charAt(offset);
+                if (isEmoji(charAt)) return true;
+            }
+        }
+        return false;
+    }
+    
+    // For actual selections, check if the selected text contains emoji
+    const selectedText = selection.toString();
+    return containsEmoji(selectedText);
+}
+
+function isEmoji(char) {
+    // Unicode ranges for emojis
+    const emojiRegex = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
+    return emojiRegex.test(char);
+}
+
+function containsEmoji(text) {
+    const emojiRegex = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
+    return emojiRegex.test(text);
 }
