@@ -4,6 +4,7 @@ using Microsoft.JSInterop;
 using BlazorRTE.HelperClasses;
 using BlazorEmo.Models;
 using BlazorEmo.Services;
+using BlazorRTE.EventArgs; // NEW
 
 namespace BlazorRTE.Components
 {
@@ -20,6 +21,7 @@ namespace BlazorRTE.Components
 
     public partial class RichTextEditor : ComponentBase, IAsyncDisposable
     {
+        // ===== EXISTING PARAMETERS =====
         [Parameter] public string Value { get; set; } = string.Empty;
         [Parameter] public EventCallback<string> ValueChanged { get; set; }
         [Parameter] public string Placeholder { get; set; } = "Type your message...";
@@ -31,6 +33,62 @@ namespace BlazorRTE.Components
         [Parameter] public string MinHeight { get; set; } = "200px";
         [Parameter] public string MaxHeight { get; set; } = "600px";
         [Parameter] public bool EnableEmojiShortcodes { get; set; } = true;
+
+        // ===== NEW EVENT CALLBACKS =====
+        
+        // Content Events
+        [Parameter] public EventCallback<string> OnContentChanged { get; set; }
+        [Parameter] public EventCallback<HtmlChangedEventArgs> OnHtmlChanged { get; set; }
+        
+        // Selection Events
+        [Parameter] public EventCallback<SelectionChangedEventArgs> OnSelectionChanged { get; set; }
+        [Parameter] public EventCallback<string> OnSelectedTextChanged { get; set; }
+        
+        // Format Events
+        [Parameter] public EventCallback<FormatChangedEventArgs> OnFormatChanged { get; set; }
+        [Parameter] public EventCallback<CommandEventArgs> OnBeforeCommand { get; set; }
+        [Parameter] public EventCallback<CommandEventArgs> OnAfterCommand { get; set; }
+        
+        // Focus Events
+        [Parameter] public EventCallback OnFocused { get; set; }
+        [Parameter] public EventCallback OnBlurred { get; set; }
+        
+        // Input Events
+        [Parameter] public EventCallback<PasteEventArgs> OnBeforePaste { get; set; }
+        [Parameter] public EventCallback<PasteEventArgs> OnAfterPaste { get; set; }
+        [Parameter] public EventCallback<ShortcutEventArgs> OnShortcutPressed { get; set; }
+        
+        // Validation Events
+        [Parameter] public EventCallback OnMaxLengthReached { get; set; }
+        [Parameter] public EventCallback<int> OnCharacterCountChanged { get; set; }
+        [Parameter] public EventCallback<int> OnWordCountChanged { get; set; }
+        
+        // Link Events
+        [Parameter] public EventCallback<LinkEventArgs> OnLinkCreated { get; set; }
+        [Parameter] public EventCallback<LinkEventArgs> OnLinkRemoved { get; set; }
+        [Parameter] public EventCallback<LinkEventArgs> OnLinkClicked { get; set; }
+        
+        // History Events
+        [Parameter] public EventCallback OnUndo { get; set; }
+        [Parameter] public EventCallback OnRedo { get; set; }
+        
+        // State Events
+        [Parameter] public EventCallback<bool> OnDirtyStateChanged { get; set; }
+        
+        // Emoji Events
+        [Parameter] public EventCallback<EmojiEventArgs> OnEmojiInserted { get; set; }
+        [Parameter] public EventCallback OnEmojiPickerOpened { get; set; }
+        [Parameter] public EventCallback OnEmojiPickerClosed { get; set; }
+        [Parameter] public EventCallback<string> OnEmojiShortcodeProcessed { get; set; }
+        
+        // Picker Events
+        [Parameter] public EventCallback<string> OnColorPickerOpened { get; set; }
+        [Parameter] public EventCallback<string> OnColorPickerClosed { get; set; }
+        
+        // Error Events
+        [Parameter] public EventCallback<EventArgs.ErrorEventArgs> OnError { get; set; }
+
+        // ===== EXISTING INJECTED SERVICES =====
         [Inject] protected IJSRuntime JS { get; set; } = default!;
         [Inject] protected IEmoService EmoService { get; set; } = default!;
 
@@ -81,12 +139,12 @@ namespace BlazorRTE.Components
 
         private ElementReference _fontFamilyButton;
         private ElementReference _fontFamilyPalette;
-        private ElementReference _fontSizeButton;
-        private ElementReference _fontSizePalette;
         private ElementReference _textColorButton;
         private ElementReference _textColorPalette;
         private ElementReference _bgColorButton;
         private ElementReference _bgColorPalette;
+        private ElementReference _fontSizeButton;
+        private ElementReference _fontSizePalette;
 
         private const int ColorGridColumns = 3;
 
@@ -212,7 +270,15 @@ namespace BlazorRTE.Components
             if (_emojiShortcodeMap == null)
                 await LoadEmojiShortcodesAsync();
 
-            return _emojiShortcodeMap?.GetValueOrDefault(shortcode);
+            var emoji = _emojiShortcodeMap?.GetValueOrDefault(shortcode);
+            
+            // NEW: Raise emoji shortcode processed event
+            if (emoji != null && OnEmojiShortcodeProcessed.HasDelegate)
+            {
+                await OnEmojiShortcodeProcessed.InvokeAsync(shortcode);
+            }
+            
+            return emoji;
         }
 
         public async ValueTask DisposeAsync()
@@ -243,17 +309,27 @@ namespace BlazorRTE.Components
 
                 if (textOnly.Length > MaxLength)
                 {
+                    // NEW: Raise max length event
+                    if (OnMaxLengthReached.HasDelegate)
+                    {
+                        await OnMaxLengthReached.InvokeAsync();
+                    }
                     return;
                 }
 
                 Value = sanitized;
                 _previousValue = sanitized;
                 await ValueChanged.InvokeAsync(sanitized);
+                
+                // NEW: Raise content changed events
+                await RaiseContentChangedEvent(ChangeSource.User);
+                
                 await UpdateHeadingState();
             }
-            catch
+            catch (Exception ex)
             {
-                // Input handling failed silently
+                // NEW: Raise error event
+                await RaiseErrorEvent("Input handling failed", ex);
             }
             finally
             {
@@ -378,30 +454,43 @@ namespace BlazorRTE.Components
         }
 
         protected Task OnPaste(ClipboardEventArgs e) => Task.CompletedTask;
-
-        protected void OnFocus()
+ 
+        protected async Task OnFocus()
         {
             IsFocused = true;
-            OnFocusChanged.InvokeAsync();
+            await OnFocusChanged.InvokeAsync();
+            
+            // NEW: Raise focused event
+            if (OnFocused.HasDelegate)
+            {
+                await OnFocused.InvokeAsync();
+            }
         }
 
-        protected void OnBlur()
+        protected async Task OnBlur()
         {
             IsFocused = false;
-            OnFocusChanged.InvokeAsync();
+            await OnFocusChanged.InvokeAsync();
+            
+            // NEW: Raise blurred event
+            if (OnBlurred.HasDelegate)
+            {
+                await OnBlurred.InvokeAsync();
+            }
         }
 
         protected async Task OnToolbarMouseDown(MouseEventArgs e)
         {
-            if (_jsModule != null)
-            {
-                try
-                {
-                    await _jsModule.InvokeVoidAsync("saveSelection");
-                }
-                catch { }
-            }
+            // Save selection when interacting with toolbar
+    if (_jsModule != null)
+    {
+        try
+        {
+            await _jsModule.InvokeVoidAsync("saveSelection");
         }
+        catch { }
+    }
+}
 
         protected async Task UpdateToolbarState()
         {
@@ -438,7 +527,6 @@ namespace BlazorRTE.Components
                     _currentHighlightColor = "#FFFF00";
                 }
 
-                // Check if emoji is selected
                 try
                 {
                     _isEmojiSelected = await _jsModule.InvokeAsync<bool>("isEmojiSelected");
@@ -449,9 +537,19 @@ namespace BlazorRTE.Components
                 }
 
                 await UpdateHeadingState();
+                
+                // NEW: Raise format changed event
+                await RaiseFormatChangedEvent();
+                
+                // NEW: Raise selection changed event  
+                await RaiseSelectionChangedEvent();
+                
                 StateHasChanged();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                await RaiseErrorEvent("Failed to update toolbar state", ex);
+            }
         }
 
         protected async Task UpdateHeadingState()
@@ -515,6 +613,21 @@ namespace BlazorRTE.Components
 
                 if (commandName != null)
                 {
+                    // NEW: Raise before command event
+                    var canExecute = await RaiseBeforeCommandEvent(command, commandName);
+                    if (!canExecute) return;
+
+                    // NEW: Raise undo/redo events
+                    if (command == FormatCommand.Undo && OnUndo.HasDelegate)
+                    {
+                        await OnUndo.InvokeAsync();
+                    }
+                    else if (command == FormatCommand.Redo && OnRedo.HasDelegate)
+                    {
+                        await OnRedo.InvokeAsync();
+                    }
+
+                    // Execute the command
                     if (commandName.StartsWith("formatBlock:"))
                     {
                         var blockType = commandName.Split(':')[1];
@@ -545,9 +658,17 @@ namespace BlazorRTE.Components
                     _previousValue = Value;
                     await ValueChanged.InvokeAsync(Value);
                     _isUpdating = false;
+                    
+                    // NEW: Raise content changed and after command events
+                    await RaiseContentChangedEvent(ChangeSource.Command);
+                    await RaiseAfterCommandEvent(command, commandName, true);
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                await RaiseErrorEvent($"Command execution failed: {command}", ex);
+                await RaiseAfterCommandEvent(command, command.ToString(), false, ex.Message);
+            }
         }
 
         protected async Task CreateLink()
@@ -613,8 +734,159 @@ namespace BlazorRTE.Components
             return words.Length;
         }
 
+        // ===== EVENT HELPER METHODS =====
+        
+        private int _previousCharCount = 0;
+        private int _previousWordCount = 0;
+        private bool _isDirty = false;
+
+        private async Task RaiseContentChangedEvent(ChangeSource source)
+        {
+            if (OnContentChanged.HasDelegate)
+            {
+                await OnContentChanged.InvokeAsync(Value);
+            }
+
+            if (OnHtmlChanged.HasDelegate)
+            {
+                var eventArgs = new HtmlChangedEventArgs
+                {
+                    OldValue = _previousValue,
+                    NewValue = Value,
+                    CharacterCount = GetCharacterCount(),
+                    WordCount = GetWordCount(),
+                    Source = source
+                };
+                await OnHtmlChanged.InvokeAsync(eventArgs);
+            }
+
+            await CheckCharacterWordCountChanged();
+            await CheckDirtyStateChanged();
+        }
+
+        private async Task CheckCharacterWordCountChanged()
+        {
+            var currentCharCount = GetCharacterCount();
+            var currentWordCount = GetWordCount();
+
+            if (OnCharacterCountChanged.HasDelegate && currentCharCount != _previousCharCount)
+            {
+                await OnCharacterCountChanged.InvokeAsync(currentCharCount);
+                _previousCharCount = currentCharCount;
+            }
+
+            if (OnWordCountChanged.HasDelegate && currentWordCount != _previousWordCount)
+            {
+                await OnWordCountChanged.InvokeAsync(currentWordCount);
+                _previousWordCount = currentWordCount;
+            }
+        }
+
+        private async Task CheckDirtyStateChanged()
+        {
+            var wasDirty = _isDirty;
+            _isDirty = Value != _previousValue;
+
+            if (OnDirtyStateChanged.HasDelegate && wasDirty != _isDirty)
+            {
+                await OnDirtyStateChanged.InvokeAsync(_isDirty);
+            }
+        }
+
+        private async Task RaiseSelectionChangedEvent()
+        {
+            if (!OnSelectionChanged.HasDelegate && !OnSelectedTextChanged.HasDelegate)
+                return;
+
+            try
+            {
+                if (_jsModule == null) return;
+
+                var selectedText = await _jsModule.InvokeAsync<string>("getSelectedText");
+
+                if (OnSelectedTextChanged.HasDelegate)
+                {
+                    await OnSelectedTextChanged.InvokeAsync(selectedText);
+                }
+
+                if (OnSelectionChanged.HasDelegate)
+                {
+                    var eventArgs = new SelectionChangedEventArgs
+                    {
+                        SelectedText = selectedText,
+                        HasSelection = !string.IsNullOrEmpty(selectedText),
+                        ActiveFormats = _activeFormats.ToList()
+                    };
+                    await OnSelectionChanged.InvokeAsync(eventArgs);
+                }
+            }
+            catch { }
+        }
+
+        private async Task RaiseFormatChangedEvent()
+        {
+            if (!OnFormatChanged.HasDelegate) return;
+
+            var eventArgs = new FormatChangedEventArgs
+            {
+                ActiveFormats = _activeFormats.ToList(),
+                TextColor = _currentTextColor,
+                BackgroundColor = _currentHighlightColor,
+                Alignment = alignment,
+                HeadingLevel = _currentHeadingLevel
+            };
+
+            await OnFormatChanged.InvokeAsync(eventArgs);
+        }
+
+        private async Task<bool> RaiseBeforeCommandEvent(FormatCommand command, string commandName, object? value = null)
+        {
+            if (!OnBeforeCommand.HasDelegate) return true;
+
+            var eventArgs = new CommandEventArgs
+            {
+                Command = command,
+                CommandName = commandName,
+                Value = value,
+                Success = true,
+                Cancel = false
+            };
+
+            await OnBeforeCommand.InvokeAsync(eventArgs);
+            return !eventArgs.Cancel;
+        }
+
+        private async Task RaiseAfterCommandEvent(FormatCommand command, string commandName, bool success, string? error = null)
+        {
+            if (!OnAfterCommand.HasDelegate) return;
+
+            var eventArgs = new CommandEventArgs
+            {
+                Command = command,
+                CommandName = commandName,
+                Success = success,
+                Error = error
+            };
+
+            await OnAfterCommand.InvokeAsync(eventArgs);
+        }
+
+        private async Task RaiseErrorEvent(string message, Exception? exception = null, ErrorSeverity severity = ErrorSeverity.Error)
+        {
+            if (!OnError.HasDelegate) return;
+
+            var eventArgs = new EventArgs.ErrorEventArgs
+            {
+                Message = message,
+                Exception = exception,
+                Severity = severity
+            };
+
+            await OnError.InvokeAsync(eventArgs);
+        }
+
         [JSInvokable]
-        public async Task OnContentChanged(string html)
+        public async Task HandleContentChangedFromJs(string html)  // RENAMED
         {
             if (_isUpdating) return;
             _isUpdating = true;
@@ -622,6 +894,10 @@ namespace BlazorRTE.Components
             Value = sanitized;
             _previousValue = sanitized;
             await ValueChanged.InvokeAsync(sanitized);
+
+            // NEW: Raise the event callback
+            await RaiseContentChangedEvent(ChangeSource.EmojiShortcode);
+
             _isUpdating = false;
         }
 
@@ -709,6 +985,7 @@ namespace BlazorRTE.Components
 
         protected async Task ToggleTextColorPicker()
         {
+            var wasOpen = _showTextColorPicker;
             _showTextColorPicker = !_showTextColorPicker;
             _showBackgroundColorPicker = false;
             _showFontSizePicker = false;
@@ -716,6 +993,12 @@ namespace BlazorRTE.Components
 
             if (_showTextColorPicker && _jsModule != null)
             {
+                // NEW: Raise color picker opened event
+                if (OnColorPickerOpened.HasDelegate)
+                {
+                    await OnColorPickerOpened.InvokeAsync("text");
+                }
+                
                 StateHasChanged();
                 await Task.Delay(50);
                 try
@@ -725,10 +1008,19 @@ namespace BlazorRTE.Components
                 }
                 catch { }
             }
+            else if (!_showTextColorPicker && wasOpen)
+            {
+                // NEW: Raise color picker closed event
+                if (OnColorPickerClosed.HasDelegate)
+                {
+                    await OnColorPickerClosed.InvokeAsync("text");
+                }
+            }
         }
 
         protected async Task ToggleBackgroundColorPicker()
         {
+            var wasOpen = _showBackgroundColorPicker;
             _showBackgroundColorPicker = !_showBackgroundColorPicker;
             _showTextColorPicker = false;
             _showFontSizePicker = false;
@@ -736,6 +1028,12 @@ namespace BlazorRTE.Components
 
             if (_showBackgroundColorPicker && _jsModule != null)
             {
+                // NEW: Raise color picker opened event
+                if (OnColorPickerOpened.HasDelegate)
+                {
+                    await OnColorPickerOpened.InvokeAsync("background");
+                }
+                
                 StateHasChanged();
                 await Task.Delay(50);
                 try
@@ -744,6 +1042,14 @@ namespace BlazorRTE.Components
                     await SetupColorPickerNavigation(_bgColorPalette, ColorGridColumns);
                 }
                 catch { }
+            }
+            else if (!_showBackgroundColorPicker && wasOpen)
+            {
+                // NEW: Raise color picker closed event
+                if (OnColorPickerClosed.HasDelegate)
+                {
+                    await OnColorPickerClosed.InvokeAsync("background");
+                }
             }
         }
 
@@ -1222,6 +1528,7 @@ namespace BlazorRTE.Components
         [JSInvokable]
         protected async Task ToggleEmojiPicker()
         {
+            var wasOpen = _showEmojiPicker;
             _showEmojiPicker = !_showEmojiPicker;
             
             _showTextColorPicker = false;
@@ -1234,12 +1541,26 @@ namespace BlazorRTE.Components
             
             if (_showEmojiPicker && _jsModule != null)
             {
-                await Task.Delay(100); // Increased delay to ensure rendering
+                // NEW: Raise emoji picker opened event
+                if (OnEmojiPickerOpened.HasDelegate)
+                {
+                    await OnEmojiPickerOpened.InvokeAsync();
+                }
+                
+                await Task.Delay(100);
                 try
                 {
                     await _jsModule.InvokeVoidAsync("adjustEmojiPickerPositionByQuery", _emojiButton);
                 }
                 catch { }
+            }
+            else if (!_showEmojiPicker && wasOpen)
+            {
+                // NEW: Raise emoji picker closed event
+                if (OnEmojiPickerClosed.HasDelegate)
+                {
+                    await OnEmojiPickerClosed.InvokeAsync();
+                }
             }
         }
 
@@ -1271,12 +1592,27 @@ namespace BlazorRTE.Components
                 await ValueChanged.InvokeAsync(Value);
                 _isUpdating = false;
                 
+                // NEW: Raise emoji inserted event
+                if (OnEmojiInserted.HasDelegate)
+                {
+                    var eventArgs = new EmojiEventArgs
+                    {
+                        Emoji = emoji.Char,
+                        Category = emoji.Category
+                    };
+                    await OnEmojiInserted.InvokeAsync(eventArgs);
+                }
+                
+                // NEW: Raise content changed event
+                await RaiseContentChangedEvent(ChangeSource.EmojiPicker);
+                
                 // Return focus to editor
                 await ReturnFocusToEditor();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error inserting emoji: {ex.Message}");
+                await RaiseErrorEvent("Error inserting emoji", ex);
             }
         }
     }

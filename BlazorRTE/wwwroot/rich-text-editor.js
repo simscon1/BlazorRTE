@@ -85,7 +85,22 @@ export function initializeEditor(element, dotNetRef) {
         }
     });
 
-    element.addEventListener('blur', () => saveSelection());
+    // Save selection when editor loses focus
+    element.addEventListener('blur', (e) => {
+        // Check if the focus is moving to a toolbar element
+        const relatedTarget = e.relatedTarget;
+        const toolbar = document.querySelector('.rte-toolbar');
+        
+        if (toolbar && relatedTarget && toolbar.contains(relatedTarget)) {
+            // Focus is moving to toolbar, save selection but don't mark as fully blurred
+            saveSelection();
+            console.log('[RTE] Focus moved to toolbar, selection saved');
+        } else {
+            // Focus is leaving the editor component entirely
+            saveSelection();
+            console.log('[RTE] Editor fully blurred');
+        }
+    });
 
     element.addEventListener('paste', (e) => {
         e.preventDefault();
@@ -109,6 +124,15 @@ export function initializeEditor(element, dotNetRef) {
         toolbar.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
                 e.preventDefault();
+            }
+        }, true);
+        
+        // Prevent toolbar buttons from taking focus away from editor
+        toolbar.addEventListener('mousedown', (e) => {
+            // Only prevent default if clicking on a button, not on input elements
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                e.preventDefault();
+                console.log('[RTE] Toolbar button mousedown, prevented default');
             }
         }, true);
     }
@@ -153,7 +177,7 @@ export function initializeEditor(element, dotNetRef) {
                 selection.addRange(newRange);
 
                 saveSelection();
-                await dotNetRef.invokeMethodAsync('OnContentChanged', element.innerHTML);
+                await dotNetRef.invokeMethodAsync('HandleContentChangedFromJs', element.innerHTML);
             }
         } catch (err) { }
     });
