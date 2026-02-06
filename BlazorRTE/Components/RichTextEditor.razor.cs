@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.JSInterop;
-using BlazorRTE.HelperClasses;
-using BlazorEmo.Models;
+﻿using BlazorEmo.Models;
 using BlazorEmo.Services; // This will now use EmojiProvider instead
 using BlazorRTE.EventArgs;
+using BlazorRTE.HelperClasses;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
+using System.Text.Json;
 
 namespace BlazorRTE.Components
 {
@@ -151,6 +152,16 @@ namespace BlazorRTE.Components
                 {
                     // Initialization failed silently
                 }
+            }
+
+            // Position emoji picker if it's open
+            if (_showEmojiPicker && _jsModule != null && _emojiButton.Id != null)
+            {
+                try
+                {
+                    await _jsModule.InvokeVoidAsync("adjustEmojiPickerPositionByQuery", _emojiButton);
+                }
+                catch { }
             }
         }
 
@@ -1619,5 +1630,65 @@ namespace BlazorRTE.Components
                 Console.WriteLine($"[InsertEmoji] Stack: {ex.StackTrace}");
             }
         }
+
+        // Add to RichTextEditor.razor.cs
+
+        private EmojiAutocomplete? emojiAutocomplete;
+
+        [JSInvokable]
+        public async Task ShowEmojiAutocomplete(string query, JsonElement positionJson)
+        {
+            if (emojiAutocomplete == null) return;
+
+            var position = new EmojiAutocomplete.Position
+            {
+                X = positionJson.GetProperty("x").GetDouble(),
+                Y = positionJson.GetProperty("y").GetDouble()
+            };
+
+            await emojiAutocomplete.ShowAsync(query, position);
+        }
+
+        [JSInvokable]
+        public async Task HideEmojiAutocomplete()
+        {
+            if (emojiAutocomplete != null)
+            {
+                await emojiAutocomplete.HideAsync();
+            }
+        }
+
+        [JSInvokable]
+        public async Task HandleAutocompleteKey(string key)
+        {
+            if (emojiAutocomplete != null)
+            {
+                await emojiAutocomplete.HandleKeyAsync(key);
+            }
+        }
+
+        private async Task OnEmojiSelected(string emoji)
+        {
+            Console.WriteLine($"[C#] OnEmojiSelected called with emoji: {emoji}");
+            
+            if (_jsModule == null)
+            {
+                Console.WriteLine("[C#] ERROR: _jsModule is null!");
+                return;
+            }
+            
+            try
+            {
+                Console.WriteLine("[C#] Calling insertEmojiAtShortcode...");
+                await _jsModule.InvokeVoidAsync("insertEmojiAtShortcode", emoji);
+                Console.WriteLine("[C#] insertEmojiAtShortcode completed");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[C#] ERROR in OnEmojiSelected: {ex.Message}");
+                Console.WriteLine($"[C#] Stack: {ex.StackTrace}");
+            }
+        }
+
     }
 }

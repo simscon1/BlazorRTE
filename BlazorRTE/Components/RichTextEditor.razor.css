@@ -6,7 +6,8 @@
     border: 1px solid #d1d5db;
     border-radius: 8px;
     background: white;
-    overflow: visible;
+    position: relative;   /* ← ADD: Position relative to contain absolutely positioned children */
+    overflow: visible;    /* ← CHANGE: Allow overflow for autocomplete */
     transition: border-color 0.2s ease;
     min-height: var(--rte-min-height, 200px);  /* ✅ Industry standard min */
     max-height: var(--rte-max-height, 600px);  /* ✅ Industry standard max, user customizable */
@@ -653,4 +654,15 @@
     border-color: #3b82f6;
     background-color: #eff6ff;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.rte-editor-container {
+    position: relative; /* Important for absolute positioning of autocomplete */
+    width: 100%;
+}
+
+.emoji-picker-portal {
+    position: fixed;
+    z-index: 10000;
+    /* Position will be set by JavaScript */
 }

@@ -1,0 +1,119 @@
+.emoji-autocomplete {
+    position: absolute;
+    z-index: 10000;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 320px; /* Fixed width for consistent centering */
+    max-height: 380px; /* Increased from 340px to 380px */
+    overflow-y: auto;
+    display: none;
+    pointer-events: auto;
+}
+
+.emoji-autocomplete-list {
+    padding: 4px 0;
+}
+
+.emoji-autocomplete-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    gap: 12px;
+    transition: background-color 0.15s;
+    outline: none;
+}
+
+.emoji-autocomplete-item:hover,
+.emoji-autocomplete-item.selected {
+    background-color: #f5f5f5;
+}
+
+.emoji-autocomplete-item:active {
+    background-color: #e5e7eb;
+}
+
+.emoji-char {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.emoji-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.emoji-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.emoji-code {
+    font-size: 12px;
+    color: #666;
+    font-family: 'Courier New', monospace;
+}
+
+/* Scrollbar styling */
+.emoji-autocomplete::-webkit-scrollbar {
+    width: 8px;
+}
+
+.emoji-autocomplete::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 0 8px 8px 0;
+}
+
+.emoji-autocomplete::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.emoji-autocomplete::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .emoji-autocomplete {
+        background: #1f2937;
+        border-color: #4b5563;
+    }
+
+    .emoji-autocomplete-item:hover,
+    .emoji-autocomplete-item.selected {
+        background-color: #374151;
+    }
+
+    .emoji-autocomplete-item:active {
+        background-color: #4b5563;
+    }
+
+    .emoji-name {
+        color: #f9fafb;
+    }
+
+    .emoji-code {
+        color: #9ca3af;
+    }
+
+    .emoji-autocomplete::-webkit-scrollbar-track {
+        background: #111827;
+    }
+
+    .emoji-autocomplete::-webkit-scrollbar-thumb {
+        background: #4b5563;
+    }
+
+    .emoji-autocomplete::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+    }
+}
