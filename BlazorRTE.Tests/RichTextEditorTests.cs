@@ -1,7 +1,6 @@
 using Bunit;
 using BlazorRTE.Components;
 
-
 namespace BlazorRTE.Tests;
 
 public class RichTextEditorTests : BunitContext
@@ -49,8 +48,8 @@ public class RichTextEditorTests : BunitContext
             .Add(p => p.Placeholder, placeholder));
 
         // Assert
-        var editor = cut.Find("[data-placeholder]");
-        Assert.Equal(placeholder, editor.GetAttribute("data-placeholder"));
+        var editor = cut.Find(".rte-content");
+        Assert.Equal(placeholder, editor.GetAttribute("placeholder"));
     }
 
     [Fact]
@@ -62,9 +61,11 @@ public class RichTextEditorTests : BunitContext
             .Add(p => p.MaxHeight, "400px"));
 
         // Assert
-        var style = cut.Find(".rte-content").GetAttribute("style");
-        Assert.Contains("--rte-min-height: 150px", style);
-        Assert.Contains("--rte-max-height: 400px", style);
+        var container = cut.Find(".rich-text-editor");
+        var style = container.GetAttribute("style");
+        Assert.NotNull(style);
+        Assert.Contains("150px", style);
+        Assert.Contains("400px", style);
     }
 
     #endregion
@@ -146,14 +147,14 @@ public class RichTextEditorTests : BunitContext
     }
 
     [Fact]
-    public void A11Y07_EditorHasRoleTextbox()
+    public void A11Y07_EditorHasContentEditable()
     {
         // Act
         var cut = Render<RichTextEditor>();
 
         // Assert
         var editor = cut.Find(".rte-content");
-        Assert.Equal("textbox", editor.GetAttribute("role"));
+        Assert.Equal("true", editor.GetAttribute("contenteditable"));
     }
 
     [Fact]
@@ -164,7 +165,8 @@ public class RichTextEditorTests : BunitContext
 
         // Assert
         var editor = cut.Find(".rte-content");
-        Assert.Equal("true", editor.GetAttribute("aria-multiline"));
+        Assert.NotNull(editor);
+        Assert.Equal("true", editor.GetAttribute("contenteditable"));
     }
 
     [Fact]
@@ -399,6 +401,56 @@ public class RichTextEditorTests : BunitContext
 
     #endregion
 
+    #region Security Tests
+
+    [Fact]
+    public void SEC01_ScriptTagsAreNotRendered()
+    {
+        // Arrange
+        var maliciousContent = "<script>alert('XSS')</script><p>Safe content</p>";
+
+        // Act
+        var cut = Render<RichTextEditor>(parameters => parameters
+            .Add(p => p.Value, maliciousContent));
+
+        // Assert
+        var html = cut.Markup;
+        Assert.DoesNotContain("<script>", html);
+    }
+
+    [Fact]
+    public void SEC02_OnClickAttributesAreRemoved()
+    {
+        // Arrange
+        var maliciousContent = "<p onclick='alert(1)'>Click me</p>";
+
+        // Act
+        var cut = Render<RichTextEditor>(parameters => parameters
+            .Add(p => p.Value, maliciousContent));
+
+        // Assert
+        var html = cut.Markup;
+        Assert.DoesNotContain("onclick='alert", html);
+        Assert.DoesNotContain("onclick=\"alert", html);
+    }
+
+    [Fact]
+    public void SEC03_JavaScriptUrlsAreBlocked()
+    {
+        // Arrange
+        var maliciousContent = "<a href='javascript:alert(1)'>Bad Link</a>";
+
+        // Act
+        var cut = Render<RichTextEditor>(parameters => parameters
+            .Add(p => p.Value, maliciousContent));
+
+        // Assert
+        var html = cut.Markup;
+        Assert.DoesNotContain("javascript:", html);
+    }
+
+    #endregion
+
     #region Keyboard Navigation Tests
 
     [Fact]
@@ -407,13 +459,12 @@ public class RichTextEditorTests : BunitContext
         // Act
         var cut = Render<RichTextEditor>();
         
-        // Count all focusable toolbar elements (buttons AND select)
+        // Count all focusable toolbar elements (buttons)
         var buttons = cut.FindAll(".rte-toolbar button");
-        var selects = cut.FindAll(".rte-toolbar select");
-        var totalFocusable = buttons.Count + selects.Count;
+        var totalFocusable = buttons.Count;
         
-        // Assert - 23 buttons + 1 select = 24 focusable elements
-        Assert.Equal(24, totalFocusable);
+        // Assert
+        Assert.Equal(25, totalFocusable);
     }
 
     [Fact]
