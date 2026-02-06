@@ -3,6 +3,10 @@
 let editorInstances = new Map();
 let savedSelection = null;
 
+// Track shortcode typing for autocomplete
+let shortcodeStart = -1;
+let shortcodeText = '';
+
 export function initializeEditor(element, dotNetRef) {
     console.log("initializeEditor called", element);
     if (!element) {
@@ -37,6 +41,141 @@ export function initializeEditor(element, dotNetRef) {
         e.preventDefault();
     });
     
+    // Add input event listener for shortcode checking
+    element.addEventListener('input', async function(e) {
+        if (e.inputType === 'insertText' && e.data === ' ') {
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+            
+            const range = selection.getRangeAt(0);
+            const textNode = range.startContainer;
+            
+            if (textNode.nodeType !== Node.TEXT_NODE) return;
+            
+            const text = textNode.textContent;
+            const cursorPos = range.startOffset;
+            
+            // Find the last colon before the space
+            let colonIndex = -1;
+            for (let i = cursorPos - 2; i >= 0; i--) {
+                if (text[i] === ':') {
+                    colonIndex = i;
+                    break;
+                }
+                if (text[i] === ' ') break;
+            }
+            
+            if (colonIndex === -1) return;
+            
+            const shortcode = text.substring(colonIndex + 1, cursorPos - 1);
+            
+            // *** NEW: Skip if shortcode is 2+ characters - let autocomplete handle it ***
+            if (shortcode.length >= 2) {
+                return; // Don't process, let autocomplete show instead
+            }
+            
+            // Only process single-character shortcodes (emoticons)
+            if (shortcode.length === 0) return;
+            
+            try {
+                const emoji = await dotNetHelper.invokeMethodAsync('ProcessEmojiShortcode', shortcode);
+                
+                if (emoji) {
+                    // Replace :shortcode with emoji
+                    const beforeColon = text.substring(0, colonIndex);
+                    const afterSpace = text.substring(cursorPos);
+                    
+                    textNode.textContent = beforeColon + emoji + ' ' + afterSpace;
+                    
+                    // Set cursor after emoji
+                    const newPos = colonIndex + emoji.length + 1;
+                    range.setStart(textNode, newPos);
+                    range.setEnd(textNode, newPos);
+                    
+                    // Notify C# of content change
+                    const html = editor.innerHTML;
+                    await dotNetHelper.invokeMethodAsync('HandleContentChangedFromJs', html);
+                }
+            } catch (err) {
+                console.error('Shortcode processing failed:', err);
+            }
+        }
+        
+        // Check for shortcode autocomplete
+        checkShortcode();
+    });
+
+    element.addEventListener('keydown', function(e) {
+        // Existing keydown handling...
+        
+        // Handle escape to close autocomplete
+        if (e.key === 'Escape' && shortcodeStart !== -1) {
+            e.preventDefault();
+            clearShortcode();
+            dotNetHelper.invokeMethodAsync('HideEmojiAutocomplete');
+        }
+        
+        // Handle arrow keys and enter in autocomplete
+        if (shortcodeStart !== -1) {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
+                e.preventDefault();
+                dotNetHelper.invokeMethodAsync('HandleAutocompleteKey', e.key);
+                return;
+            }
+        }
+    });
+
+    // Emoji shortcode detection on keyup
+    element.addEventListener('keyup', async (e) => {
+        if (e.ctrlKey || e.metaKey || e.altKey || 
+            ['Shift', 'Control', 'Alt', 'Meta', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 
+             'Home', 'End', 'PageUp', 'PageDown', 'Escape', 'Tab', 'Enter'].includes(e.key)) {
+            return;
+        }
+
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+
+        const range = selection.getRangeAt(0);
+        const textNode = range.startContainer;
+        if (textNode.nodeType !== Node.TEXT_NODE) return;
+
+        const text = textNode.textContent;
+        const cursorPos = range.startOffset;
+        const beforeCursor = text.substring(0, cursorPos);
+
+        // Match :shortcode - allow any non-whitespace, non-colon characters
+        const match = beforeCursor.match(/:([^\s:]+)$/);
+        if (!match) return;
+
+        const shortcode = match[1];
+        const fullMatch = match[0];
+
+        // *** MODIFIED: Skip if shortcode is 2+ characters - let autocomplete handle it ***
+        if (shortcode.length >= 2) {
+            return; // Don't process, let autocomplete show instead
+        }
+
+        // Only process single-character shortcodes (emoticons like :D :P)
+        try {
+            const emojiChar = await dotNetRef.invokeMethodAsync('ProcessEmojiShortcode', shortcode);
+            if (emojiChar) {
+                const shortcodeStart = cursorPos - fullMatch.length;
+                const newText = text.substring(0, shortcodeStart) + emojiChar + text.substring(cursorPos);
+                textNode.textContent = newText;
+
+                const newRange = document.createRange();
+                newRange.setStart(textNode, shortcodeStart + emojiChar.length);
+                newRange.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+
+                saveSelection();
+                await dotNetRef.invokeMethodAsync('HandleContentChangedFromJs', element.innerHTML);
+            }
+        } catch (err) { }
+    });
+
     console.log("Editor initialized successfully");
 }
 
@@ -330,3 +469,217 @@ function isDefaultBackgroundColor(color) {
            c === 'initial' ||
            c === 'inherit';
 }
+
+// ------ Shortcode/Autocomplete Handling ------ //
+
+// Add to the existing rich-text-editor.js file
+
+// Track shortcode typing
+let shortcodeStart = -1;
+let shortcodeText = '';
+
+// Add to the oninput handler
+editor.addEventListener('input', async function(e) {
+    if (e.inputType === 'insertText' && e.data === ' ') {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+        
+        const range = selection.getRangeAt(0);
+        const textNode = range.startContainer;
+        
+        if (textNode.nodeType !== Node.TEXT_NODE) return;
+        
+        const text = textNode.textContent;
+        const cursorPos = range.startOffset;
+        
+        // Find the last colon before the space
+        let colonIndex = -1;
+        for (let i = cursorPos - 2; i >= 0; i--) {
+            if (text[i] === ':') {
+                colonIndex = i;
+                break;
+            }
+            if (text[i] === ' ') break;
+        }
+        
+        if (colonIndex === -1) return;
+        
+        const shortcode = text.substring(colonIndex + 1, cursorPos - 1);
+        
+        // *** NEW: Skip if shortcode is 2+ characters - let autocomplete handle it ***
+        if (shortcode.length >= 2) {
+            return; // Don't process, let autocomplete show instead
+        }
+        
+        // Only process single-character shortcodes (emoticons)
+        if (shortcode.length === 0) return;
+        
+        try {
+            const emoji = await dotNetHelper.invokeMethodAsync('ProcessEmojiShortcode', shortcode);
+            
+            if (emoji) {
+                // Replace :shortcode with emoji
+                const beforeColon = text.substring(0, colonIndex);
+                const afterSpace = text.substring(cursorPos);
+                
+                textNode.textContent = beforeColon + emoji + ' ' + afterSpace;
+                
+                // Set cursor after emoji
+                const newPos = colonIndex + emoji.length + 1;
+                range.setStart(textNode, newPos);
+                range.setEnd(textNode, newPos);
+                
+                // Notify C# of content change
+                const html = editor.innerHTML;
+                await dotNetHelper.invokeMethodAsync('HandleContentChangedFromJs', html);
+            }
+        } catch (err) {
+            console.error('Shortcode processing failed:', err);
+        }
+    }
+    
+    // Check for shortcode autocomplete
+    checkShortcode();
+});
+
+editor.addEventListener('keyup', async (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || 
+        ['Shift', 'Control', 'Alt', 'Meta', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 
+         'Home', 'End', 'PageUp', 'PageDown', 'Escape', 'Tab', 'Enter'].includes(e.key)) {
+        return;
+    }
+
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    const textNode = range.startContainer;
+    if (textNode.nodeType !== Node.TEXT_NODE) return;
+
+    const text = textNode.textContent;
+    const cursorPos = range.startOffset;
+    const beforeCursor = text.substring(0, cursorPos);
+
+    // Match :shortcode - allow any non-whitespace, non-colon characters
+    const match = beforeCursor.match(/:([^\s:]+)$/);
+    if (!match) return;
+
+    const shortcode = match[1];
+    const fullMatch = match[0];
+
+    // *** MODIFIED: Skip if shortcode is 2+ characters - let autocomplete handle it ***
+    if (shortcode.length >= 2) {
+        return; // Don't process, let autocomplete show instead
+    }
+
+    // Only process single-character shortcodes (emoticons like :D :P)
+    try {
+        const emojiChar = await dotNetRef.invokeMethodAsync('ProcessEmojiShortcode', shortcode);
+        if (emojiChar) {
+            const shortcodeStart = cursorPos - fullMatch.length;
+            const newText = text.substring(0, shortcodeStart) + emojiChar + text.substring(cursorPos);
+            textNode.textContent = newText;
+
+            const newRange = document.createRange();
+            newRange.setStart(textNode, shortcodeStart + emojiChar.length);
+            newRange.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+
+            saveSelection();
+            await dotNetRef.invokeMethodAsync('HandleContentChangedFromJs', element.innerHTML);
+        }
+    } catch (err) { }
+});
+
+function checkShortcode() {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+    
+    const range = selection.getRangeAt(0);
+    if (!range.collapsed) return;
+    
+    const textNode = range.startContainer;
+    if (textNode.nodeType !== Node.TEXT_NODE) {
+        clearShortcode();
+        return;
+    }
+    
+    const text = textNode.textContent;
+    const offset = range.startOffset;
+    
+    // Find the last colon before cursor
+    let colonPos = -1;
+    for (let i = offset - 1; i >= 0; i--) {
+        if (text[i] === ':') {
+            colonPos = i;
+            break;
+        }
+        if (text[i] === ' ' || text[i] === '\n') {
+            break;
+        }
+    }
+    
+    if (colonPos === -1) {
+        if (shortcodeStart !== -1) {
+            clearShortcode();
+            dotNetRef.invokeMethodAsync('HideEmojiAutocomplete');
+        }
+        return;
+    }
+    
+    // Get text after colon
+    const afterColon = text.substring(colonPos + 1, offset);
+    
+    // Minimum 2 characters after colon to trigger autocomplete
+    if (afterColon.length >= 2) {
+        shortcodeStart = colonPos;
+        shortcodeText = afterColon;
+        
+        // Get cursor position for popup placement
+        const rect = range.getBoundingClientRect();
+        const editorRect = element.getBoundingClientRect();
+        
+        dotNetRef.invokeMethodAsync('ShowEmojiAutocomplete', afterColon, {
+            x: rect.left - editorRect.left,
+            y: rect.bottom - editorRect.top
+        });
+    } else if (afterColon.length === 0) {
+        clearShortcode();
+        dotNetRef.invokeMethodAsync('HideEmojiAutocomplete');
+    }
+}
+
+function clearShortcode() {
+    shortcodeStart = -1;
+    shortcodeText = '';
+}
+
+export function insertEmojiAtShortcode(emoji) {
+    if (shortcodeStart === -1) return;
+    
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+    
+    const range = selection.getRangeAt(0);
+    const textNode = range.startContainer;
+    
+    if (textNode.nodeType !== Node.TEXT_NODE) return;
+    
+    // Remove the shortcode text (including the colon)
+    const offset = range.startOffset;
+    const beforeShortcode = textNode.textContent.substring(0, shortcodeStart);
+    const afterCursor = textNode.textContent.substring(offset);
+    
+    textNode.textContent = beforeShortcode + emoji + afterCursor;
+    
+    // Place cursor after emoji
+    const newOffset = shortcodeStart + emoji.length;
+    range.setStart(textNode, newOffset);
+    range.setEnd(textNode, newOffset);
+    
+    clearShortcode();
+    element.focus();
+}
+
+//# sourceMappingURL=rich-text-editor.js.map

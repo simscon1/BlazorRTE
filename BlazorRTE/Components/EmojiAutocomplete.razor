@@ -1,0 +1,138 @@
+@using BlazorEmo.Services
+@using BlazorEmo.Data
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
+
+<div class="emoji-autocomplete" 
+     style="@Style" 
+     @ref="autocompleteElement"
+     @onmousedown:preventDefault="false"
+     @onclick:stopPropagation="true">
+    @if (matchingEmojis?.Any() == true)
+    {
+        <div class="emoji-autocomplete-list">
+            @foreach (var (emoji, index) in matchingEmojis.Select((e, i) => (e, i)))
+            {
+                <div class="emoji-autocomplete-item @(index == selectedIndex ? "selected" : "")"
+                     @onmousedown:preventDefault="false"
+                     @onclick="async () => await SelectEmoji(emoji)"
+                     @onclick:stopPropagation="true"
+                     @onmouseenter="() => selectedIndex = index"
+                     tabindex="0">
+                    <span class="emoji-char">@emoji.Char</span>
+                    <span class="emoji-info">
+                        <span class="emoji-name">@emoji.Name</span>
+                        <span class="emoji-code">:@emoji.Code:</span>
+                    </span>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private ElementReference autocompleteElement;
+    private List<BlazorEmo.Models.Emo>? matchingEmojis;
+    private int selectedIndex = 0;
+    private string? currentQuery;
+    private Position? position;
+
+    [Parameter] public EventCallback<string> OnEmojiSelected { get; set; }
+
+    private string Style => position != null 
+        ? $"left: {position.X}px; top: {position.Y}px; display: block;" 
+        : "display: none;";
+
+    public async Task ShowAsync(string query, Position pos)
+    {
+        currentQuery = query;
+        position = pos;
+        selectedIndex = 0;
+
+        // Get all emojis from embedded data and flatten categories
+        var allEmojis = EmojiData.Categories
+            .SelectMany(c => c.Emojis)
+            .ToList();
+
+        matchingEmojis = allEmojis
+            .Where(e => 
+                e.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                e.Code.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                e.Keywords.Any(k => k.Contains(query, StringComparison.OrdinalIgnoreCase)))
+            .Take(10) // Increased from 8 to 10 since popup is taller
+            .ToList();
+
+        StateHasChanged();
+        
+        // Scroll to top after rendering
+        await Task.Delay(10);
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("eval", 
+                "document.querySelector('.emoji-autocomplete')?.scrollTo(0, 0)");
+        }
+        catch
+        {
+            // Ignore JS errors if element not found
+        }
+    }
+
+    public Task HideAsync()
+    {
+        position = null;
+        matchingEmojis = null;
+        currentQuery = null;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    public async Task HandleKeyAsync(string key)
+    {
+        if (matchingEmojis == null || !matchingEmojis.Any()) return;
+
+        switch (key)
+        {
+            case "ArrowDown":
+                selectedIndex = (selectedIndex + 1) % matchingEmojis.Count;
+                StateHasChanged();
+                await ScrollSelectedIntoView();
+                break;
+
+            case "ArrowUp":
+                selectedIndex = selectedIndex == 0 ? matchingEmojis.Count - 1 : selectedIndex - 1;
+                StateHasChanged();
+                await ScrollSelectedIntoView();
+                break;
+
+            case "Enter":
+                await SelectEmoji(matchingEmojis[selectedIndex]);
+                break;
+        }
+    }
+
+    private async Task ScrollSelectedIntoView()
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("eval", 
+                $"document.querySelector('.emoji-autocomplete-item.selected')?.scrollIntoView({{ block: 'nearest', behavior: 'smooth' }})");
+        }
+        catch
+        {
+            // Ignore JS errors
+        }
+    }
+
+    private async Task SelectEmoji(BlazorEmo.Models.Emo emoji)
+    {
+        Console.WriteLine($"[EmojiAutocomplete] SelectEmoji called: {emoji.Char}");
+        await OnEmojiSelected.InvokeAsync(emoji.Char);
+        await HideAsync();
+    }
+
+    public class Position
+    {
+        public double X { get; set; }
+        public double Y { get; set; }
+    }
+}
