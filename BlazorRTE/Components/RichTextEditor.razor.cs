@@ -96,8 +96,10 @@ namespace BlazorRTE.Components
         private bool _showEmojiPicker = false;
         private ElementReference _emojiButton;
         private ElementReference _emojiPickerContainer;
-        // Emoji shortcode support
+     
         private Dictionary<string, string>? _emojiShortcodeMap;
+
+        private bool _isEmojiSelected = false;
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
@@ -434,6 +436,16 @@ namespace BlazorRTE.Components
                 catch
                 {
                     _currentHighlightColor = "#FFFF00";
+                }
+
+                // Check if emoji is selected
+                try
+                {
+                    _isEmojiSelected = await _jsModule.InvokeAsync<bool>("isEmojiSelected");
+                }
+                catch
+                {
+                    _isEmojiSelected = false;
                 }
 
                 await UpdateHeadingState();

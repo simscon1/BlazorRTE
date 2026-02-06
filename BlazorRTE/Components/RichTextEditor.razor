@@ -522,10 +522,11 @@
                 <div class="rte-color-dropdown" style="display: inline-block;">
                     <button type="button"
                             @ref="_emojiButton"
-                            class="rte-btn"
+                            class="rte-btn @(_isEmojiSelected ? "active" : "")"
                             aria-label="Insert emoji"
                             aria-haspopup="true"
                             aria-expanded="@_showEmojiPicker.ToString().ToLower()"
+                            aria-pressed="@_isEmojiSelected.ToString().ToLower()"
                             tabindex="-1"
                             data-toolbar-item
                             @onclick="ToggleEmojiPicker"
@@ -540,7 +541,9 @@
                         <EmoPicker
                             IsOpen="@_showEmojiPicker"
                             OnEmojiSelected="InsertEmoji"
-                            OnClose="CloseEmojiPicker" />
+                            OnClose="CloseEmojiPicker"
+                            UseVirtualization="true"
+                            UseCompleteDataset="true"/>
                     }
                 </div>
             </div>
