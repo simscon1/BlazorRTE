@@ -1,10 +1,7 @@
 ﻿let editorInstances = new Map();
 let savedSelection = null;
 
-export function initializeEditor(
-    element: HTMLElement, 
-    dotNetRef: DotNet.DotNetObject
-): void {
+export function initializeEditor(element, dotNetRef) {
     if (!element) {
         console.error("Element is null!");
         return;
@@ -12,6 +9,215 @@ export function initializeEditor(
 
     editorInstances.set(element, { dotNetRef });
     let shiftTabPressed = false;
+    
+    // *** Autocomplete variables (inside initializeEditor scope) ***
+    let shortcodeStart = -1;
+    let shortcodeText = '';
+    
+    // *** Autocomplete helper functions ***
+    function checkShortcode() {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+        
+        const range = selection.getRangeAt(0);
+        if (!range.collapsed) return;
+        
+        const textNode = range.startContainer;
+        if (textNode.nodeType !== Node.TEXT_NODE) {
+            clearShortcode();
+            return;
+        }
+        
+        const text = textNode.textContent;
+        const offset = range.startOffset;
+        
+        // Find the last colon before cursor
+        let colonPos = -1;
+        for (let i = offset - 1; i >= 0; i--) {
+            if (text[i] === ':') {
+                colonPos = i;
+                break;
+            }
+            if (text[i] === ' ' || text[i] === '\n') {
+                break;
+            }
+        }
+        
+        if (colonPos === -1) {
+            if (shortcodeStart !== -1) {
+                clearShortcode();
+                dotNetRef.invokeMethodAsync('HideEmojiAutocomplete');
+            }
+            return;
+        }
+        
+        // Get text after colon
+        const afterColon = text.substring(colonPos + 1, offset);
+        
+        // Minimum 2 characters after colon to trigger autocomplete
+        if (afterColon.length >= 2) {
+            shortcodeStart = colonPos;
+            shortcodeText = afterColon;
+            
+            // Get cursor position in VIEWPORT coordinates
+            const tempRange = document.createRange();
+            tempRange.setStart(textNode, offset);
+            tempRange.setEnd(textNode, offset);
+            
+            const cursorRect = tempRange.getBoundingClientRect();
+            
+            // Popup dimensions
+            const popupWidth = 320;
+            const popupHeight = 380;
+            const gapFromCursor = 8;
+            
+            // Use viewport coordinates directly
+            let x = cursorRect.left;
+            let y = cursorRect.bottom + gapFromCursor;
+            
+            // Check if popup would go off the right edge
+            if (x + popupWidth > window.innerWidth - 16) {
+                x = window.innerWidth - popupWidth - 16;
+            }
+            
+            // Check if popup would go off the left edge
+            if (x < 16) {
+                x = 16;
+            }
+            
+            // Check if popup would go off the bottom
+            if (y + popupHeight > window.innerHeight - 16) {
+                // Show above cursor instead
+                y = cursorRect.top - popupHeight - gapFromCursor;
+                
+                // If still off screen, show at top
+                if (y < 16) {
+                    y = 16;
+                }
+            }
+            
+            console.log('[Autocomplete] Cursor rect:', cursorRect);
+            console.log('[Autocomplete] Popup position:', { x, y });
+            
+            dotNetRef.invokeMethodAsync('ShowEmojiAutocomplete', afterColon, { x, y });
+        } else if (afterColon.length === 0) {
+            clearShortcode();
+            dotNetRef.invokeMethodAsync('HideEmojiAutocomplete');
+        }
+    }
+    
+    function clearShortcode() {
+        shortcodeStart = -1;
+        shortcodeText = '';
+    }
+    
+    function insertEmojiAtShortcode(emoji) {
+        console.log('[Autocomplete] insertEmojiAtShortcode:', emoji);
+        
+        if (shortcodeStart === -1) {
+            console.warn('[Autocomplete] shortcodeStart is -1');
+            return;
+        }
+        
+        element.focus();
+        
+        const selection = window.getSelection();
+        if (!selection.rangeCount) {
+            console.error('[Autocomplete] No selection range');
+            clearShortcode();
+            return;
+        }
+        
+        // Find text node with shortcode
+        let textNode = null;
+        let cursorOffset = 0;
+        
+        const allTextNodes = getTextNodesIn(element);
+        for (let node of allTextNodes) {
+            const text = node.textContent;
+            for (let i = 0; i < text.length; i++) {
+                if (text[i] === ':') {
+                    const afterColon = text.substring(i + 1);
+                    if (afterColon.length >= 1) {
+                        textNode = node;
+                        cursorOffset = text.length;
+                        console.log('[Autocomplete] Found text node:', text);
+                        break;
+                    }
+                }
+            }
+            if (textNode) break;
+        }
+        
+        if (!textNode) {
+            console.error('[Autocomplete] Cannot find text node');
+            clearShortcode();
+            return;
+        }
+        
+        const text = textNode.textContent;
+        
+        // Find colon position
+        let actualColonPos = -1;
+        for (let i = Math.min(cursorOffset, text.length) - 1; i >= 0; i--) {
+            if (text[i] === ':') {
+                actualColonPos = i;
+                break;
+            }
+            if (text[i] === ' ' || text[i] === '\n') {
+                break;
+            }
+        }
+        
+        if (actualColonPos === -1) {
+            console.error('[Autocomplete] Could not find colon');
+            clearShortcode();
+            return;
+        }
+        
+        // Replace shortcode with emoji
+        const beforeShortcode = text.substring(0, actualColonPos);
+        const afterCursor = text.substring(Math.min(cursorOffset, text.length));
+        const newText = beforeShortcode + emoji + ' ' + afterCursor;
+        
+        textNode.textContent = newText;
+        
+        // Set cursor position after emoji
+        const newOffset = actualColonPos + emoji.length + 1;
+        
+        if (newOffset <= textNode.textContent.length) {
+            try {
+                const newRange = document.createRange();
+                newRange.setStart(textNode, newOffset);
+                newRange.setEnd(textNode, newOffset);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+                console.log('[Autocomplete] Cursor repositioned');
+            } catch (e) {
+                console.error('[Autocomplete] Failed to set cursor:', e);
+            }
+        }
+        
+        clearShortcode();
+        
+        dotNetRef.invokeMethodAsync('HandleContentChangedFromJs', element.innerHTML)
+            .catch(err => console.error('[Autocomplete] Content change error:', err));
+    }
+
+    function getTextNodesIn(node) {
+        const textNodes = [];
+        if (node.nodeType === Node.TEXT_NODE) {
+            textNodes.push(node);
+        } else {
+            for (let child of node.childNodes) {
+                textNodes.push(...getTextNodesIn(child));
+            }
+        }
+        return textNodes;
+    }
+    
+    // Store function for external access
+    element._insertEmojiAtShortcode = insertEmojiAtShortcode;
 
     element.addEventListener('keydown', async (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && !e.shiftKey) {
@@ -72,6 +278,20 @@ export function initializeEditor(
         if (e.key === 'Tab' && e.shiftKey) {
             shiftTabPressed = true;
         }
+
+        // Handle autocomplete navigation
+        if (e.key === 'Escape' && shortcodeStart !== -1) {
+            e.preventDefault();
+            clearShortcode();
+            await dotNetRef.invokeMethodAsync('HideEmojiAutocomplete');
+            return;
+        }
+        
+        if (shortcodeStart !== -1 && (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter')) {
+            e.preventDefault();
+            await dotNetRef.invokeMethodAsync('HandleAutocompleteKey', e.key);
+            return;
+        }
     }, true);
 
     element.addEventListener('focus', (e) => {
@@ -88,18 +308,14 @@ export function initializeEditor(
         }
     });
 
-    // Save selection when editor loses focus
     element.addEventListener('blur', (e) => {
-        // Check if the focus is moving to a toolbar element
         const relatedTarget = e.relatedTarget;
         const toolbar = document.querySelector('.rte-toolbar');
         
         if (toolbar && relatedTarget && toolbar.contains(relatedTarget)) {
-            // Focus is moving to toolbar, save selection but don't mark as fully blurred
             saveSelection();
             console.log('[RTE] Focus moved to toolbar, selection saved');
         } else {
-            // Focus is leaving the editor component entirely
             saveSelection();
             console.log('[RTE] Editor fully blurred');
         }
@@ -109,11 +325,7 @@ export function initializeEditor(
         e.preventDefault();
         const text = (e.clipboardData || window.clipboardData).getData('text/plain');
         if (document.queryCommandSupported('insertText')) {
-            // ❌ DEPRECATED: document.execCommand()
-            // document.execCommand('insertText', false, text);
-
-            // ✅ MODERN ALTERNATIVE: Use Editing API
-            // However, browser support is still limited, so this is acceptable for now
+            document.execCommand('insertText', false, text);
         } else {
             const selection = window.getSelection();
             if (selection.rangeCount) {
@@ -129,20 +341,16 @@ export function initializeEditor(
     const toolbar = document.querySelector('.rte-toolbar');
     if (toolbar) {
         toolbar.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {  
                 e.preventDefault();
-            }
-        }, true);
-        
-        // Prevent toolbar buttons from taking focus away from editor
-        toolbar.addEventListener('mousedown', (e) => {
-            // Only prevent default if clicking on a button, not on input elements
-            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
-                e.preventDefault();
-                console.log('[RTE] Toolbar button mousedown, prevented default');
             }
         }, true);
     }
+
+    // Input event for autocomplete
+    element.addEventListener('input', function(e) {
+        checkShortcode();
+    });
 
     // Emoji shortcode detection on keyup
     element.addEventListener('keyup', async (e) => {
@@ -163,22 +371,27 @@ export function initializeEditor(
         const cursorPos = range.startOffset;
         const beforeCursor = text.substring(0, cursorPos);
 
-        // Match :shortcode - allow any non-whitespace, non-colon characters
         const match = beforeCursor.match(/:([^\s:]+)$/);
         if (!match) return;
 
         const shortcode = match[1];
         const fullMatch = match[0];
 
+        // Skip if 2+ characters (autocomplete handles it)
+        if (shortcode.length >= 2) {
+            return;
+        }
+
+        // Process single-character shortcodes
         try {
             const emojiChar = await dotNetRef.invokeMethodAsync('ProcessEmojiShortcode', shortcode);
             if (emojiChar) {
-                const shortcodeStart = cursorPos - fullMatch.length;
-                const newText = text.substring(0, shortcodeStart) + emojiChar + text.substring(cursorPos);
+                const shortcodeStartPos = cursorPos - fullMatch.length;
+                const newText = text.substring(0, shortcodeStartPos) + emojiChar + text.substring(cursorPos);
                 textNode.textContent = newText;
 
                 const newRange = document.createRange();
-                newRange.setStart(textNode, shortcodeStart + emojiChar.length);
+                newRange.setStart(textNode, shortcodeStartPos + emojiChar.length);
                 newRange.collapse(true);
                 selection.removeAllRanges();
                 selection.addRange(newRange);
@@ -339,16 +552,12 @@ export function getActiveFormats() {
     if (document.queryCommandState('insertUnorderedList')) formats.push('insertUnorderedList');
     if (document.queryCommandState('insertOrderedList')) formats.push('insertOrderedList');
 
-    // Improved foreColor detection
     const foreColor = document.queryCommandValue('foreColor');
-    console.log('[DEBUG] foreColor value:', foreColor); // Debug log
     if (foreColor && !isDefaultTextColor(foreColor) && !insideLink) {
         formats.push('foreColor');
     }
 
-    // Improved backColor detection
     const backColor = document.queryCommandValue('backColor');
-    console.log('[DEBUG] backColor value:', backColor); // Debug log
     if (backColor && !isDefaultBackgroundColor(backColor)) {
         formats.push('backColor');
     }
@@ -358,7 +567,6 @@ export function getActiveFormats() {
     else if (document.queryCommandState('justifyFull')) formats.push('justifyFull');
     else if (document.queryCommandState('justifyLeft')) formats.push('justifyLeft');
 
-    console.log('[DEBUG] Active formats:', formats); // Debug log
     return formats;
 }
 
@@ -458,60 +666,23 @@ export function adjustColorPalettePosition() {
 
 function isDefaultTextColor(color) {
     if (!color) return true;
-    
-    // Normalize the color string
     const normalized = color.toLowerCase().replace(/\s+/g, '');
-    
-    // List of default/inherited text colors
     const defaultColors = [
-        'rgb(0,0,0)',
-        'rgb(0,0,0,1)',
-        'rgba(0,0,0,1)',
-        '#000000',
-        '#000',
-        'black',
-        '',
-        'inherit',
-        'initial',
-        'currentcolor',
-        // Bootstrap and common framework default text colors
-        'rgb(33,37,41)',      // Bootstrap's $body-color (#212529)
-        'rgb(52,58,64)',      // Bootstrap gray-800
-        'rgb(73,80,87)',      // Bootstrap gray-700
-        // Dark theme colors that might be considered "default"
-        'rgb(17,24,39)',      // Tailwind gray-900
-        'rgb(31,41,55)',      // Tailwind gray-800
-        'rgb(55,65,81)',      // Tailwind gray-700
-        'rgb(75,85,99)',      // Tailwind gray-600
-        // Add hex equivalents for the main ones
-        '#212529',            // Bootstrap default
-        '#343a40',            // Bootstrap gray-800
-        '#495057'             // Bootstrap gray-700
+        'rgb(0,0,0)', 'rgb(0,0,0,1)', 'rgba(0,0,0,1)', '#000000', '#000', 'black', '',
+        'inherit', 'initial', 'currentcolor', 'rgb(33,37,41)', 'rgb(52,58,64)', 'rgb(73,80,87)',
+        'rgb(17,24,39)', 'rgb(31,41,55)', 'rgb(55,65,81)', 'rgb(75,85,99)',
+        '#212529', '#343a40', '#495057'
     ];
-    
     return defaultColors.includes(normalized);
 }
 
 function isDefaultBackgroundColor(color) {
     if (!color) return true;
-    
-    // Normalize the color string
     const normalized = color.toLowerCase().replace(/\s+/g, '');
-    
-    // List of default/transparent/white backgrounds
     const defaultBackgrounds = [
-        'rgba(0,0,0,0)',
-        'transparent',
-        'rgb(255,255,255)',
-        '#ffffff',
-        '#fff',
-        'white',
-        '',
-        'initial',
-        'inherit',
-        'none'
+        'rgba(0,0,0,0)', 'transparent', 'rgb(255,255,255)', '#ffffff', '#fff',
+        'white', '', 'initial', 'inherit', 'none'
     ];
-    
     return defaultBackgrounds.includes(normalized);
 }
 
@@ -680,17 +851,13 @@ export function getCurrentFontSize() {
 
 export function insertText(text) {
     console.log('[RTE] Inserting text:', text);
-    
-    // Try to restore the saved selection
     const restored = restoreSelection();
     
     if (!restored) {
         console.warn('[RTE] Could not restore selection, focusing editor');
-        // Find the editor element and focus it
         const editor = document.querySelector('[contenteditable="true"]');
         if (editor) {
             editor.focus();
-            // Move cursor to end
             const range = document.createRange();
             const selection = window.getSelection();
             range.selectNodeContents(editor);
@@ -700,16 +867,16 @@ export function insertText(text) {
         }
     }
     
-    // Insert the text at the current cursor position
     try {
-        // ❌ DEPRECATED: document.execCommand()
-        // const result = document.execCommand('insertText', false, text);
-
-        // ✅ MODERN ALTERNATIVE: Use Editing API
-        // However, browser support is still limited, so this is acceptable for now
+        const result = document.execCommand('insertText', false, text);
+        console.log('[RTE] Text inserted, result:', result);
+        
+        if (!result) {
+            document.execCommand('insertHTML', false, text);
+            console.log('[RTE] Used insertHTML fallback');
+        }
     } catch (e) {
         console.error('[RTE] Insert command failed:', e);
-        // Last resort fallback
         const selection = window.getSelection();
         if (selection.rangeCount > 0) {
             const range = selection.getRangeAt(0);
@@ -718,14 +885,11 @@ export function insertText(text) {
         }
     }
     
-    // Save the new selection
     saveSelection();
 }
 
 export function adjustEmojiPickerPositionByQuery(buttonElement) {
     if (!buttonElement) return;
-    
-    // Wait a bit for the picker to render
     setTimeout(() => {
         const pickerElement = document.querySelector('.emoji-picker');
         if (pickerElement) {
@@ -736,81 +900,47 @@ export function adjustEmojiPickerPositionByQuery(buttonElement) {
 
 export function adjustEmojiPickerPosition(pickerElement, buttonElement) {
     if (!pickerElement || !buttonElement) return;
-
-    // Remove existing alignment classes
     pickerElement.classList.remove('align-left', 'align-right', 'align-center');
     pickerElement.classList.remove('position-top', 'position-bottom');
-
     const buttonRect = buttonElement.getBoundingClientRect();
-    const pickerWidth = 320; // Match CSS width
-    const pickerHeight = 400; // Match CSS max-height
+    const pickerWidth = 320;
+    const pickerHeight = 400;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const margin = 16; // Safety margin from viewport edge
-
-    // === Horizontal Positioning ===
+    const margin = 16;
     const pickerHalfWidth = pickerWidth / 2;
     const buttonCenter = buttonRect.left + (buttonRect.width / 2);
-    
-    // Calculate how much space we have on each side of the button
-    const spaceOnLeft = buttonRect.left;
-    const spaceOnRight = viewportWidth - buttonRect.right;
-
-    // Check if centering the picker would go off-screen
     const centeredLeft = buttonCenter - pickerHalfWidth;
     const centeredRight = buttonCenter + pickerHalfWidth;
-
     if (centeredRight > viewportWidth - margin) {
-        // Picker would overflow on the right, align to right edge of button
         pickerElement.classList.add('align-right');
-        console.log('Emoji picker: aligned right (overflow prevention)');
     } else if (centeredLeft < margin) {
-        // Picker would overflow on the left, align to left edge of button
         pickerElement.classList.add('align-left');
-        console.log('Emoji picker: aligned left (overflow prevention)');
     } else {
-        // Enough space to center
         pickerElement.classList.add('align-center');
-        console.log('Emoji picker: aligned center');
     }
-
-    // === Vertical Positioning ===
     const spaceBelow = viewportHeight - buttonRect.bottom;
     const spaceAbove = buttonRect.top;
-
     if (spaceBelow < pickerHeight + margin && spaceAbove > spaceBelow) {
-        // Not enough space below and more space above, show above
         pickerElement.classList.add('position-top');
-        console.log('Emoji picker: positioned above button');
     } else {
-        // Default: show below
         pickerElement.classList.add('position-bottom');
-        console.log('Emoji picker: positioned below button');
     }
 }
-
-// Add this function after the getActiveFormats function
 
 export function isEmojiSelected() {
     const selection = window.getSelection();
     if (!selection.rangeCount) return false;
-    
     const range = selection.getRangeAt(0);
-    
-    // If selection is collapsed (just a cursor), check the character at cursor position
     if (range.collapsed) {
         const node = range.startContainer;
         if (node.nodeType === Node.TEXT_NODE) {
             const offset = range.startOffset;
             const text = node.textContent;
-            
-            // Check character before cursor
             if (offset > 0) {
                 const charBefore = text.charAt(offset - 1);
                 if (isEmoji(charBefore)) return true;
             }
-            
-            // Check character at cursor
             if (offset < text.length) {
                 const charAt = text.charAt(offset);
                 if (isEmoji(charAt)) return true;
@@ -818,14 +948,11 @@ export function isEmojiSelected() {
         }
         return false;
     }
-    
-    // For actual selections, check if the selected text contains emoji
     const selectedText = selection.toString();
     return containsEmoji(selectedText);
 }
 
 function isEmoji(char) {
-    // Unicode ranges for emojis
     const emojiRegex = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
     return emojiRegex.test(char);
 }
@@ -833,4 +960,11 @@ function isEmoji(char) {
 function containsEmoji(text) {
     const emojiRegex = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
     return emojiRegex.test(text);
+}
+
+export function insertEmojiAtShortcode(emoji) {
+    const editor = document.querySelector('[contenteditable="true"]');
+    if (editor && editor._insertEmojiAtShortcode) {
+        editor._insertEmojiAtShortcode(emoji);
+    }
 }

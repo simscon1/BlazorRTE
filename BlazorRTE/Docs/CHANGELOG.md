@@ -5,6 +5,40 @@ All notable changes to BlazorRTE will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-02-06
+
+### Added
+- ⌨️ **27 keyboard shortcuts** matching industry standards
+- 🎭 **Emoji Picker** - 1800+ emojis with search (via BlazorEmo)
+- ⚡ **Emoji Autocomplete** - Inline shortcode suggestions
+- 🧪 **Comprehensive Unit Test Suite** (54 tests, 100% pass rate)
+- (all features from both 1.1.0 and 1.1.1)
+
+### Fixed
+- (all fixes from both versions)
+
+### Changed
+- **Emoji autocomplete improvements**
+  - 8px gap between cursor and popup (reduced from 24px)
+  - Viewport coordinate system for accurate positioning
+  - Checks against `window.innerWidth`/`window.innerHeight` for boundaries
+- **EventsDemo.razor optimizations**
+  - Removed `_activeFormats` display from statistics panel
+  - Uses Blazor's natural render batching
+
+### Testing
+- **Run Tests:** `dotnet test`
+- **With Coverage:** `dotnet test --collect:"XPlat Code Coverage"`
+- **Result:** 54/54 tests passing (100%) ✅
+- **Target Framework:** .NET 10
+- **Dependencies:** bUnit 2.5.3, xUnit 2.9.3, coverlet.collector 6.0.4
+
+### Documentation
+- Updated README.md with emoji features and testing section
+- Added `Docs/TESTING.md` with comprehensive testing guide
+- Updated feature count to 53 features (added emoji picker + autocomplete)
+- Documented known issues with `document.execCommand()` deprecation
+
 ## [1.1.0] - 2026-02-02
 
 ### Added
@@ -15,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Lists: `Ctrl+Shift+8/7` (Bullet/Numbered), `Ctrl+[/]` (Indent/Outdent)
   - Headings: `Ctrl+Alt+0/1/2/3` (Normal/H1/H2/H3)
   - Font size: `Ctrl+Shift+>/<` (Increase/Decrease)
-  - Insert: `Ctrl+K` (Link), `Ctrl+Enter` (Horizontal Rule)
+  - Insert: `Ctrl+K` (Link), `Ctrl+Shift+K` (Remove Link), `Ctrl+Shift+E` (Emoji Picker), `Ctrl+Enter` (Horizontal Rule)
   - Utility: `Ctrl+\` (Clear Formatting)
 - ♿ **Voice control support** (WCAG 2.5.3 compliance)
   - Added `.sr-only` labels to all 15 icon-only buttons
@@ -26,6 +60,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Matches font/size picker visual pattern
   - Shows current heading level (H1/H2/H3/¶)
   - Full keyboard navigation (arrows, Home, End, Escape)
+- 🎭 **Emoji Picker** - 1800+ emojis with search
+  - Searchable emoji picker in toolbar
+  - Recently used emojis tracking
+  - Category organization
+  - Full keyboard navigation
+- ⚡ **Emoji Autocomplete** - Inline shortcode suggestions
+  - Type `:smile` for autocomplete popup
+  - 10 best matches shown
+  - Cursor-aware positioning
+  - Quick emoticons (`:)`, `:(`, `:D`, etc.)
 
 ### Fixed
 - 🐛 Keyboard shortcuts (Ctrl+B/I/U/Z/Y) not working when typing
@@ -130,6 +174,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Paste as plain text (strips external formatting)
 - Accessible (ARIA labels, keyboard navigation)
 
+[1.1.1]: https://github.com/simscon1/BlazorRTE/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/simscon1/BlazorRTE/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/simscon1/BlazorRTE/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/simscon1/BlazorRTE/compare/v1.0.0...v1.0.1

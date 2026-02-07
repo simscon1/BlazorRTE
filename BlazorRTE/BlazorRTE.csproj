@@ -7,12 +7,12 @@
 
 		<!-- NuGet Package Metadata -->
 		<PackageId>BlazorRTE</PackageId>
-		<Version>1.0.2</Version>
-		<Authors>LoneWorx LLC</Authors>
+		<Version>1.1.1</Version>
+		<Authors>simscon1</Authors>
 		<Company>LoneWorx LLC</Company>
 		<Product>BlazorRTE</Product>
-		<Description>Professional rich text editor for Blazor. Native Blazor component with 51 features, zero JavaScript dependencies, professional SVG icons, built-in XSS protection, and dark mode support. GPL v3 for open-source, commercial license coming in v1.1.0.</Description>
-		<PackageTags>blazor;rich-text-editor;wysiwyg;rte;editor;text-editor;formatting;blazor-component;razor;contenteditable;gpl;accessibility;wcag</PackageTags>
+		<Description>Professional rich text editor for Blazor with emoji support. Native Blazor component with 53 features, 1800+ searchable emojis, 27 keyboard shortcuts, zero JavaScript dependencies, 100 percent test coverage, professional SVG icons, built-in XSS protection, and dark mode support. GPL v3 for open-source, commercial license coming soon.</Description>
+		<PackageTags>blazor;rich-text-editor;wysiwyg;rte;editor;text-editor;emoji;emoji-picker;emoji-autocomplete;formatting;blazor-component;razor;contenteditable;gpl;accessibility;wcag;keyboard-shortcuts;testing;bunit</PackageTags>
 		<PackageProjectUrl>https://github.com/simscon1/BlazorRTE</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/simscon1/BlazorRTE</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
@@ -21,30 +21,22 @@
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<Copyright>Copyright (c) 2024-2026 LoneWorx LLC</Copyright>
-		<PackageReleaseNotes>
-			v1.0.2 Accessibility Improvements:
+		<PackageReleaseNotes><![CDATA[v1.1.1 Emoji Support, Testing and Bug Fixes (2026-02-06)
 
-			ADDED:
-			- Full keyboard navigation for toolbar (WAI-ARIA Toolbar Pattern)
-			- Arrow keys to navigate between toolbar buttons
-			- Home/End keys to jump to first/last button
-			- Roving tabindex implementation
-			- data-toolbar-item attributes for reliable button targeting
+ADDED:
+- Emoji Picker with 1800+ searchable emojis
+- Emoji Autocomplete (type :smile for suggestions)
+- 27 keyboard shortcuts (Ctrl+B, Ctrl+I, Ctrl+Shift+E, etc.)
+- 54 unit tests with 100% pass rate (bUnit + xUnit)
+- Voice control support (WCAG 2.5.3)
 
-			IMPROVED:
-			- Tab now properly enters toolbar at Undo button
-			- Tab exits toolbar to editor content area
-			- Heading dropdown works with Up/Down arrow keys
-			- Left/Right arrows no longer change dropdown values
-			- Highlight color button icon now perfectly square (18x18px)
+FIXED:
+- Toolbar button click handlers now work reliably
+- Emoji autocomplete positioning (viewport coordinates)
+- EventsDemo page re-rendering issues
+- All 54 tests passing
 
-			DOCUMENTATION:
-			- Added keyboard navigation section to ACCESSIBILITY.md
-			- Added keyboard shortcuts table to README.md
-			- Documented toolbar navigation keys
-
-			See full changelog at: https://github.com/simscon1/BlazorRTE/blob/master/CHANGELOG.md
-		</PackageReleaseNotes>
+See full changelog: https://github.com/simscon1/BlazorRTE/blob/master/Docs/CHANGELOG.md]]></PackageReleaseNotes>
 		
 		<PackageIcon>icon.png</PackageIcon>
 		<IncludeSymbols>true</IncludeSymbols>

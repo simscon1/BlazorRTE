@@ -24,6 +24,12 @@ namespace BlazorRTE.Components
         [Parameter] public string MaxHeight { get; set; } = "600px";
         [Parameter] public bool EnableEmojiShortcodes { get; set; } = true;
 
+        /// <summary>
+        /// Enable dark mode styling for the editor
+        /// </summary>
+        [Parameter]
+        public bool DarkMode { get; set; } = false;
+
         // ===== EVENT CALLBACKS ===== (keep all your existing event callbacks)
         [Parameter] public EventCallback<string> OnContentChanged { get; set; }
         [Parameter] public EventCallback<HtmlChangedEventArgs> OnHtmlChanged { get; set; }
@@ -127,6 +133,8 @@ namespace BlazorRTE.Components
 
         private bool _isEmojiSelected = false;
 
+        private bool _preventTabDefault = false;
+
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
@@ -165,6 +173,8 @@ namespace BlazorRTE.Components
             }
         }
 
+        private bool _previousDarkMode = false;
+
         protected override async Task OnParametersSetAsync()
         {
             if (_jsModule != null && Value != _previousValue && !_isUpdating)
@@ -194,6 +204,13 @@ namespace BlazorRTE.Components
                 {
                     _isUpdating = false;
                 }
+            }
+
+            // FIXED: Use InvokeAsync to ensure re-render happens on UI thread
+            if (_previousDarkMode != DarkMode)
+            {
+                _previousDarkMode = DarkMode;
+                await InvokeAsync(StateHasChanged);
             }
         }
 
@@ -429,6 +446,16 @@ namespace BlazorRTE.Components
                 await ExecuteCommand(FormatCommand.HorizontalRule);
                 return;
             }
+
+            // After handling keyboard shortcuts, update colors
+            if (e.Key == "ArrowLeft" || e.Key == "ArrowRight" || 
+                e.Key == "ArrowUp" || e.Key == "ArrowDown" ||
+                e.Key == "Home" || e.Key == "End")
+            {
+                // Delay slightly to let cursor move first
+                await Task.Delay(10);
+                await UpdateToolbarState(); // ✅ This already updates colors!
+            }
         }
 
         protected Task OnPaste(ClipboardEventArgs e) => Task.CompletedTask;
@@ -538,6 +565,42 @@ namespace BlazorRTE.Components
                 _currentHeadingLevel = await _jsModule.InvokeAsync<string>("getCurrentBlock");
             }
             catch { }
+        }
+
+        // NEW: Update current text color based on cursor position
+        private async Task UpdateCurrentTextColorAsync()
+        {
+            try
+            {
+                if (_jsModule != null)
+                {
+                    var color = await _jsModule.InvokeAsync<string>("getCurrentTextColor");
+                    if (!string.IsNullOrEmpty(color))
+                    {
+                        _currentTextColor = color;
+                        StateHasChanged();
+                    }
+                }
+            }
+            catch { /* Silently fail */ }
+        }
+
+        // NEW: Update current background color based on cursor position
+        private async Task UpdateCurrentBackColorAsync()
+        {
+            try
+            {
+                if (_jsModule != null)
+                {
+                    var color = await _jsModule.InvokeAsync<string>("getCurrentBackgroundColor");
+                    if (!string.IsNullOrEmpty(color))
+                    {
+                        _currentHighlightColor = color;
+                        StateHasChanged();
+                    }
+                }
+            }
+            catch { /* Silently fail */ }
         }
 
         protected async Task ExecuteCommand(FormatCommand command)
@@ -1131,6 +1194,7 @@ namespace BlazorRTE.Components
         protected async Task SelectTextColor(string color)
         {
             await ApplyTextColor(color);
+            _currentTextColor = color; // Update immediately
             _showTextColorPicker = false;
             await ReturnFocusToEditor();
         }
@@ -1138,6 +1202,7 @@ namespace BlazorRTE.Components
         protected async Task SelectBackgroundColor(string color)
         {
             await ApplyBackgroundColor(color);
+            _currentHighlightColor = color; // Update immediately
             _showBackgroundColorPicker = false;
             await ReturnFocusToEditor();
         }
@@ -1267,6 +1332,18 @@ namespace BlazorRTE.Components
                 case "End":
                     focusedIndex = ToolbarButtonCount - 1;
                     await FocusToolbarButton();
+                    break;
+                case "Tab":
+                    if (!e.ShiftKey)
+                    {
+                        // Tab forward - move to editor
+                        await FocusAsync();
+                    }
+                    else
+                    {
+                        // Shift+Tab - would need JavaScript to move focus backward
+                        // For now, let Blazor handle it (since preventDefault blocks it)
+                    }
                     break;
             }
         }
@@ -1690,5 +1767,13 @@ namespace BlazorRTE.Components
             }
         }
 
+        private async Task HandleButtonKeyDown(KeyboardEventArgs e, Func<Task> action)
+        {
+            // Handle Enter or Space to activate button
+            if (e.Key == "Enter" || e.Key == " ")
+            {
+                await action();
+            }
+        }
     }
 }
