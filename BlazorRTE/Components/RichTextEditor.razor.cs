@@ -1775,5 +1775,14 @@ namespace BlazorRTE.Components
                 await action();
             }
         }
+
+        private async Task HandleColorButtonKeyDown(KeyboardEventArgs e, Func<Task> action)
+        {
+            // Handle Enter or Space to select color
+            if (e.Key == "Enter" || e.Key == " ")
+            {
+                await action();
+            }
+        }
     }
 }
