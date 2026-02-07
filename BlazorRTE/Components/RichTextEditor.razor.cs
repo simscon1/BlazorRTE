@@ -1167,7 +1167,9 @@ namespace BlazorRTE.Components
 
             await ExecuteCommand(command);
             _showHeadingPicker = false;
-            await ReturnFocusToEditor();
+            StateHasChanged();
+            await Task.Delay(10);
+            await FocusElement(_headingButton);
         }
 
         protected string GetCurrentHeadingLabel()
@@ -1196,7 +1198,9 @@ namespace BlazorRTE.Components
             await ApplyTextColor(color);
             _currentTextColor = color; // Update immediately
             _showTextColorPicker = false;
-            await ReturnFocusToEditor();
+            StateHasChanged();
+            await Task.Delay(10);
+            await FocusElement(_textColorButton);
         }
 
         protected async Task SelectBackgroundColor(string color)
@@ -1204,7 +1208,9 @@ namespace BlazorRTE.Components
             await ApplyBackgroundColor(color);
             _currentHighlightColor = color; // Update immediately
             _showBackgroundColorPicker = false;
-            await ReturnFocusToEditor();
+            StateHasChanged();
+            await Task.Delay(10);
+            await FocusElement(_bgColorButton);
         }
 
         protected async Task SelectFontSize(string size)
@@ -1224,7 +1230,9 @@ namespace BlazorRTE.Components
             {
                 await ExecuteCommand(command.Value);
                 _showFontSizePicker = false;
-                await ReturnFocusToEditor();
+                StateHasChanged();
+                await Task.Delay(10);
+                await FocusElement(_fontSizeButton);
             }
         }
 
@@ -1249,7 +1257,9 @@ namespace BlazorRTE.Components
             {
                 await ExecuteCommand(command.Value);
                 _showFontFamilyPicker = false;
-                await ReturnFocusToEditor();
+                StateHasChanged();
+                await Task.Delay(10);
+                await FocusElement(_fontFamilyButton);
             }
         }
 
@@ -1333,16 +1343,16 @@ namespace BlazorRTE.Components
                     focusedIndex = ToolbarButtonCount - 1;
                     await FocusToolbarButton();
                     break;
+                case "Escape":
+                    // Close any open pickers and return focus to toolbar
+                    CloseColorPickers();
+                    await FocusToolbarButton();
+                    break;
                 case "Tab":
                     if (!e.ShiftKey)
                     {
                         // Tab forward - move to editor
                         await FocusAsync();
-                    }
-                    else
-                    {
-                        // Shift+Tab - would need JavaScript to move focus backward
-                        // For now, let Blazor handle it (since preventDefault blocks it)
                     }
                     break;
             }
@@ -1769,10 +1779,16 @@ namespace BlazorRTE.Components
 
         private async Task HandleButtonKeyDown(KeyboardEventArgs e, Func<Task> action)
         {
-            // Handle Enter or Space to activate button
+            // Only handle Enter and Space - let arrow keys bubble to HandleToolbarKeydown
             if (e.Key == "Enter" || e.Key == " ")
             {
+                // Execute the button's action
                 await action();
+
+                // CRITICAL: Re-focus the current toolbar button after action completes
+                // This is necessary because StateHasChanged() causes re-render which loses focus
+                await Task.Delay(10); // Allow render to complete
+                await FocusToolbarButton();
             }
         }
 
