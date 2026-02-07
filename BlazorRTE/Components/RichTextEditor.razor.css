@@ -109,6 +109,36 @@
     min-width: 48px;
 }
 
+/* ========================================
+   ACCESSIBLE FOCUS STYLES (WAI-ARIA)
+   ======================================== */
+
+/*
+  This rule provides a high-contrast outline that is drawn OUTSIDE the button,
+  so it is always visible, even when a button is in its 'active' state.
+  The outline-offset creates a small gap between the button and the focus ring.
+*/
+.rte-btn:focus-visible {
+    /* High-contrast outline that is always visible */
+    outline: 2px solid #005a9e;
+    outline-offset: 2px;
+    /* Original background/shadow for an extra visual cue */
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Dark mode focus style */
+.rich-text-editor.dark-mode .rte-btn:focus-visible {
+    /* High-contrast outline for dark mode */
+    outline-color: #00b2ff;
+    /* Original dark mode background/shadow */
+    border-color: #60a5fa;
+    background-color: #1e3a8a;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+}
+
+
 .rte-separator {
     width: 1px;
     height: 24px;
@@ -779,12 +809,6 @@
     .rte-palette-color[data-tooltip]:hover::before {
         border-bottom-color: #374151;
     }
-
-    .rte-btn:focus {
-        border-color: #60a5fa;
-        background-color: #1e3a8a;
-        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
-    }
 }
 
 /* Screen reader only text (visible to voice control) */
@@ -798,13 +822,6 @@
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border-width: 0;
-}
-
-.rte-btn:focus {
-    outline: none;
-    border-color: #3b82f6;
-    background-color: #eff6ff;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .rte-editor-container {
