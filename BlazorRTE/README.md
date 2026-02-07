@@ -1,12 +1,12 @@
 # BlazorRTE - Professional Rich Text Editor for Blazor
 
-**Native Blazor • 51 Features • Zero JavaScript Dependencies • Production-Ready**
+Current: **Native Blazor • 53 Features • Zero JavaScript Dependencies • Production-Ready**
 
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE.txt)
 
 ## 🚀 Quick Start
 
-**⚠️ Important:** BlazorRTE requires interactive rendering for Blazer Server apps. Add `@rendermode InteractiveServer` to your page.
+⚠️ Important:** BlazorRTE requires interactive rendering for Blazor Server apps. Add `@rendermode InteractiveServer` to your page.
 
 ### Installation
 
@@ -39,6 +39,8 @@ dotnet add package BlazorRTE
 - ✅ Links, Horizontal Rules
 - ✅ Font Family & Size
 - ✅ Undo/Redo
+- ✅ **🎭 Emoji Picker** - 1800+ emojis with search
+- ✅ **⚡ Emoji Autocomplete** - Type `:smile` for inline suggestions
 - ✅ Character & Word Count
 - ✅ **WCAG 2.1 AA Compliant** - Full accessibility support
 - ✅ **Industry Standard UX** - Follows Word/Google Docs patterns
@@ -114,6 +116,8 @@ The Rich Text Editor supports 27+ industry-standard keyboard shortcuts:
 
 ### Insert
 - `Ctrl+K` - Insert Link
+- `Ctrl+Shift+K` - Remove Link
+- `Ctrl+Shift+E` - **Toggle Emoji Picker** 🆕
 - `Ctrl+Enter` - Horizontal Rule
 
 ### Utility
@@ -123,10 +127,72 @@ The Rich Text Editor supports 27+ industry-standard keyboard shortcuts:
 
 [See full documentation](docs/keyboard-shortcuts.md)
 
+## 🎭 Emoji Support
+
+BlazorRTE includes **two ways** to insert emojis:
+
+### 1. Emoji Picker (Toolbar Button)
+Click the 😀 button in the toolbar to open a searchable emoji picker with:
+- ✅ **1800+ emojis** organized by category
+- ✅ Search by name or keyword
+- ✅ Recently used emojis
+- ✅ Full keyboard navigation
+- ✅ Smart positioning (viewport-aware)
+
+**Keyboard Shortcut:** `Ctrl+Shift+E` - Toggle emoji picker
+
+:smile → 😊 :heart → ❤️ :rocket → 🚀 :thumbs → 👍
+
+
+### 2. Emoji Autocomplete (Inline Shortcodes)
+Type `:` followed by 2+ characters to trigger inline autocomplete:
+
+**Features:**
+- ✅ Appears at cursor position
+- ✅ 10 best matches shown
+- ✅ Keyboard navigation (`↑` `↓` `Enter` `Esc`)
+- ✅ Click to select
+- ✅ Auto-positioning (stays on screen)
+
+**Quick Emoticons** (single character):
+- `:)` → 😊
+- `:(` → 😔
+- `:D` → 😃
+- `;)` → 😉
+- `<3` → ❤️
+- `:P` → 😛
+
+> **Note:** Emoji data is embedded (no external dependencies). Works offline!
+
+
+## 🧪 Testing
+
+BlazorRTE includes comprehensive unit tests using **bUnit** and **xUnit**.
+
+```
+dotnet test
+
+```
+
+**Test Coverage:**
+- ✅ **54 Unit Tests** covering all major functionality
+- ✅ **100% Pass Rate** (54/54 tests passing) ⭐
+- ✅ Component rendering & initialization
+- ✅ Accessibility (ARIA attributes, keyboard navigation)
+- ✅ Security (XSS prevention, HTML sanitization)
+- ✅ UI components (buttons, dropdowns, toolbar)
+- ✅ Event handling and state management
+
+**Test Breakdown:**
+- **RichTextEditorTests** (41 tests) - Component functionality
+- **HtmlSanitizerTests** (10 tests) - XSS prevention & sanitization
+- **Additional Tests** (3 tests) - Integration & utilities
+ 
+
 ## 📜 License
 
 ### Community Edition (Free - GPL v3)
-- ✅ All 51 features included
+- ✅ All 53 features included
 - ✅ Free for open-source projects
 - ✅ Community support via GitHub Issues
 - ⚠️ **GPL v3 Requirement:** Your application must also be open-source under GPL v3

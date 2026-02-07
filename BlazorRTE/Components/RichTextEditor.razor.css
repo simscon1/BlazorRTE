@@ -109,6 +109,36 @@
     min-width: 48px;
 }
 
+/* ========================================
+   ACCESSIBLE FOCUS STYLES (WAI-ARIA)
+   ======================================== */
+
+/*
+  This rule provides a high-contrast outline that is drawn OUTSIDE the button,
+  so it is always visible, even when a button is in its 'active' state.
+  The outline-offset creates a small gap between the button and the focus ring.
+*/
+.rte-btn:focus-visible {
+    /* High-contrast outline that is always visible */
+    outline: 2px solid #005a9e;
+    outline-offset: 2px;
+    /* Original background/shadow for an extra visual cue */
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Dark mode focus style */
+.rich-text-editor.dark-mode .rte-btn:focus-visible {
+    /* High-contrast outline for dark mode */
+    outline-color: #00b2ff;
+    /* Original dark mode background/shadow */
+    border-color: #60a5fa;
+    background-color: #1e3a8a;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+}
+
+
 .rte-separator {
     width: 1px;
     height: 24px;
@@ -370,7 +400,7 @@
     background: #9ca3af;
 }
 
-/* SVG Icons */
+/* SVG Icons - BASE RULES (Light Mode) */
 .rte-icon {
     width: 18px;
     height: 18px;
@@ -378,17 +408,72 @@
     pointer-events: none;
 }
 
-/* Ensure icons inherit button colors */
-.rte-btn .rte-icon {
+/* Stroke-based icons (undo, redo, etc.) */
+.rte-btn .rte-icon[fill="none"] {
     stroke: currentColor;
+    fill: none !important;  /* ✅ CRITICAL: Keep transparent */
 }
 
-.rte-btn:hover .rte-icon {
+.rte-btn:hover .rte-icon[fill="none"] {
     stroke: currentColor;
+    fill: none !important;
 }
 
-.rte-btn.active .rte-icon {
-    stroke: #3b82f6; /* Blue for active state */
+.rte-btn.active .rte-icon[fill="none"] {
+    stroke: #3b82f6;
+    fill: none !important;
+}
+
+/* Fill-based icons (bold, italic, link, etc.) */
+.rte-btn .rte-icon[fill="currentColor"],
+.rte-btn .rte-icon:not([fill="none"]) {
+    fill: currentColor;
+}
+
+.rte-btn:hover .rte-icon[fill="currentColor"],
+.rte-btn:hover .rte-icon:not([fill="none"]) {
+    fill: currentColor;
+}
+
+.rte-btn.active .rte-icon[fill="currentColor"],
+.rte-btn.active .rte-icon:not([fill="none"]) {
+    fill: #3b82f6;
+}
+
+/* ============================================
+   DARK MODE - ICONS
+   ============================================ */
+
+/* Stroke-based icons in dark mode */
+.rich-text-editor.dark-mode .rte-btn .rte-icon[fill="none"] {
+    stroke: #f3f4f6;
+    fill: none !important;
+}
+
+.rich-text-editor.dark-mode .rte-btn:hover .rte-icon[fill="none"] {
+    stroke: #f3f4f6;
+    fill: none !important;
+}
+
+.rich-text-editor.dark-mode .rte-btn.active .rte-icon[fill="none"] {
+    stroke: #a78bfa;
+    fill: none !important;
+}
+
+/* Fill-based icons in dark mode */
+.rich-text-editor.dark-mode .rte-btn .rte-icon[fill="currentColor"],
+.rich-text-editor.dark-mode .rte-btn .rte-icon:not([fill="none"]) {
+    fill: #f3f4f6;
+}
+
+.rich-text-editor.dark-mode .rte-btn:hover .rte-icon[fill="currentColor"],
+.rich-text-editor.dark-mode .rte-btn:hover .rte-icon:not([fill="none"]) {
+    fill: #f3f4f6;
+}
+
+.rich-text-editor.dark-mode .rte-btn.active .rte-icon[fill="currentColor"],
+.rich-text-editor.dark-mode .rte-btn.active .rte-icon:not([fill="none"]) {
+    fill: #a78bfa;
 }
 
 /* Font Size Picker */
@@ -530,10 +615,21 @@
 
     .rte-btn .rte-icon {
         stroke: #e5e7eb;
+        fill: transparent;  /* ✅ Transparent for stroke icons */
     }
     
     .rte-btn.active .rte-icon {
         stroke: #60a5fa;
+        fill: transparent;
+    }
+
+    /* ✅ Fill-based icons in prefers-dark-mode */
+    .rte-btn .rte-icon path[fill="currentColor"] {
+        fill: #e5e7eb !important;
+    }
+    
+    .rte-btn.active .rte-icon path[fill="currentColor"] {
+        fill: #60a5fa !important;
     }
 
     .rte-font-option {
@@ -555,6 +651,91 @@
 
     .rte-font-family-list::-webkit-scrollbar-thumb:hover {
         background: #6b7280;
+    }
+}
+
+/* Dark Mode Styles */
+.rich-text-editor.dark-mode {
+    background: #1f2937;
+    border-color: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-toolbar {
+    background: #374151;
+    border-color: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-btn {
+    color: #f3f4f6;
+    background: transparent;
+}
+
+.rich-text-editor.dark-mode .rte-btn:hover {
+    background: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-btn.active {   
+    background: #6b21a8;  /* ✅ Darker purple for better contrast */
+    border-color: #a78bfa;
+    color: white;
+}
+
+/* Dark Mode - Editor text color */
+.rich-text-editor.dark-mode .rte-content {
+    background: #1f2937;
+    color: #f3f4f6;  /* ✅ Light text for dark mode */
+    border-color: #4b5563;
+}
+
+/* Dark Mode - Placeholder text */
+.rich-text-editor.dark-mode .rte-content:empty::before {
+    color: #6b7280;  /* ✅ Dimmed placeholder in dark mode */
+}
+
+/* SVG ICONS - CLEAN SOLUTION */
+
+/* Base icon sizing */
+.rte-icon {
+    width: 18px;
+    height: 18px;
+    display: block;
+    pointer-events: none;
+}
+
+/* Light Mode - Default icon colors */
+.rte-btn .rte-icon {
+    color: currentColor;  /* Let SVG inherit from button */
+}
+
+.rte-btn:hover .rte-icon {
+    color: currentColor;
+}
+
+.rte-btn.active .rte-icon {
+    color: #3b82f6;
+}
+
+/* Dark Mode - Icon colors */
+.rich-text-editor.dark-mode .rte-btn .rte-icon {
+    color: #f3f4f6;
+}
+
+.rich-text-editor.dark-mode .rte-btn:hover .rte-icon {
+    color: #f3f4f6;
+}
+
+.rich-text-editor.dark-mode .rte-btn.active .rte-icon {
+    color: #a78bfa;
+}
+
+/* Media query dark mode */
+@media (prefers-color-scheme: dark) {
+    .rte-btn .rte-icon {
+        color: #e5e7eb;
+    }
+    
+    .rte-btn.active .rte-icon {
+        color: #60a5fa;
     }
 }
 
@@ -628,12 +809,6 @@
     .rte-palette-color[data-tooltip]:hover::before {
         border-bottom-color: #374151;
     }
-
-    .rte-btn:focus {
-        border-color: #60a5fa;
-        background-color: #1e3a8a;
-        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
-    }
 }
 
 /* Screen reader only text (visible to voice control) */
@@ -649,13 +824,6 @@
     border-width: 0;
 }
 
-.rte-btn:focus {
-    outline: none;
-    border-color: #3b82f6;
-    background-color: #eff6ff;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-}
-
 .rte-editor-container {
     position: relative; /* Important for absolute positioning of autocomplete */
     width: 100%;
@@ -665,4 +833,53 @@
     position: fixed;
     z-index: 10000;
     /* Position will be set by JavaScript */
+}
+
+/* Highlight color indicator */
+.rte-highlight-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    font-weight: bold;
+    color: #000; /* Black text in light mode */
+    border: 1px solid #374151;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* Dark mode - light text and lighter border */
+.rich-text-editor.dark-mode .rte-highlight-indicator {
+    color: #f3f4f6; /* Light gray text in dark mode */
+    border-color: #6b7280; /* Lighter border in dark mode */
+}
+
+/* ✅ DARK MODE ICON COLOR OVERRIDE - IF NEEDED */
+.rich-text-editor.dark-mode .rte-btn .rte-icon {
+    stroke: #f3f4f6 !important;
+    fill: transparent !important;  /* ✅ Transparent for stroke icons */
+}
+
+.rich-text-editor.dark-mode .rte-btn:hover .rte-icon {
+    stroke: #f3f4f6 !important;
+    fill: transparent !important;
+}
+
+.rich-text-editor.dark-mode .rte-btn.active .rte-icon {
+    stroke: #a78bfa !important;
+    fill: transparent !important;
+}
+
+/* ✅ FILL-BASED ICONS (LINK) IN DARK MODE */
+.rich-text-editor.dark-mode .rte-btn .rte-icon path[fill="currentColor"] {
+    fill: #f3f4f6 !important;
+}
+
+.rich-text-editor.dark-mode .rte-btn:hover .rte-icon path[fill="currentColor"] {
+    fill: #f3f4f6 !important;
+}
+
+.rich-text-editor.dark-mode .rte-btn.active .rte-icon path[fill="currentColor"] {
+    fill: #a78bfa !important;
 }
