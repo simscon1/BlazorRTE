@@ -3,9 +3,12 @@
 @using Microsoft.JSInterop
 @inject IJSRuntime JSRuntime
 
-<div class="emoji-autocomplete @(DarkMode ? "dark-mode" : "")" 
-     style="@Style" 
+<!-- NEEDS ARIA attributes -->
+<div class="emoji-autocomplete @(DarkMode ? "dark-mode" : "")"
+     style="@Style"
      @ref="autocompleteElement"
+     role="listbox"
+     aria-label="Emoji suggestions"
      @onmousedown:preventDefault="false"
      @onclick:stopPropagation="true">
     @if (matchingEmojis?.Any() == true)
@@ -14,15 +17,18 @@
             @foreach (var (emoji, index) in matchingEmojis.Select((e, i) => (e, i)))
             {
                 <div class="emoji-autocomplete-item @(index == selectedIndex ? "selected" : "")"
+                     role="option"
+                     aria-selected="@(index == selectedIndex ? "true" : "false")"
+                     aria-label="@emoji.Name emoji"
                      @onmousedown:preventDefault="false"
                      @onclick="async () => await SelectEmoji(emoji)"
                      @onclick:stopPropagation="true"
                      @onmouseenter="() => selectedIndex = index"
-                     tabindex="0">
-                    <span class="emoji-char">@emoji.Char</span>
+                     tabindex="@(index == selectedIndex ? "0" : "-1")">
+                    <span class="emoji-char" aria-hidden="true">@emoji.Char</span>
                     <span class="emoji-info">
                         <span class="emoji-name">@emoji.Name</span>
-                        <span class="emoji-code">:@emoji.Code:</span>
+                        <span class="emoji-code" aria-hidden="true">:@emoji.Code:</span>
                     </span>
                 </div>
             }
@@ -40,8 +46,8 @@
     [Parameter] public EventCallback<string> OnEmojiSelected { get; set; }
     [Parameter] public bool DarkMode { get; set; }
 
-    private string Style => position != null 
-        ? $"left: {position.X}px; top: {position.Y}px; display: block;" 
+    private string Style => position != null
+        ? $"left: {position.X}px; top: {position.Y}px; display: block;"
         : "display: none;";
 
     public async Task ShowAsync(string query, Position pos)
@@ -56,7 +62,7 @@
             .ToList();
 
         matchingEmojis = allEmojis
-            .Where(e => 
+            .Where(e =>
                 e.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
                 e.Code.Contains(query, StringComparison.OrdinalIgnoreCase) ||
                 e.Keywords.Any(k => k.Contains(query, StringComparison.OrdinalIgnoreCase)))
@@ -64,12 +70,12 @@
             .ToList();
 
         StateHasChanged();
-        
+
         // Scroll to top after rendering
         await Task.Delay(10);
         try
         {
-            await JSRuntime.InvokeVoidAsync("eval", 
+            await JSRuntime.InvokeVoidAsync("eval",
                 "document.querySelector('.emoji-autocomplete')?.scrollTo(0, 0)");
         }
         catch
@@ -115,7 +121,7 @@
     {
         try
         {
-            await JSRuntime.InvokeVoidAsync("eval", 
+            await JSRuntime.InvokeVoidAsync("eval",
                 $"document.querySelector('.emoji-autocomplete-item.selected')?.scrollIntoView({{ block: 'nearest', behavior: 'smooth' }})");
         }
         catch
