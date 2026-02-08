@@ -82,6 +82,7 @@ namespace BlazorRTE.Components
         private bool _showHeadingPicker;
         private ElementReference _headingButton;
         private ElementReference _headingPalette;
+        private string _currentFontSize = "3"; // Default to Normal (14px = size 3)
 
         private readonly Dictionary<string, string> _fontSizes = new()
         {
@@ -540,6 +541,16 @@ namespace BlazorRTE.Components
                     _isEmojiSelected = false;
                 }
 
+                // NEW: Get current font size
+                try
+                {
+                    _currentFontSize = await _jsModule.InvokeAsync<string>("getCurrentFontSize");
+                }
+                catch
+                {
+                    _currentFontSize = "3"; // Default to Normal
+                }
+
                 await UpdateHeadingState();
 
                 // NEW: Raise format changed event
@@ -715,10 +726,47 @@ namespace BlazorRTE.Components
         {
             if (_jsModule == null) return;
 
-            await _jsModule.InvokeAsync<string>("getSelectedText");
+            var selectedText = await _jsModule.InvokeAsync<string>("getSelectedText");
 
-            // TODO: Show modal dialog for URL input
-            string url = "https://example.com";
+            // Check if cursor is inside existing link
+            await UpdateToolbarState();
+            if (_activeFormats.Contains("link"))
+            {
+                // Show option to edit or remove
+                var action = await JS.InvokeAsync<bool>("confirm", "Remove existing link?");
+                if (action)
+                {
+                    await RemoveLink();
+                }
+                return;
+            }
+
+            // If no text is selected, show helpful message
+            if (string.IsNullOrWhiteSpace(selectedText))
+            {
+                await JS.InvokeAsync<object>("alert", "Please select text first, then click the link button.");
+                await ReturnFocusToEditor();
+                return;
+            }
+
+            // Prompt user for URL
+            var url = await JS.InvokeAsync<string>("prompt", $"Enter URL for \"{selectedText}\":", "https://");
+            
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                await ReturnFocusToEditor();
+                return;
+            }
+
+            // Add https:// if missing
+            if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) && 
+                !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                url = "https://" + url;
+            }
+
+            // Raise before command event
+            await RaiseBeforeCommandEvent(FormatCommand.CreateLink, url);
 
             await _jsModule.InvokeVoidAsync("createLink", url);
 
@@ -729,6 +777,21 @@ namespace BlazorRTE.Components
             await ValueChanged.InvokeAsync(Value);
             _isUpdating = false;
 
+            // Raise link created event
+            if (OnLinkCreated.HasDelegate)
+            {
+                var linkEventArgs = new LinkEventArgs
+                {
+                    Url = url,
+                    DisplayText = selectedText  
+                };
+                await OnLinkCreated.InvokeAsync(linkEventArgs);
+            }
+
+            // Raise after command event
+            await RaiseAfterCommandEvent(FormatCommand.CreateLink, url, true);
+
+            await UpdateToolbarState();
             await ReturnFocusToEditor();
         }
 
@@ -1798,6 +1861,20 @@ namespace BlazorRTE.Components
             {
                 await action();
             }
+        }
+
+        protected string GetCurrentFontSizeLabel()
+        {
+            return _currentFontSize switch
+            {
+                "1" => "10",  // Small
+                "3" => "14",  // Normal
+                "4" => "16",  // Medium
+                "5" => "18",  // Large
+                "6" => "24",  // X-Large
+                "7" => "32",  // XX-Large
+                _ => "14"     // Default
+            };
         }
     }
 }

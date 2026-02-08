@@ -176,7 +176,7 @@
                             @onmousedown:preventDefault
                             @onclick:stopPropagation
                             data-tooltip="Font Size (Ctrl+Shift+> / Ctrl+Shift+<)">
-                        14
+                        @GetCurrentFontSizeLabel()  <!-- ✅ DYNAMIC! -->
                     </button>
 
                     @if (_showFontSizePicker)
@@ -553,8 +553,8 @@
             <div role="group" aria-label="Insert">
                 <button type="button"
                         class="rte-btn @(IsFormatActive("link") ? "active" : "")"
-                        aria-pressed="@IsFormatActive("link").ToString().ToLower()"
-                        aria-label="Insert link"
+                        aria-haspopup="dialog"
+                        aria-label="@(IsFormatActive("link") ? "Edit link" : "Insert link")"
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="CreateLink"

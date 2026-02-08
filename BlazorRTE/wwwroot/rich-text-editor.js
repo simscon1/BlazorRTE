@@ -863,8 +863,32 @@ export function getCurrentBackgroundColor() {
 }
 
 export function getCurrentFontSize() {
-    const size = document.queryCommandValue('fontSize');
-    return (size && ['1', '2', '3', '4', '5', '6', '7'].includes(size)) ? size : '3';
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return '3'; // Default Normal
+    
+    const range = selection.getRangeAt(0);
+    const parent = range.commonAncestorContainer.parentElement;
+    
+    // Check for <font size="X">
+    let element = parent;
+    while (element && element !== document.body) {
+        if (element.tagName === 'FONT' && element.size) {
+            return element.size;
+        }
+        element = element.parentElement;
+    }
+    
+    // Check computed font size
+    const fontSize = window.getComputedStyle(parent).fontSize;
+    const pxSize = parseFloat(fontSize);
+    
+    // Map px to font size numbers
+    if (pxSize <= 10) return '1';
+    if (pxSize <= 14) return '3';
+    if (pxSize <= 16) return '4';
+    if (pxSize <= 18) return '5';
+    if (pxSize <= 24) return '6';
+    return '7';
 }
 
 export function insertText(text) {

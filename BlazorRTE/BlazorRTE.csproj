@@ -7,12 +7,12 @@
 
 		<!-- NuGet Package Metadata -->
 		<PackageId>BlazorRTE</PackageId>
-		<Version>1.1.1</Version>
+		<Version>1.1.2</Version>
 		<Authors>simscon1</Authors>
 		<Company>LoneWorx LLC</Company>
 		<Product>BlazorRTE</Product>
-		<Description>Professional rich text editor for Blazor with emoji support. Native Blazor component with 53 features, 1800+ searchable emojis, 27 keyboard shortcuts, zero JavaScript dependencies, 100 percent test coverage, professional SVG icons, built-in XSS protection, and dark mode support. GPL v3 for open-source, commercial license coming soon.</Description>
-		<PackageTags>blazor;rich-text-editor;wysiwyg;rte;editor;text-editor;emoji;emoji-picker;emoji-autocomplete;formatting;blazor-component;razor;contenteditable;gpl;accessibility;wcag;keyboard-shortcuts;testing;bunit</PackageTags>
+		<Description>Professional rich text editor for Blazor with 51 features, full ARIA implementation, emoji support (1800+ emojis), 27 keyboard shortcuts, zero JavaScript dependencies, 54 passing unit tests, professional SVG icons, built-in XSS protection, and dark mode. Native Blazor component. GPL v3 for open-source, commercial license coming soon.</Description>
+		<PackageTags>blazor;rich-text-editor;wysiwyg;rte;editor;text-editor;emoji;emoji-picker;emoji-autocomplete;formatting;blazor-component;razor;contenteditable;gpl;accessibility;wcag;keyboard-shortcuts;testing;bunit;aria</PackageTags>
 		<PackageProjectUrl>https://github.com/simscon1/BlazorRTE</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/simscon1/BlazorRTE</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
@@ -21,22 +21,61 @@
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<Copyright>Copyright (c) 2024-2026 LoneWorx LLC</Copyright>
-		<PackageReleaseNotes><![CDATA[v1.1.1 Emoji Support, Testing and Bug Fixes (2026-02-06)
+		<PackageReleaseNotes><![CDATA[v1.1.2 Emoji Support, Bug Fixes & UX Improvements (2026-02-08)
 
 ADDED:
 - Emoji Picker with 1800+ searchable emojis
-- Emoji Autocomplete (type :smile for suggestions)
-- 27 keyboard shortcuts (Ctrl+B, Ctrl+I, Ctrl+Shift+E, etc.)
-- 54 unit tests with 100% pass rate (bUnit + xUnit)
-- Voice control support (WCAG 2.5.3)
+  - Organized by category (Smileys, Animals, Food, etc.)
+  - Search by name or keyword
+  - Recently used emojis (persisted)
+  - Full keyboard navigation
+  - Dark mode support
+- Emoji Autocomplete - Type :smile for inline suggestions
+  - Quick emoticons (:), :D, <3) for instant replacement
+  - Full autocomplete (2+ chars) shows 10 best matches
+  - Keyboard navigation (↑ ↓ Enter Esc)
+  - Auto-positioning (viewport-aware)
+- 27 Keyboard Shortcuts (Ctrl+B, Ctrl+I, Ctrl+K, Ctrl+Shift+E, etc.)
+  - Formatting shortcuts (Bold, Italic, Underline, Strikethrough)
+  - Heading shortcuts (Ctrl+Alt+0-3)
+  - Font size shortcuts (Ctrl+Shift+> / <)
+  - Lists, alignment, links, emoji picker
+- 54 Unit Tests with 100% pass rate (bUnit + xUnit)
+  - Component rendering & initialization
+  - Accessibility (ARIA attributes, keyboard navigation)
+  - Security (XSS prevention, HTML sanitization)
+- Dynamic font size button - Shows current size at cursor position
+  - Displays: 10, 14, 16, 18, 24, or 32
+  - Updates in real-time when moving cursor
+  - Matches industry standard behavior (Word, Google Docs)
 
 FIXED:
-- Toolbar button click handlers now work reliably
-- Emoji autocomplete positioning (viewport coordinates)
-- EventsDemo page re-rendering issues
-- All 54 tests passing
+- Link button now functional (prompts user for URL via browser dialog)
+  - Validates text selection before allowing link creation
+  - Auto-adds https:// prefix if missing
+  - Shows "Remove link?" confirmation when cursor in existing link
+  - Properly raises OnLinkCreated events
+- Mouse click support for all pickers (was keyboard-only)
+  - Added @onmousedown:stopPropagation to all 5 pickers
+  - Fixes: Heading, Font Family, Font Size, Text Color, Highlight Color
+  - Prevents toolbar's preventDefault from blocking picker clicks
 
-See full changelog: https://github.com/simscon1/BlazorRTE/blob/master/Docs/CHANGELOG.md]]></PackageReleaseNotes>
+ACCESSIBILITY:
+- Improved ARIA semantics for link button
+  - Changed from aria-pressed to aria-haspopup="dialog" (correct pattern)
+  - Dynamic aria-label based on context ("Insert link" vs "Edit link")
+- Complete ARIA implementation following WAI-ARIA 1.2 patterns
+  - All pickers have proper role attributes (listbox/grid)
+  - Color swatches use role="gridcell" with aria-label
+  - Emoji autocomplete has role="listbox" with aria-selected states
+  - Character count uses aria-live="polite"
+
+QUALITY:
+- All 54 unit tests passing
+- Both keyboard and mouse interaction verified
+- Event callbacks properly wired
+
+See: https://github.com/simscon1/BlazorRTE/blob/master/Docs/CHANGELOG.md]]></PackageReleaseNotes>
 		
 		<PackageIcon>icon.png</PackageIcon>
 		<IncludeSymbols>true</IncludeSymbols>

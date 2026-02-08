@@ -3,20 +3,22 @@
 **Native Blazor • 51 Features • Zero JavaScript Dependencies • Production-Ready**
 
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE.txt)
-[![WCAG 2.1 AAA](https://img.shields.io/badge/WCAG%202.1-AAA-green?logo=w3c)](Docs/ACCESSIBILITY.md)
+[![ARIA](https://img.shields.io/badge/ARIA-Complete-green?logo=w3c)](Docs/ACCESSIBILITY.md)
 [![.NET 8+](https://img.shields.io/badge/.NET-8.0%2B-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 
 ## 🚀 Quick Start
 
-**⚠️ Important:** BlazorRTE requires interactive rendering for Blazor Server apps. Add `@rendermode InteractiveServer` to your page.
+**⚠️ Important:** BlazorRTE requires interactive rendering. Add `@rendermode InteractiveServer` to your page.
 
 ### Installation
 
+````````dotnetcli
 dotnet add package BlazorRTE
+````````
 
 ### Basic Usage
 
-```
+```razor
 @page "/editor" 
 
 @using BlazorRTE.Components
@@ -46,7 +48,7 @@ dotnet add package BlazorRTE
 - ✅ Font Family (10 web-safe fonts) & Font Size (6 sizes)
 
 ### Functionality
-- ✅ Links, Horizontal Rules
+- ✅ Links (with URL prompts), Horizontal Rules
 - ✅ Undo/Redo (Ctrl+Z/Y)
 - ✅ **🎭 Emoji Picker** - 1800+ emojis with search
 - ✅ **⚡ Emoji Autocomplete** - Type `:smile` for inline suggestions
@@ -54,9 +56,15 @@ dotnet add package BlazorRTE
 - ✅ Max length enforcement
 - ✅ HTML sanitization (XSS protection)
 
+### Dynamic Toolbar Indicators (NEW in v1.1.2) ✨
+- ✅ **Font size button** - Shows current size (10, 14, 16, 18, 24, 32)
+- ✅ **Heading button** - Shows current level (¶, H1, H2, H3)
+- ✅ **Text color button** - Shows current color with colored underline
+- ✅ **Highlight button** - Shows current color with colored background
+
 ### Developer Experience
 - ✅ **Two-way data binding** (`@bind-Value`)
-- ✅ **Comprehensive API** - Events, methods, parameters
+- ✅ **Comprehensive API** - 20+ event callbacks, methods, parameters
 - ✅ **Dark mode support** - Automatic theme switching
 - ✅ **Responsive design** - Works on desktop, tablet, mobile
 - ✅ **Zero dependencies** - ~25KB, fully self-contained
@@ -64,25 +72,30 @@ dotnet add package BlazorRTE
 
 ---
 
-## ♿ Accessibility - WCAG 2.1 AAA Compliant ✅
+## ♿ Accessibility - Full ARIA Implementation ✅
 
-BlazorRTE **exceeds WCAG 2.1 Level AAA** accessibility standards:
+BlazorRTE follows **WCAG 2.1 Level AAA guidelines** with complete ARIA implementation:
 
-- ✅ **Full keyboard navigation** - Tab, Arrow keys, shortcuts
-- ✅ **Screen reader support** - NVDA, JAWS, VoiceOver, TalkBack
-- ✅ **ARIA implementation** - Complete WAI-ARIA 1.2 patterns
-- ✅ **High contrast mode** - 9.7:1 contrast ratio (AAA)
+- ✅ **Full keyboard navigation** - Tab, Arrow keys, 27 shortcuts
+- ✅ **Complete ARIA markup** - Follows WAI-ARIA 1.2 patterns
+- ✅ **Screen reader compatible markup** - Proper roles, labels, live regions
+- ✅ **High contrast mode** - 9.7:1 contrast ratio (exceeds 7:1 AAA minimum)
 - ✅ **Focus indicators** - Clear 2px outlines with offset
-- ✅ **Live regions** - Character count announcements
-- ✅ **Accessible color pickers** - Grid pattern with labels
-- ✅ **Touch targets** - 32×32px (exceeds 24px minimum)
+- ✅ **Accessible color pickers** - Grid/listbox patterns with labels
+- ✅ **Touch targets** - 32×32px (exceeds 24px AAA minimum)
+- ✅ **Live regions** - Character count announcements (`aria-live="polite"`)
 
-**Tested with:**
-- NVDA 2024.1, JAWS 2024, VoiceOver (macOS/iOS)
-- TalkBack (Android), Narrator (Windows 11)
-- axe DevTools, WAVE, Lighthouse (100/100)
+**Implementation verified with:**
+- ✅ 54 unit tests including accessibility checks
+- ✅ Manual keyboard navigation testing
+- ✅ ARIA attribute validation
+- ✅ Color contrast calculation (9.7:1 light mode, 13.4:1 dark mode)
 
-> 📖 **[View Full Accessibility Report →](Docs/ACCESSIBILITY.md)**
+**Future improvements:**
+- Screen reader testing (planned when requested or for enterprise certification)
+- Automated accessibility audits (Lighthouse, axe DevTools, WAVE, Pa11y)
+
+> 📖 **[View ARIA Implementation Details →](Docs/ACCESSIBILITY.md)**
 
 ---
 
@@ -91,7 +104,7 @@ BlazorRTE **exceeds WCAG 2.1 Level AAA** accessibility standards:
 **Full API Documentation:** [Docs/FEATURES.md](Docs/FEATURES.md)
 
 ### Component Parameters
-```
+```razor
 [Parameter] public string Value { get; set; } 
 [Parameter] public EventCallback<string> ValueChanged { get; set; } 
 [Parameter] public string Placeholder { get; set; } = "Type your message..."; 
@@ -108,7 +121,7 @@ await FocusAsync();           // Focus the editor
 string text = GetPlainText(); // Get plain text without HTML
 ```
 ### Height Control
-```
+```razor
 <!-- Default: 200px min, 600px max (industry standard) --> <RichTextEditor @bind-Value="@content" />
 <!-- Custom heights --> <RichTextEditor MinHeight="300px" MaxHeight="800px" />
 <!-- Values without 'px' are auto-converted --> <RichTextEditor MinHeight="300" MaxHeight="800" />
@@ -154,9 +167,9 @@ The Rich Text Editor supports **27+ industry-standard keyboard shortcuts:**
 - `Ctrl+J` - Justify
 
 ### Insert
-- `Ctrl+K` - Insert Link
+- `Ctrl+K` - Insert/Edit Link
 - `Ctrl+Shift+K` - Remove Link
-- `Ctrl+Shift+E` - **Toggle Emoji Picker** 🆕
+- `Ctrl+Shift+E` - Toggle Emoji Picker 🆕
 - `Ctrl+Enter` - Horizontal Rule
 
 ### Utility
@@ -170,34 +183,36 @@ The Rich Text Editor supports **27+ industry-standard keyboard shortcuts:**
 
 BlazorRTE includes **two ways** to insert emojis:
 
+ ## 🎭 Emoji Support
+
+BlazorRTE includes **two ways** to insert emojis:
+
 ### 1. Emoji Picker (Toolbar Button)
 Click the 😀 button in the toolbar to open a searchable emoji picker with:
 - ✅ **1800+ emojis** organized by category
 - ✅ Search by name or keyword
-- ✅ Recently used emojis
+- ✅ Recently used emojis (persisted)
 - ✅ Full keyboard navigation
 - ✅ Smart positioning (viewport-aware)
+- ✅ Dark mode support
 
-**Keyboard Shortcut:** `Ctrl+Shift+E` - Toggle emoji picker
+**Keyboard Shortcut:** `Ctrl+Shift+E`
 
 ### 2. Emoji Autocomplete (Inline Shortcodes)
-Type `:` followed by + characters to trigger inline autocomplete:
-:smile → 😊 :heart → ❤️ :rocket → 🚀 :thumbs → 👍
 
-**Features:**
+**Quick Emoticons** (`:` + 1 character) - Instant replacement:
+:)  → 😊 :(  → 😔 :D  → 😃 ;)  → 😉 <3  → ❤️ :P  → 😛
+
+**Autocomplete Search** (`:` + 2+ characters) - Shows popup with suggestions:
+:smile  → 😊 (+ 9 more matches) :heart  → ❤️ (+ 9 more matches) :rocket → 🚀 (+ 9 more matches) :thumbs → 👍 (+ 9 more matches)
+
+**Autocomplete Features:**
 - ✅ Appears at cursor position
-- ✅ 10 best matches shown
+- ✅ Shows 10 best matches
 - ✅ Keyboard navigation (`↑` `↓` `Enter` `Esc`)
 - ✅ Click to select
 - ✅ Auto-positioning (stays on screen)
-
-**Quick Emoticons** (single character):
-- `:)` → 😊
-- `:(` → 😔
-- `:D` → 😃
-- `;)` → 😉
-- `<3` → ❤️
-- `:P` → 😛
+- ✅ Fuzzy matching on emoji names and keywords
 
 > **Note:** Emoji data is embedded (no external dependencies). Works offline!
 
@@ -207,18 +222,13 @@ Type `:` followed by + characters to trigger inline autocomplete:
 
 BlazorRTE includes comprehensive unit tests using **bUnit** and **xUnit**.
 
-```
-dotnet test
-
-```
-
 **Test Coverage:**
 - ✅ **54 Unit Tests** covering all major functionality
 - ✅ **100% Pass Rate** (54/54 tests passing) ⭐
 - ✅ Component rendering & initialization
 - ✅ Accessibility (ARIA attributes, keyboard navigation)
 - ✅ Security (XSS prevention, HTML sanitization)
-- ✅ UI components (buttons, dropdowns, toolbar)
+- ✅ UI components (buttons, pickers, toolbar)
 - ✅ Event handling and state management
 
 **Test Breakdown:**
@@ -252,8 +262,8 @@ BlazorRTE includes **enterprise-grade XSS protection**:
 
 **See [LICENSE.txt](LICENSE.txt) for full GPL v3 terms.**
 
-### Commercial License (Coming in v1.1.0)
-For proprietary/closed-source applications, commercial licensing will be available in version 1.1.0.
+### Commercial License (Planned)
+For proprietary/closed-source applications, commercial licensing will be available in a future release.
 
 **Planned pricing tiers:**
 - **Professional** (~$79-99/year): Commercial license + email support
@@ -261,8 +271,8 @@ For proprietary/closed-source applications, commercial licensing will be availab
 - **Enterprise** (~$499+/year): Source code + custom development + SLA
 
 **For early access or enterprise licensing inquiries:**
-- 📧 Email: licensing@loneworx.com (Coming Soon)
-- 🌐 Website: https://www.loneworx.com  
+- 📧 Email: licensing@loneworx.com
+- 🌐 Website: https://www.loneworx.com
 - 📁 GitHub: https://github.com/simscon1/BlazorRTE
 
 ---
@@ -271,20 +281,23 @@ For proprietary/closed-source applications, commercial licensing will be availab
 
 ### Build from Source
 
-git clone https://github.com/simscon1/BlazorRTE.git cd BlazorRTE dotnet build
+
+````````
+
+---
 
 ## 🤝 Contributing
 
 Contributions are welcome! Please submit pull requests to our GitHub repository.
 
-**Accessibility contributions are especially valued** - we maintain WCAG 2.1 AAA compliance.
+**Accessibility contributions are especially valued** - we follow WAI-ARIA 1.2 authoring practices.
 
 ---
 
 ## 📞 Support
 
 - **Community (GPL v3):** [GitHub Issues](https://github.com/simscon1/BlazorRTE/issues)
-- **Accessibility Issues:** Use `accessibility` label
+- **Accessibility Questions:** Use `accessibility` label
 - **Commercial Inquiries:** licensing@loneworx.com
 
 ---
