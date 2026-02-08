@@ -375,40 +375,42 @@
                              class="rte-color-palette"
                              role="grid"
                              aria-label="Highlight colors"
-                             @onclick:stopPropagation>
+                             @onclick:stopPropagation
+                             @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="bg-color-label">Highlight Color</div>
                             <div class="rte-color-palette-grid" aria-labelledby="bg-color-label">
                                 @foreach (var color in ColorPalette.BackgroundColors)
                                 {
                                     @if (color.Key == "transparent")
-									{
-										<button type="button"
-											class="rte-palette-color rte-palette-color-none"
-											role="gridcell"
-											tabindex="-1"
-											aria-label="@color.Value"
-											@click="@(() => SelectBackgroundColor(color.Key))"
-											@onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectBackgroundColor(color.Key)))"
-											data-tooltip="@color.Value">
-											<span aria-hidden="true">✕</span>
-										</button>
-									}
-									else
-									{
-										<button type="button"
-												class="rte-palette-color"
-												role="gridcell"
-												tabindex="-1"
-												aria-label="@color.Value"
-												style="background-color: @color.Key;"
-												@click="@(() => SelectBackgroundColor(color.Key))"
-												@onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectBackgroundColor(color.Key)))"
-												data-tooltip="@color.Value"></button>
-									}
+                                    {
+                                        <button type="button"
+                                                class="rte-palette-color rte-palette-color-none"
+                                                role="gridcell"
+                                                tabindex="-1"
+                                                aria-label="@color.Value"
+                                                @onclick="@(() => SelectBackgroundColor(color.Key))"
+                                                @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectBackgroundColor(color.Key)))"
+                                                data-tooltip="@color.Value">
+                                            <span aria-hidden="true">✕</span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button"
+                                                class="rte-palette-color"
+                                                role="gridcell"
+                                                tabindex="-1"
+                                                aria-label="@color.Value"
+                                                style="background-color: @color.Key;"
+                                                @onclick="@(() => SelectBackgroundColor(color.Key))"
+                                                @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectBackgroundColor(color.Key)))"
+                                                data-tooltip="@color.Value"></button>
+                                    }
                                 }
                             </div>
                         </div>
                     }
+                    
                 </div>
             </div>
 
@@ -646,15 +648,17 @@
 @* EMOJI PICKER - OUTSIDE EDITOR CONTAINER FOR PROPER POSITIONING *@
 @if (_showEmojiPicker)
 {
-    <div class="emoji-picker-portal" @onclick:stopPropagation>
+    <div class="emoji-picker-portal @(DarkMode ? "dark-mode" : "")" @onclick:stopPropagation>
         <EmoPicker IsOpen="@_showEmojiPicker"
                    OnEmojiSelected="InsertEmoji"
                    OnClose="CloseEmojiPicker"
                    UseVirtualization="true"
-                   UseCompleteDataset="true" />
+                   UseCompleteDataset="true"
+                   DarkMode="@DarkMode" />
     </div>
 }
 
 <!-- Autocomplete OUTSIDE the editor container -->
 <EmojiAutocomplete @ref="emojiAutocomplete"
-                   OnEmojiSelected="OnEmojiSelected" />
+                   OnEmojiSelected="OnEmojiSelected"
+                   DarkMode="@DarkMode" />
