@@ -7,7 +7,7 @@
 
 		<!-- NuGet Package Metadata -->
 		<PackageId>BlazorRTE</PackageId>
-		<Version>1.1.2</Version>
+		<Version>1.1.3</Version>
 		<Authors>simscon1</Authors>
 		<Company>LoneWorx LLC</Company>
 		<Product>BlazorRTE</Product>
@@ -21,59 +21,38 @@
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<Copyright>Copyright (c) 2024-2026 LoneWorx LLC</Copyright>
-		<PackageReleaseNotes><![CDATA[v1.1.2 Emoji Support, Bug Fixes & UX Improvements (2026-02-08)
+		<PackageReleaseNotes><![CDATA[v1.1.3 Dependency Fix (2026-02-08)
 
-ADDED:
+CHANGED:
+- BlazorEmo is now a separate NuGet dependency instead of embedded
+- This allows independent updates and use of BlazorEmo in other projects
+- Users installing BlazorRTE will automatically get BlazorEmo 1.0.0
+
+TECHNICAL:
+- Changed from ProjectReference to PackageReference for BlazorEmo
+- No functional changes - all v1.1.2 features remain the same
+- Package size reduced (BlazorEmo no longer embedded)
+
+BENEFITS:
+- BlazorEmo can be updated independently
+- Other projects can use BlazorEmo separately
+- Clear dependency graph on NuGet.org
+- Proper package attribution
+
+NOTES:
+- This is a non-breaking change
+- BlazorEmo 1.0.0 installs automatically via NuGet dependency resolution
+- All 51 features from v1.1.2 remain unchanged
+
+Previous release (v1.1.2) features:
 - Emoji Picker with 1800+ searchable emojis
-  - Organized by category (Smileys, Animals, Food, etc.)
-  - Search by name or keyword
-  - Recently used emojis (persisted)
-  - Full keyboard navigation
-  - Dark mode support
-- Emoji Autocomplete - Type :smile for inline suggestions
-  - Quick emoticons (:), :D, <3) for instant replacement
-  - Full autocomplete (2+ chars) shows 10 best matches
-  - Keyboard navigation (↑ ↓ Enter Esc)
-  - Auto-positioning (viewport-aware)
-- 27 Keyboard Shortcuts (Ctrl+B, Ctrl+I, Ctrl+K, Ctrl+Shift+E, etc.)
-  - Formatting shortcuts (Bold, Italic, Underline, Strikethrough)
-  - Heading shortcuts (Ctrl+Alt+0-3)
-  - Font size shortcuts (Ctrl+Shift+> / <)
-  - Lists, alignment, links, emoji picker
-- 54 Unit Tests with 100% pass rate (bUnit + xUnit)
-  - Component rendering & initialization
-  - Accessibility (ARIA attributes, keyboard navigation)
-  - Security (XSS prevention, HTML sanitization)
-- Dynamic font size button - Shows current size at cursor position
-  - Displays: 10, 14, 16, 18, 24, or 32
-  - Updates in real-time when moving cursor
-  - Matches industry standard behavior (Word, Google Docs)
-
-FIXED:
-- Link button now functional (prompts user for URL via browser dialog)
-  - Validates text selection before allowing link creation
-  - Auto-adds https:// prefix if missing
-  - Shows "Remove link?" confirmation when cursor in existing link
-  - Properly raises OnLinkCreated events
-- Mouse click support for all pickers (was keyboard-only)
-  - Added @onmousedown:stopPropagation to all 5 pickers
-  - Fixes: Heading, Font Family, Font Size, Text Color, Highlight Color
-  - Prevents toolbar's preventDefault from blocking picker clicks
-
-ACCESSIBILITY:
-- Improved ARIA semantics for link button
-  - Changed from aria-pressed to aria-haspopup="dialog" (correct pattern)
-  - Dynamic aria-label based on context ("Insert link" vs "Edit link")
-- Complete ARIA implementation following WAI-ARIA 1.2 patterns
-  - All pickers have proper role attributes (listbox/grid)
-  - Color swatches use role="gridcell" with aria-label
-  - Emoji autocomplete has role="listbox" with aria-selected states
-  - Character count uses aria-live="polite"
-
-QUALITY:
-- All 54 unit tests passing
-- Both keyboard and mouse interaction verified
-- Event callbacks properly wired
+- Emoji Autocomplete (:smile shortcuts)
+- 27 Keyboard Shortcuts (Ctrl+B, Ctrl+K, Ctrl+Shift+E, etc.)
+- Dynamic font size button
+- Link button fixes (prompts for URL, validates selection)
+- Mouse click fixes for all 5 pickers
+- Complete ARIA implementation (WAI-ARIA 1.2)
+- 54 unit tests with 100% pass rate
 
 See: https://github.com/simscon1/BlazorRTE/blob/master/Docs/CHANGELOG.md]]></PackageReleaseNotes>
 		
@@ -96,6 +75,7 @@ See: https://github.com/simscon1/BlazorRTE/blob/master/Docs/CHANGELOG.md]]></Pac
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="BlazorEmo" Version="1.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.2" />
 	</ItemGroup>
 
@@ -104,8 +84,5 @@ See: https://github.com/simscon1/BlazorRTE/blob/master/Docs/CHANGELOG.md]]></Pac
 		<None Include="README.md" Pack="true" PackagePath="\" />
 		<None Include="LICENSE.txt" Pack="true" PackagePath="\" />
 		<None Include="icon.png" Pack="true" PackagePath="\" />
-	</ItemGroup>
-	<ItemGroup>
-	  <ProjectReference Include="..\..\BlazorEmo.Solution\BlazorEmo\BlazorEmo.csproj" />
 	</ItemGroup>
 </Project>
