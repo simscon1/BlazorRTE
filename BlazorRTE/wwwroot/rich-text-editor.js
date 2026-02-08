@@ -436,7 +436,15 @@ export function executeCommand(command, value = null) {
     } else if (command === 'superscript' && document.queryCommandState('subscript')) {
         document.execCommand('subscript', false, null);
     }
-    document.execCommand(command, false, value);
+    
+    // Handle alignment commands - they are mutually exclusive
+    if (['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'].includes(command)) {
+        // Remove all alignments first by applying the new one
+        // (execCommand handles this automatically, but we ensure selection is correct)
+        document.execCommand(command, false, null);
+    } else {
+        document.execCommand(command, false, value);
+    }
     
     // Save the current selection (keeps it highlighted for next command)
     saveSelection();
@@ -562,10 +570,18 @@ export function getActiveFormats() {
         formats.push('backColor');
     }
 
-    if (document.queryCommandState('justifyCenter')) formats.push('justifyCenter');
-    else if (document.queryCommandState('justifyRight')) formats.push('justifyRight');
-    else if (document.queryCommandState('justifyFull')) formats.push('justifyFull');
-    else if (document.queryCommandState('justifyLeft')) formats.push('justifyLeft');
+    // Check alignment - use queryCommandState for each
+    // Note: justifyLeft often returns false when text is default left-aligned
+    const isCenter = document.queryCommandState('justifyCenter');
+    const isRight = document.queryCommandState('justifyRight');
+    const isFull = document.queryCommandState('justifyFull');
+    const isLeft = document.queryCommandState('justifyLeft');
+    
+    if (isCenter) formats.push('justifyCenter');
+    else if (isRight) formats.push('justifyRight');
+    else if (isFull) formats.push('justifyFull');
+    else if (isLeft) formats.push('justifyLeft');
+    // If none are active, default to left (don't push anything - C# defaults to "left")
 
     return formats;
 }
