@@ -13,7 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BlazorEmo.Solution\BlazorEmo\BlazorEmo.csproj" />
     <ProjectReference Include="..\BlazorRTE\BlazorRTE.csproj" />
   </ItemGroup>
 
