@@ -1,5 +1,6 @@
 ﻿let editorInstances = new Map();
 let savedSelection = null;
+let selectionNeedsCollapse = false; // Track if we need to collapse on focus
 
 export function initializeEditor(element, dotNetRef) {
     if (!element) {
@@ -96,9 +97,6 @@ export function initializeEditor(element, dotNetRef) {
                 }
             }
             
-            console.log('[Autocomplete] Cursor rect:', cursorRect);
-            console.log('[Autocomplete] Popup position:', { x, y });
-            
             dotNetRef.invokeMethodAsync('ShowEmojiAutocomplete', afterColon, { x, y });
         } else if (afterColon.length === 0) {
             clearShortcode();
@@ -112,10 +110,7 @@ export function initializeEditor(element, dotNetRef) {
     }
     
     function insertEmojiAtShortcode(emoji) {
-        console.log('[Autocomplete] insertEmojiAtShortcode:', emoji);
-        
         if (shortcodeStart === -1) {
-            console.warn('[Autocomplete] shortcodeStart is -1');
             return;
         }
         
@@ -123,7 +118,6 @@ export function initializeEditor(element, dotNetRef) {
         
         const selection = window.getSelection();
         if (!selection.rangeCount) {
-            console.error('[Autocomplete] No selection range');
             clearShortcode();
             return;
         }
@@ -141,7 +135,6 @@ export function initializeEditor(element, dotNetRef) {
                     if (afterColon.length >= 1) {
                         textNode = node;
                         cursorOffset = text.length;
-                        console.log('[Autocomplete] Found text node:', text);
                         break;
                     }
                 }
@@ -150,7 +143,6 @@ export function initializeEditor(element, dotNetRef) {
         }
         
         if (!textNode) {
-            console.error('[Autocomplete] Cannot find text node');
             clearShortcode();
             return;
         }
@@ -170,7 +162,6 @@ export function initializeEditor(element, dotNetRef) {
         }
         
         if (actualColonPos === -1) {
-            console.error('[Autocomplete] Could not find colon');
             clearShortcode();
             return;
         }
@@ -192,10 +183,7 @@ export function initializeEditor(element, dotNetRef) {
                 newRange.setEnd(textNode, newOffset);
                 selection.removeAllRanges();
                 selection.addRange(newRange);
-                console.log('[Autocomplete] Cursor repositioned');
-            } catch (e) {
-                console.error('[Autocomplete] Failed to set cursor:', e);
-            }
+            } catch (e) { }
         }
         
         clearShortcode();
@@ -226,9 +214,7 @@ export function initializeEditor(element, dotNetRef) {
             e.stopImmediatePropagation();
             try {
                 await dotNetRef.invokeMethodAsync('HandleCtrlK');
-            } catch (err) {
-                console.error('Ctrl+K handler error:', err);
-            }
+            } catch (err) { }
             return;
         }
 
@@ -238,9 +224,7 @@ export function initializeEditor(element, dotNetRef) {
             e.stopImmediatePropagation();
             try {
                 await dotNetRef.invokeMethodAsync('HandleCtrlShiftK');
-            } catch (err) {
-                console.error('Ctrl+Shift+K handler error:', err);
-            }
+            } catch (err) { }
             return;
         }
 
@@ -250,9 +234,7 @@ export function initializeEditor(element, dotNetRef) {
             e.stopImmediatePropagation();
             try {
                 await dotNetRef.invokeMethodAsync('HandleCtrlShiftE');
-            } catch (err) {
-                console.error('Ctrl+Shift+E handler error:', err);
-            }
+            } catch (err) { }
             return;
         }
 
@@ -294,7 +276,10 @@ export function initializeEditor(element, dotNetRef) {
         }
     }, true);
 
+    // Focus event - DO NOT collapse selection here
+    // Collapse only happens via focusEditor() on Tab navigation
     element.addEventListener('focus', (e) => {
+        // Handle Shift+Tab from toolbar
         if (shiftTabPressed) {
             shiftTabPressed = false;
             const toolbar = document.querySelector('.rte-toolbar');
@@ -303,21 +288,23 @@ export function initializeEditor(element, dotNetRef) {
                 if (toolbarItems.length > 0) {
                     e.preventDefault();
                     toolbarItems[toolbarItems.length - 1].focus();
+                    return;
                 }
             }
         }
+        // Selection collapse is handled ONLY in focusEditor() - not here
     });
 
     element.addEventListener('blur', (e) => {
         const relatedTarget = e.relatedTarget;
         const toolbar = document.querySelector('.rte-toolbar');
         
+        // Always save selection on blur
+        saveSelection();
+        
+        // Mark for collapse only if focus is moving to toolbar
         if (toolbar && relatedTarget && toolbar.contains(relatedTarget)) {
-            saveSelection();
-            console.log('[RTE] Focus moved to toolbar, selection saved');
-        } else {
-            saveSelection();
-            console.log('[RTE] Editor fully blurred');
+            selectionNeedsCollapse = true;
         }
     });
 
@@ -414,14 +401,7 @@ export function saveSelection() {
     if (selection.rangeCount > 0) {
         try {
             savedSelection = selection.getRangeAt(0).cloneRange();
-            console.log('[RTE] Selection saved:', {
-                start: savedSelection.startOffset,
-                end: savedSelection.endOffset,
-                collapsed: savedSelection.collapsed,
-                container: savedSelection.startContainer.nodeName
-            });
         } catch (e) {
-            console.error('[RTE] Error saving selection:', e);
             savedSelection = null;
         }
     }
@@ -433,15 +413,12 @@ export function restoreSelection() {
             const selection = window.getSelection();
             selection.removeAllRanges();
             selection.addRange(savedSelection.cloneRange());
-            console.log('[RTE] Selection restored successfully');
             return true;
         } catch (e) {
-            console.error('[RTE] Could not restore selection:', e);
             savedSelection = null;
             return false;
         }
     }
-    console.warn('[RTE] No saved selection to restore');
     return false;
 }
 
@@ -460,6 +437,9 @@ export function executeCommand(command, value = null) {
         document.execCommand('subscript', false, null);
     }
     document.execCommand(command, false, value);
+    
+    // Save the current selection (keeps it highlighted for next command)
+    saveSelection();
 }
 
 export function executeFormatBlock(blockType) {
@@ -468,6 +448,7 @@ export function executeFormatBlock(blockType) {
         restoreSelection();
     }
     document.execCommand('formatBlock', false, blockType);
+    saveSelection();
 }
 
 export function executeFontSize(size) {
@@ -476,6 +457,7 @@ export function executeFontSize(size) {
         restoreSelection();
     }
     document.execCommand('fontSize', false, size);
+    saveSelection();
 }
 
 export function executeFontName(fontName) {
@@ -484,6 +466,7 @@ export function executeFontName(fontName) {
         restoreSelection();
     }
     document.execCommand('fontName', false, fontName);
+    saveSelection();
 }
 
 export function executeForeColor(color) {
@@ -492,6 +475,7 @@ export function executeForeColor(color) {
         restoreSelection();
     }
     document.execCommand('foreColor', false, color);
+    saveSelection();
 }
 
 export function executeBackColor(color) {
@@ -500,6 +484,7 @@ export function executeBackColor(color) {
         restoreSelection();
     }
     document.execCommand('backColor', false, color);
+    saveSelection();
 }
 
 export function getHtml(element) {
@@ -510,13 +495,28 @@ export function setHtml(element, html) {
     if (element) element.innerHTML = html;
 }
 
+// Called ONLY when Tab is pressed to return focus to editor
+// This is where selection collapse happens (industry standard)
 export function focusEditor(element) {
     element.focus();
-    if (savedSelection) {
+    
+    // Collapse selection to end ONLY when returning via Tab
+    if (selectionNeedsCollapse && savedSelection) {
+        try {
+            const selection = window.getSelection();
+            const range = savedSelection.cloneRange();
+            range.collapse(false); // Collapse to end
+            selection.removeAllRanges();
+            selection.addRange(range);
+            savedSelection = range.cloneRange();
+        } catch (e) { }
+        selectionNeedsCollapse = false;
+    } else if (savedSelection) {
+        // Just restore saved selection as-is (for other focus scenarios)
         try {
             const selection = window.getSelection();
             selection.removeAllRanges();
-            selection.addRange(savedSelection);
+            selection.addRange(savedSelection.cloneRange());
         } catch (e) { }
     }
 }
@@ -600,6 +600,7 @@ export function createLink(url) {
     const selection = window.getSelection();
     if (selection.rangeCount > 0 && selection.toString().length > 0) {
         document.execCommand('createLink', false, url);
+        saveSelection();
     }
 }
 
@@ -621,6 +622,7 @@ export function removeLink() {
     selection.removeAllRanges();
     selection.addRange(range);
     document.execCommand('unlink', false, null);
+    saveSelection();
     return true;
 }
 
@@ -850,11 +852,9 @@ export function getCurrentFontSize() {
 }
 
 export function insertText(text) {
-    console.log('[RTE] Inserting text:', text);
     const restored = restoreSelection();
     
     if (!restored) {
-        console.warn('[RTE] Could not restore selection, focusing editor');
         const editor = document.querySelector('[contenteditable="true"]');
         if (editor) {
             editor.focus();
@@ -869,14 +869,10 @@ export function insertText(text) {
     
     try {
         const result = document.execCommand('insertText', false, text);
-        console.log('[RTE] Text inserted, result:', result);
-        
         if (!result) {
             document.execCommand('insertHTML', false, text);
-            console.log('[RTE] Used insertHTML fallback');
         }
     } catch (e) {
-        console.error('[RTE] Insert command failed:', e);
         const selection = window.getSelection();
         if (selection.rangeCount > 0) {
             const range = selection.getRangeAt(0);

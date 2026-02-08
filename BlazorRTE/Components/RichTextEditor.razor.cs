@@ -1,5 +1,5 @@
 ﻿using BlazorEmo.Models;
-using BlazorEmo.Services; // This will now use EmojiProvider instead
+using BlazorEmo.Services;
 using BlazorRTE.EventArgs;
 using BlazorRTE.HelperClasses;
 using Microsoft.AspNetCore.Components;
@@ -30,7 +30,7 @@ namespace BlazorRTE.Components
         [Parameter]
         public bool DarkMode { get; set; } = false;
 
-        // ===== EVENT CALLBACKS ===== (keep all your existing event callbacks)
+        // ===== EVENT CALLBACKS =====
         [Parameter] public EventCallback<string> OnContentChanged { get; set; }
         [Parameter] public EventCallback<HtmlChangedEventArgs> OnHtmlChanged { get; set; }
         [Parameter] public EventCallback<SelectionChangedEventArgs> OnSelectionChanged { get; set; }
@@ -71,15 +71,15 @@ namespace BlazorRTE.Components
 
         private IJSObjectReference? _jsModule;
         private DotNetObjectReference<RichTextEditor>? _dotNetRef;
-        private HashSet<string> _activeFormats = new();
+        private HashSet<string> _activeFormats = [];
         private bool _isUpdating;
         private string _previousValue = string.Empty;
         private string _currentHeadingLevel = "";
-        private bool _showTextColorPicker = false;
-        private bool _showBackgroundColorPicker = false;
-        private bool _showFontSizePicker = false;
-        private bool _showFontFamilyPicker = false;
-        private bool _showHeadingPicker = false;
+        private bool _showTextColorPicker;
+        private bool _showBackgroundColorPicker;
+        private bool _showFontSizePicker;
+        private bool _showFontFamilyPicker;
+        private bool _showHeadingPicker;
         private ElementReference _headingButton;
         private ElementReference _headingPalette;
 
@@ -108,7 +108,7 @@ namespace BlazorRTE.Components
         };
 
         private string alignment = "left";
-        private int focusedIndex = 0;
+        private int focusedIndex;
         private const int ToolbarButtonCount = 25;
 
         private ElementReference _fontFamilyButton;
@@ -125,13 +125,12 @@ namespace BlazorRTE.Components
         private string _currentTextColor = "#000000";
         private string _currentHighlightColor = "#FFFFFF";
 
-        private bool _showEmojiPicker = false;
+        private bool _showEmojiPicker;
         private ElementReference _emojiButton;
-        private ElementReference _emojiPickerContainer;
 
         private Dictionary<string, string>? _emojiShortcodeMap;
 
-        private bool _isEmojiSelected = false;
+        private bool _isEmojiSelected;
 
         private bool _preventTabDefault = false;
 
