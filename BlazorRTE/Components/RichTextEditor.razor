@@ -1,0 +1,670 @@
+@using BlazorRTE.HelperClasses
+@using BlazorEmo.Components
+@using BlazorEmo.Models
+
+<div class="rich-text-editor @(IsFocused ? "focused" : "") @(DarkMode ? "dark-mode" : "")" style="@GetEditorStyle()">
+    @if (ShowToolbar)
+    {
+        <div class="rte-toolbar"
+             role="toolbar"
+             aria-label="Rich text formatting"
+             aria-controls="rte-editor"
+             @onkeydown="HandleToolbarKeydown"
+             @onkeydown:preventDefault
+             @onmousedown="OnToolbarMouseDown"
+             @onmousedown:preventDefault>
+
+            @* ===== HISTORY GROUP ===== *@
+            <div role="group" aria-label="History">
+                <button type="button"
+                        class="rte-btn"
+                        aria-label="Undo"
+                        tabindex="0"
+                        data-toolbar-item
+                        @onfocus="() => focusedIndex = 0"
+                        @onclick="() => ExecuteCommand(FormatCommand.Undo)"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Undo)))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Undo (Ctrl+Z)">
+                    @((MarkupString)SvgIcons.Undo)
+                    <span class="sr-only">Undo</span>
+                </button>
+
+                <button type="button"
+                        class="rte-btn"
+                        aria-label="Redo"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="() => ExecuteCommand(FormatCommand.Redo)"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Redo)))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Redo (Ctrl+Y)">
+                    @((MarkupString)SvgIcons.Redo)
+                    <span class="sr-only">Redo</span>
+                </button>
+            </div>
+
+            <span class="rte-separator" role="separator" aria-orientation="vertical"></span>
+
+            @* ===== TEXT STYLE GROUP ===== *@
+            <div role="group" aria-label="Text style">
+                @* Heading Level Picker *@
+                <div class="rte-color-dropdown">
+                    <button type="button"
+                            @ref="_headingButton"
+                            class="rte-btn rte-btn-wide"
+                            aria-label="Heading level"
+                            aria-haspopup="true"
+                            aria-expanded="@_showHeadingPicker.ToString().ToLower()"
+                            tabindex="-1"
+                            data-toolbar-item
+                            @onclick="ToggleHeadingPicker"
+                            @onkeydown="@(e => HandleButtonKeyDown(e, ToggleHeadingPicker))"
+                            @onmousedown:preventDefault
+                            @onclick:stopPropagation
+                            data-tooltip="Heading Level">
+                        @GetCurrentHeadingLabel()
+                    </button>
+
+                    @if (_showHeadingPicker)
+                    {
+                        <div @ref="_headingPalette"
+                             class="rte-color-palette"
+                             role="listbox"
+                             aria-label="Heading levels"
+                             @onclick:stopPropagation
+                             @onmousedown:stopPropagation
+                             @onkeydown="@(e => HandleListPickerKeydown(e, "heading"))">
+                            <div class="rte-color-palette-title" id="heading-level-label">Heading Level</div>
+                            <div class="rte-font-size-list" aria-labelledby="heading-level-label">
+
+                                @* Normal option *@
+                                <button type="button" class="rte-font-option" role="option" tabindex="-1"
+                                        @onclick="@(() => SelectHeading("p"))"
+                                        @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectHeading("p")))">
+                                    Normal (Ctrl+Alt+0)
+                                </button>
+
+                                @* Heading 1 option *@
+                                <button type="button" class="rte-font-option" role="option" tabindex="-1"
+                                        @onclick="@(() => SelectHeading("h1"))"
+                                        @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectHeading("h1")))">
+                                    Heading 1 (Ctrl+Alt+1)
+                                </button>
+
+                                @* Heading 2 option *@
+                                <button type="button" class="rte-font-option" role="option" tabindex="-1"
+                                        @onclick="@(() => SelectHeading("h2"))"
+                                        @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectHeading("h2")))">
+                                    Heading 2 (Ctrl+Alt+2)
+                                </button>
+
+                                @* Heading 3 option *@
+                                <button type="button" class="rte-font-option" role="option" tabindex="-1"
+                                        @onclick="@(() => SelectHeading("h3"))"
+                                        @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectHeading("h3")))">
+                                    Heading 3 (Ctrl+Alt+3)
+                                </button>
+
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @* Font Family Picker *@
+                <div class="rte-color-dropdown">
+                    <button type="button"
+                            @ref="_fontFamilyButton"
+                            class="rte-btn"
+                            aria-label="Font family"
+                            aria-haspopup="true"
+                            aria-expanded="@_showFontFamilyPicker.ToString().ToLower()"
+                            tabindex="-1"
+                            data-toolbar-item
+                            @onclick="ToggleFontFamilyPicker"
+                            @onkeydown="@(e => HandleButtonKeyDown(e, ToggleFontFamilyPicker))"
+                            @onmousedown:preventDefault
+                            @onclick:stopPropagation
+                            data-tooltip="Font Family">
+                        Aa
+                    </button>
+
+                    @if (_showFontFamilyPicker)
+                    {
+                        <div @ref="_fontFamilyPalette"
+                             class="rte-color-palette rte-font-family-palette"
+                             role="listbox"
+                             aria-label="Font families"
+                             @onclick:stopPropagation
+                             @onmousedown:stopPropagation
+                             @onkeydown="@(e => HandleListPickerKeydown(e, "fontFamily"))">
+                            <div class="rte-color-palette-title" id="font-family-label">Font Family</div>
+                            <div class="rte-font-family-list" aria-labelledby="font-family-label">
+                                @foreach (var font in _fontFamilies)
+                                {
+                                    <button type="button"
+                                            class="rte-font-option"
+                                            role="option"
+                                            tabindex="-1"
+                                            aria-label="@font.Value"
+                                            style="font-family: @font.Key;"
+                                            @onclick="@(() => SelectFontFamily(font.Key))"
+                                            @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectFontFamily(font.Key)))"
+                                            data-tooltip="@font.Value">
+                                        @font.Value
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @* Font Size Picker *@
+                <div class="rte-color-dropdown">
+                    <button type="button"
+                            @ref="_fontSizeButton"
+                            class="rte-btn"
+                            aria-label="Font size"
+                            aria-haspopup="true"
+                            aria-expanded="@_showFontSizePicker.ToString().ToLower()"
+                            tabindex="-1"
+                            data-toolbar-item
+                            @onclick="ToggleFontSizePicker"
+                            @onkeydown="@(e => HandleButtonKeyDown(e, ToggleFontSizePicker))"
+                            @onmousedown:preventDefault
+                            @onclick:stopPropagation
+                            data-tooltip="Font Size (Ctrl+Shift+> / Ctrl+Shift+<)">
+                        @GetCurrentFontSizeLabel()  <!-- ✅ DYNAMIC! -->
+                    </button>
+
+                    @if (_showFontSizePicker)
+                    {
+                        <div @ref="_fontSizePalette"
+                             class="rte-color-palette"
+                             role="listbox"
+                             aria-label="Font sizes"
+                             @onclick:stopPropagation
+                             @onmousedown:stopPropagation
+                             @onkeydown="@(e => HandleListPickerKeydown(e, "fontSize"))">
+                            <div class="rte-color-palette-title" id="font-size-label">Font Size</div>
+                            <div class="rte-font-size-list" aria-labelledby="font-size-label">
+                                @foreach (var size in _fontSizes)
+                                {
+                                    <button type="button"
+                                            class="rte-font-option"
+                                            role="option"
+                                            tabindex="-1"
+                                            aria-label="@size.Value"
+                                            @onclick="@(() => SelectFontSize(size.Key))"
+                                            @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectFontSize(size.Key)))"
+                                            data-tooltip="@size.Value">
+                                        @size.Value
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <span class="rte-separator" role="separator" aria-orientation="vertical"></span>
+
+            @* ===== TEXT FORMAT GROUP ===== *@
+            <div role="group" aria-label="Text formatting">
+                <button type="button"
+                        class="rte-btn @(IsFormatActive("bold") ? "active" : "")"
+                        aria-pressed="@IsFormatActive("bold").ToString().ToLower()"
+                        aria-label="Bold"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="ToggleBold"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, ToggleBold))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Bold (Ctrl+B)">
+                    @((MarkupString)SvgIcons.Bold)
+                    <span class="sr-only">Bold</span>
+                </button>
+
+                <button type="button"
+                        class="rte-btn @(IsFormatActive("italic") ? "active" : "")"
+                        aria-pressed="@IsFormatActive("italic").ToString().ToLower()"
+                        aria-label="Italic"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="() => ExecuteCommand(FormatCommand.Italic)"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Italic)))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Italic (Ctrl+I)">
+                    @((MarkupString)SvgIcons.Italic)
+                    <span class="sr-only">Italic</span>
+                </button>
+
+                <button type="button"
+                        class="rte-btn @(IsFormatActive("underline") ? "active" : "")"
+                        aria-pressed="@IsFormatActive("underline").ToString().ToLower()"
+                        aria-label="Underline"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="() => ExecuteCommand(FormatCommand.Underline)"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Underline)))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Underline (Ctrl+U)">
+                    @((MarkupString)SvgIcons.Underline)
+                    <span class="sr-only">Underline</span>
+                </button>
+
+                <button type="button"
+                        class="rte-btn @(IsFormatActive("strikeThrough") ? "active" : "")"
+                        aria-pressed="@IsFormatActive("strikeThrough").ToString().ToLower()"
+                        aria-label="Strikethrough"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="() => ExecuteCommand(FormatCommand.Strikethrough)"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Strikethrough)))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Strikethrough (Ctrl+Shift+X)">
+                    @((MarkupString)SvgIcons.Strikethrough)
+                    <span class="sr-only">Strikethrough</span>
+                </button>
+
+                <button type="button"
+                        class="rte-btn @(IsFormatActive("subscript") ? "active" : "")"
+                        aria-pressed="@IsFormatActive("subscript").ToString().ToLower()"
+                        aria-label="Subscript"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="() => ExecuteCommand(FormatCommand.Subscript)"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Subscript)))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Subscript (Ctrl+=)">
+                    @((MarkupString)SvgIcons.Subscript)
+                    <span class="sr-only">Subscript</span>
+                </button>
+
+                <button type="button"
+                        class="rte-btn @(IsFormatActive("superscript") ? "active" : "")"
+                        aria-pressed="@IsFormatActive("superscript").ToString().ToLower()"
+                        aria-label="Superscript"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="() => ExecuteCommand(FormatCommand.Superscript)"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Superscript)))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Superscript (Ctrl+Shift+=)">
+                    @((MarkupString)SvgIcons.Superscript)
+                    <span class="sr-only">Superscript</span>
+                </button>
+            </div>
+
+            <span class="rte-separator" role="separator" aria-orientation="vertical"></span>
+
+            @* ===== COLOR GROUP ===== *@
+            <div role="group" aria-label="Text colors">
+                <div class="rte-color-dropdown">
+                    <button type="button"
+                            @ref="_textColorButton"
+                            class="rte-btn @(IsFormatActive("foreColor") ? "active" : "")"
+                            aria-label="Text color"
+                            aria-haspopup="true"
+                            aria-expanded="@_showTextColorPicker.ToString().ToLower()"
+                            tabindex="-1"
+                            data-toolbar-item
+                            @onclick="ToggleTextColorPicker"
+                            @onkeydown="@(e => HandleButtonKeyDown(e, ToggleTextColorPicker))"
+                            @onmousedown:preventDefault
+                            @onclick:stopPropagation
+                            data-tooltip="Text Color">
+                        @* THIS SVG IS DYNAMIC AND MUST REMAIN INLINE *@
+                        <svg class="rte-icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill="currentColor" d="M7.01 16.4q-.287 0-.442-.228q-.154-.228-.05-.49l4.9-11.994q.048-.119.155-.204q.108-.084.246-.084h.362q.144 0 .249.084q.105.085.153.204l4.886 11.943q.104.28-.06.525q-.165.244-.451.244q-.177 0-.323-.094t-.214-.271l-1.302-3.273H8.816L7.502 16.06q-.067.157-.191.249q-.125.091-.302.091m2.16-4.6h5.585L12.05 5.0h-.138z" />
+                            <rect x="3.8" y="19" width="16.4" height="2.5" rx="0.5" fill="@_currentTextColor" />
+                        </svg>
+                        <span class="sr-only">Text Color</span>
+                    </button>
+
+                    @if (_showTextColorPicker)
+                    {
+                        <div @ref="_textColorPalette"
+                             class="rte-color-palette"
+                             role="grid"
+                             aria-label="Text colors"
+                             @onclick:stopPropagation
+                             @onmousedown:stopPropagation>
+                            <div class="rte-color-palette-title" id="text-color-label">Text Color</div>
+                            <div class="rte-color-palette-grid" aria-labelledby="text-color-label">
+                                @foreach (var color in ColorPalette.TextColors)
+                                {
+                                    <button type="button"
+                                            class="rte-palette-color"
+                                            role="gridcell"
+                                            tabindex="-1"
+                                            aria-label="@color.Value"
+                                            style="background-color: @color.Key;"
+                                            @onclick="@(() => SelectTextColor(color.Key))"
+                                            @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectTextColor(color.Key)))"
+                                            data-tooltip="@color.Value"></button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="rte-color-dropdown">
+                    <button type="button"
+                            @ref="_bgColorButton"
+                            class="rte-btn @(IsFormatActive("backColor") ? "active" : "")"
+                            aria-label="Highlight color"
+                            aria-haspopup="true"
+                            aria-expanded="@_showBackgroundColorPicker.ToString().ToLower()"
+                            tabindex="-1"
+                            data-toolbar-item
+                            @onclick="ToggleBackgroundColorPicker"
+                            @onkeydown="@(e => HandleButtonKeyDown(e, ToggleBackgroundColorPicker))"
+                            @onmousedown:preventDefault
+                            @onclick:stopPropagation
+                            data-tooltip="Highlight Color">
+                        <span class="rte-highlight-indicator" style="background-color: @_currentHighlightColor;">A</span>
+                    </button>
+
+                    @if (_showBackgroundColorPicker)
+                    {
+                        <div @ref="_bgColorPalette"
+                             class="rte-color-palette"
+                             role="grid"
+                             aria-label="Highlight colors"
+                             @onclick:stopPropagation
+                             @onmousedown:stopPropagation>
+                            <div class="rte-color-palette-title" id="bg-color-label">Highlight Color</div>
+                            <div class="rte-color-palette-grid" aria-labelledby="bg-color-label">
+                                @foreach (var color in ColorPalette.BackgroundColors)
+                                {
+                                    @if (color.Key == "transparent")
+                                    {
+                                        <button type="button"
+                                                class="rte-palette-color rte-palette-color-none"
+                                                role="gridcell"
+                                                tabindex="-1"
+                                                aria-label="@color.Value"
+                                                @onclick="@(() => SelectBackgroundColor(color.Key))"
+                                                @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectBackgroundColor(color.Key)))"
+                                                data-tooltip="@color.Value">
+                                            <span aria-hidden="true">✕</span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button"
+                                                class="rte-palette-color"
+                                                role="gridcell"
+                                                tabindex="-1"
+                                                aria-label="@color.Value"
+                                                style="background-color: @color.Key;"
+                                                @onclick="@(() => SelectBackgroundColor(color.Key))"
+                                                @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectBackgroundColor(color.Key)))"
+                                                data-tooltip="@color.Value"></button>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    }
+                    
+                </div>
+            </div>
+
+            <span class="rte-separator" role="separator" aria-orientation="vertical"></span>
+
+            @* ===== PARAGRAPH GROUP ===== *@
+            <div role="group" aria-label="Paragraph formatting">
+                <button type="button"
+                        class="rte-btn @(IsFormatActive("insertUnorderedList") ? "active" : "")"
+                        aria-pressed="@IsFormatActive("insertUnorderedList").ToString().ToLower()"
+                        aria-label="Bulleted list"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="() => ExecuteCommand(FormatCommand.InsertUnorderedList)"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.InsertUnorderedList)))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Bullet List (Ctrl+Shift+8)">
+                    @((MarkupString)SvgIcons.ListUl)
+                    <span class="sr-only">Bulleted List</span>
+                </button>
+
+                <button type="button"
+                        class="rte-btn @(IsFormatActive("insertOrderedList") ? "active" : "")"
+                        aria-pressed="@IsFormatActive("insertOrderedList").ToString().ToLower()"
+                        aria-label="Numbered list"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="() => ExecuteCommand(FormatCommand.InsertOrderedList)"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.InsertOrderedList)))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Numbered List (Ctrl+Shift+7)">
+                    @((MarkupString)SvgIcons.ListOl)
+                    <span class="sr-only">Numbered List</span>
+                </button>
+
+                <button type="button"
+                        class="rte-btn"
+                        aria-label="Decrease indent"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="() => ExecuteCommand(FormatCommand.Outdent)"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Outdent)))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Decrease Indent (Ctrl+[)">
+                    @((MarkupString)SvgIcons.Outdent)
+                    <span class="sr-only">Decrease Indent</span>
+                </button>
+
+                <button type="button"
+                        class="rte-btn"
+                        aria-label="Increase indent"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="() => ExecuteCommand(FormatCommand.Indent)"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Indent)))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Increase Indent (Ctrl+]" )>
+                    @((MarkupString)SvgIcons.Indent)
+                    <span class="sr-only">Increase Indent</span>
+                </button>
+            </div>
+
+            <span class="rte-separator" role="separator" aria-orientation="vertical"></span>
+
+            @* ===== ALIGNMENT GROUP ===== *@
+            <div role="group" aria-label="Text alignment">
+                <button type="button"
+                        class="rte-btn @(alignment == "left" ? "active" : "")"
+                        aria-pressed="@(alignment == "left").ToString().ToLower()"
+                        aria-label="Align left"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="() => ExecuteCommand(FormatCommand.AlignLeft)"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.AlignLeft)))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Align Left (Ctrl+L)">
+                    @((MarkupString)SvgIcons.AlignLeft)
+                    <span class="sr-only">Align Left</span>
+                </button>
+
+                <button type="button"
+                        class="rte-btn @(alignment == "center" ? "active" : "")"
+                        aria-pressed="@(alignment == "center").ToString().ToLower()"
+                        aria-label="Align center"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="() => ExecuteCommand(FormatCommand.AlignCenter)"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.AlignCenter)))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Align Center (Ctrl+E)">
+                    @((MarkupString)SvgIcons.AlignCenter)
+                    <span class="sr-only">Align Center</span>
+                </button>
+
+                <button type="button"
+                        class="rte-btn @(alignment == "right" ? "active" : "")"
+                        aria-pressed="@(alignment == "right").ToString().ToLower()"
+                        aria-label="Align right"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="() => ExecuteCommand(FormatCommand.AlignRight)"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.AlignRight)))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Align Right (Ctrl+R)">
+                    @((MarkupString)SvgIcons.AlignRight)
+                    <span class="sr-only">Align Right</span>
+                </button>
+
+                <button type="button"
+                        class="rte-btn @(alignment == "justify" ? "active" : "")"
+                        aria-pressed="@(alignment == "justify").ToString().ToLower()"
+                        aria-label="Justify"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="() => ExecuteCommand(FormatCommand.AlignJustify)"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.AlignJustify)))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Justify (Ctrl+J)">
+                    @((MarkupString)SvgIcons.AlignJustify)
+                    <span class="sr-only">Justify</span>
+                </button>
+            </div>
+
+            <span class="rte-separator" role="separator" aria-orientation="vertical"></span>
+
+            @* ===== INSERT GROUP ===== *@
+            <div role="group" aria-label="Insert">
+                <button type="button"
+                        class="rte-btn @(IsFormatActive("link") ? "active" : "")"
+                        aria-haspopup="dialog"
+                        aria-label="@(IsFormatActive("link") ? "Edit link" : "Insert link")"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="CreateLink"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, CreateLink))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Insert Link (Ctrl+K)">
+                    @((MarkupString)SvgIcons.Link)
+                    <span class="sr-only">Insert Link</span>
+                </button>
+
+                <button type="button"
+                        class="rte-btn"
+                        aria-label="Insert horizontal rule"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="() => ExecuteCommand(FormatCommand.HorizontalRule)"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.HorizontalRule)))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Horizontal Rule (Ctrl+Enter)">
+                    @((MarkupString)SvgIcons.HorizontalRule)
+                    <span class="sr-only">Horizontal Rule</span>
+                </button>
+
+                @* ===== EMOJI BUTTON (NO DROPDOWN WRAPPER) ===== *@
+                <button type="button"
+                        @ref="_emojiButton"
+                        class="rte-btn @(_isEmojiSelected ? "active" : "")"
+                        aria-label="Insert emoji"
+                        aria-haspopup="true"
+                        aria-expanded="@_showEmojiPicker.ToString().ToLower()"
+                        aria-pressed="@_isEmojiSelected.ToString().ToLower()"
+                        tabindex="-1"
+                        data-toolbar-item
+                        @onclick="ToggleEmojiPicker"
+                        @onkeydown="@(e => HandleButtonKeyDown(e, ToggleEmojiPicker))"
+                        @onmousedown:preventDefault
+                        @onclick:stopPropagation
+                        data-tooltip="Insert Emoji (Ctrl+Shift+E)">
+                    <span aria-hidden="true" style="font-size: 16px; line-height: 1;">😀</span>
+                    <span class="sr-only">Insert Emoji</span>
+                </button>
+            </div>
+
+            <span class="rte-separator" role="separator" aria-orientation="vertical"></span>
+
+            @* ===== CLEAR FORMATTING (always last) ===== *@
+            <button type="button"
+                    class="rte-btn"
+                    aria-label="Clear formatting"
+                    tabindex="-1"
+                    data-toolbar-item
+                    @onclick="() => ExecuteCommand(FormatCommand.RemoveFormat)"
+                    @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.RemoveFormat)))"
+                    @onmousedown:preventDefault
+                    @onclick:stopPropagation
+                    data-tooltip="Clear Formatting (Ctrl+\)">
+                @((MarkupString)SvgIcons.ClearFormatting)
+                <span class="sr-only">Clear Formatting</span>
+            </button>
+        </div>
+    }
+
+    <div class="rte-content-wrapper">
+        <div class="rte-content"
+             @ref="_editorRef"
+             id="rte-editor"
+             contenteditable="true"
+             tabindex="0"
+             @oninput="OnInput"
+             @onkeydown="OnKeyDown"
+             @onpaste="OnPaste"
+             @onfocus="OnFocus"
+             @onblur="OnBlur"
+             @onclick="OnEditorClick"
+             @onmousedown="OnToolbarMouseDown"
+             placeholder="@Placeholder"
+             aria-label="@AriaLabel">
+        </div>
+    </div>
+
+    @if (ShowCharacterCount)
+    {
+        <div class="rte-footer">
+            <span id="rte-char-count" class="rte-char-count" aria-live="polite" aria-atomic="true">
+                @GetCharacterCount() / @MaxLength characters
+                @if (GetWordCount() > 0)
+                {
+                    <span class="rte-word-count">(@GetWordCount() words)</span>
+                }
+            </span>
+        </div>
+    }
+</div>
+
+@* EMOJI PICKER - OUTSIDE EDITOR CONTAINER FOR PROPER POSITIONING *@
+@if (_showEmojiPicker)
+{
+    <div class="emoji-picker-portal @(DarkMode ? "dark-mode" : "")" @onclick:stopPropagation>
+        <EmoPicker IsOpen="@_showEmojiPicker"
+                   OnEmojiSelected="InsertEmoji"
+                   OnClose="CloseEmojiPicker"
+                   UseVirtualization="true"
+                   UseCompleteDataset="true"
+                   DarkMode="@DarkMode" />
+    </div>
+}
+
+<!-- Autocomplete OUTSIDE the editor container -->
+<EmojiAutocomplete @ref="emojiAutocomplete"
+                   OnEmojiSelected="OnEmojiSelected"
+                   DarkMode="@DarkMode" />

@@ -1,0 +1,265 @@
+﻿@page "/"
+@using BlazorRTE.Components
+@using BlazorRTE.Demo.SvgIcons
+
+<PageTitle>BlazorRTE Demo - v1.1.3</PageTitle>
+
+<div class="demo-container @(isDarkMode ? "dark-mode" : "")">
+    <div class="demo-header">
+        <div class="header-content">
+            <h1>@((MarkupString)SvgIcons.GetLogo(400))</h1>
+            <span class="version-badge">v1.1.3</span>
+        </div>
+        <p class="lead">A fully accessible, keyboard-navigable rich text editor for Blazor WebAssembly and Blazor Server with emoji support! 🎉</p>
+        <p class="sub-lead">
+            <strong>New in v1.1.3:</strong> BlazorEmo as separate dependency • Dynamic font size button
+        </p>
+    </div>
+
+    <div class="demo-content">
+        <div class="editor-section">
+            <h2>Try the Editor</h2>
+            <p class="text-muted">
+                Click in the editor below and try formatting your text. Use the toolbar or keyboard shortcuts!
+                <br>
+                <strong>Try these:</strong> Ctrl+B (bold), Ctrl+K (link), Ctrl+Shift+E (emojis), or type <code>:smile</code>
+            </p>
+
+            <RichTextEditor @bind-Value="@editorContent"
+                            Placeholder="Start typing here... Try using Ctrl+B for bold, Ctrl+Shift+E for emojis, or :smile for autocomplete!"
+                            ShowToolbar="true"
+                            ShowCharacterCount="true"
+                            MinHeight="300px"
+                            MaxHeight="600px"
+                            MaxLength="5000"
+                            DarkMode="@isDarkMode"
+                            AriaLabel="Demo rich text editor"
+                            OnFocusChanged="HandleFocusChanged" />
+        </div>
+
+        <div class="controls-section">
+            <div class="btn-group">
+                <button class="btn btn-primary" @onclick="ClearEditor">
+                    Clear Editor
+                </button>
+                <button class="btn btn-secondary" @onclick="ToggleHtmlView">
+                    @(showHtml ? "Hide HTML" : "Show HTML")
+                </button>
+                <button class="btn btn-success" @onclick="LoadSampleContent">
+                    Load Sample
+                </button>
+                <button class="btn @(isDarkMode ? "btn-warning" : "btn-dark")" @onclick="ToggleDarkMode" title="Toggle Dark Mode">
+                    @if (isDarkMode)
+                    {
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" style="vertical-align: text-bottom;">
+                            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/>
+                        </svg>
+                        <span> Light</span>
+                    }
+                    else
+                    {
+                        <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" style="vertical-align: text-bottom;">
+                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+                        </svg>
+                        <span> Dark</span>
+                    }
+                </button>
+            </div>
+        </div>
+
+        @if (showHtml)
+        {
+            <div class="html-output">
+                <h3>HTML Output</h3>
+                <pre><code>@editorContent</code></pre>
+            </div>
+        }
+
+        <div class="preview-section">
+            <h3>Live Preview</h3>
+            <div class="preview-box">
+                @((MarkupString)(editorContent ?? "<p class='text-muted'>Start typing to see the preview...</p>"))
+            </div>
+        </div>
+    </div>
+        
+    <div class="features-section">
+        <h2>Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h4>⌨️ Full Keyboard Support</h4>
+                <ul>
+                    <li>Ctrl+B - Bold</li>
+                    <li>Ctrl+I - Italic</li>
+                    <li>Ctrl+U - Underline</li>
+                    <li>Ctrl+K - Insert Link</li>
+                    <li>Ctrl+Shift+E - Emoji Picker</li>
+                    <li>Ctrl+Z/Y - Undo/Redo</li>
+                    <li><strong>+ 21 more shortcuts!</strong></li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h4>♿ Accessibility</h4>
+                <ul>
+                    <li>Complete ARIA Implementation</li>
+                    <li>WAI-ARIA 1.2 Patterns</li>
+                    <li>Keyboard Navigation</li>
+                    <li>Screen Reader Compatible</li>
+                    <li>Focus Management</li>
+                    <li>High Contrast Mode (9.7:1)</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h4>🎨 Rich Formatting</h4>
+                <ul>
+                    <li>Text Styles (Bold, Italic, etc.)</li>
+                    <li>Headings (H1, H2, H3)</li>
+                    <li>Text & Highlight Colors</li>
+                    <li>Font Families & Sizes</li>
+                    <li><strong>Dynamic Size Button</strong> 🆕</li>
+                    <li>Lists & Alignment</li>
+                    <li>Links & Horizontal Rules</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h4>😀 Emoji Support</h4>
+                <ul>
+                    <li>Full Emoji Picker (1800+ emojis)</li>
+                    <li>Search by Name or Keyword</li>
+                    <li>Recent Emojis (Persisted)</li>
+                    <li>Autocomplete (<code>:smile</code>)</li>
+                    <li>Quick Emoticons (<code>:)</code> <code>:D</code>)</li>
+                    <li>Category Navigation</li>
+                    <li>Keyboard Accessible</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <h2>About BlazorRTE v1.1.3</h2>
+        <p>
+            BlazorRTE is a modern, accessible rich text editor built for Blazor WebAssembly applications.
+            It features comprehensive keyboard support, ARIA attributes for screen readers, and a fully
+            accessible emoji picker powered by <strong>BlazorEmo</strong> (separate NuGet package).
+        </p>
+        
+        <div class="info-badges">
+            <p>
+                <strong>Focus State:</strong>
+                <span class="badge @(isFocused ? "badge-success" : "badge-secondary")">
+                    @(isFocused ? "Editor is focused" : "Editor is not focused")
+                </span>
+            </p>
+            <p>
+                <strong>Content Length:</strong>
+                <span class="badge badge-info">@GetPlainTextLength() characters</span>
+            </p>
+            <p>
+                <strong>Theme:</strong>
+                <span class="badge @(isDarkMode ? "badge-dark" : "badge-light")">
+                    @(isDarkMode ? "Dark Mode" : "Light Mode")
+                </span>
+            </p>
+            <p>
+                <strong>Version:</strong>
+                <span class="badge badge-primary">v1.1.3</span>
+            </p>
+        </div>
+
+        <div class="whats-new">
+            <h3>✨ What's New in v1.1.3</h3>
+            <ul>
+                <li>🔗 <strong>BlazorEmo as separate NuGet dependency</strong> - Allows independent updates</li>
+                <li>📏 <strong>Dynamic font size button</strong> - Shows current size (10, 14, 16, 18, 24, 32)</li>
+                <li>🖱️ <strong>Mouse click support for all pickers</strong> - Fixed keyboard-only limitation</li>
+                <li>🔗 <strong>Working link button</strong> - Prompts for URL, validates selection</li>
+                <li>♿ <strong>Improved ARIA semantics</strong> - Correct dialog pattern for links</li>
+            </ul>
+        </div>
+
+        <div class="links-section">
+            <h3>Links</h3>
+            <ul>
+                <li>📦 <a href="https://www.nuget.org/packages/BlazorRTE" target="_blank">BlazorRTE on NuGet</a></li>
+                <li>🎭 <a href="https://www.nuget.org/packages/BlazorEmo" target="_blank">BlazorEmo on NuGet</a></li>
+                <li>📁 <a href="https://github.com/simscon1/BlazorRTE" target="_blank">GitHub Repository</a></li>
+                <li>📖 <a href="https://github.com/simscon1/BlazorRTE/blob/master/Docs/FEATURES.md" target="_blank">Full Documentation</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string? editorContent = "<p>Welcome to <strong>BlazorRTE v1.1.3</strong>! 👋</p><p>Try formatting this text or add your own content. The font size button now shows the current size dynamically!</p>";
+    private bool showHtml = false;
+    private bool isFocused = false;
+    private bool isDarkMode = false;
+
+    private void ClearEditor()
+    {
+        editorContent = "";
+    }
+
+    private void ToggleHtmlView()
+    {
+        showHtml = !showHtml;
+    }
+
+    private void ToggleDarkMode()
+    {
+        isDarkMode = !isDarkMode;
+    }
+
+    private void LoadSampleContent()
+    {
+        editorContent = @"
+<h1>Welcome to Blazor<font color=""#9933ff"">RTE</font> v1.1.3! 🚀</h1>
+<p>This is a <strong>rich text editor</strong> with full <em>formatting support</em>.</p>
+
+<h2>✨ What's New in v1.1.3:</h2>
+<ul>
+    <li><strong>BlazorEmo</strong> is now a <em>separate NuGet package</em> 📦</li>
+    <li>Dynamic <font size=""6"">font size</font> button shows current size 📏</li>
+    <li>Working link button (try Ctrl+K!) 🔗</li>
+    <li>Mouse clicks work on all pickers 🖱️</li>
+</ul>
+
+<h2>Key Features:</h2>
+<ul>
+    <li><strong>Bold</strong>, <em>Italic</em>, <u>Underline</u>, and <s>Strikethrough</s></li>
+    <li>Multiple heading levels (H1, H2, H3)</li>
+    <li>Text colors and <mark style=""background-color: yellow;"">highlights</mark></li>
+    <li>Emoji support 😀🎉✨ - Try <code>:smile</code> or Ctrl+Shift+E</li>
+</ul>
+
+<h3>Emoji Autocomplete Demo:</h3>
+<p>Type a colon followed by emoji name: <code>:heart</code> ❤️ <code>:rocket</code> 🚀 <code>:thumbs</code> 👍</p>
+
+<hr>
+
+<p style=""text-align: center;"">
+    Try the toolbar above or use keyboard shortcuts! 
+    <br>
+    Made with ❤️ for Blazor developers.
+</p>
+";
+    }
+
+    private void HandleFocusChanged()
+    {
+        isFocused = !isFocused;
+    }
+
+    private int GetPlainTextLength()
+    {
+        if (string.IsNullOrEmpty(editorContent))
+            return 0;
+
+        var text = System.Text.RegularExpressions.Regex.Replace(editorContent, "<.*?>", string.Empty);
+        return text.Length;
+    }
+}

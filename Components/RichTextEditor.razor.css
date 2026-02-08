@@ -1,0 +1,561 @@
+/* Rich Text Editor Styles */
+
+.rich-text-editor {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: white;
+    overflow: visible;
+    transition: border-color 0.2s ease;
+    min-height: var(--rte-min-height, 200px);  /* ✅ Industry standard min */
+    max-height: var(--rte-max-height, 600px);  /* ✅ Industry standard max, user customizable */
+}
+
+.rich-text-editor.focused {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Toolbar */
+.rte-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 8px;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    border-top-left-radius: 8px;   /* ← ADD: Fix top-left corner */
+    border-top-right-radius: 8px;  /* ← ADD: Fix top-right corner */
+}
+
+/* Button groups - display inline */
+.rte-toolbar [role="group"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Heading Dropdown */
+.rte-dropdown {
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: white;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    outline: none;
+}
+
+/* ADD THIS - Wider dropdown for font family */
+.rte-dropdown-wide {
+    min-width: 140px;
+}
+
+.rte-dropdown:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.rte-dropdown:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.rte-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.rte-btn:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+}
+
+.rte-btn:active {
+    background: #d1d5db;
+}
+
+.rte-btn.active {
+    background: #dbeafe;
+    border-color: #93c5fd;
+    color: #1e40af;
+}
+
+.rte-separator {
+    width: 1px;
+    height: 24px;
+    background: #d1d5db;
+    margin: 0 4px;
+}
+
+/* Color Picker */
+.rte-color-picker {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+}
+
+.rte-color-btn {
+    width: 20px;
+    height: 20px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.15s ease;
+}
+
+.rte-color-btn:hover {
+    transform: scale(1.15);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.rte-color-btn:active {
+    transform: scale(1.0);
+}
+
+/* Color Dropdown Container */
+.rte-color-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Color Palette Popup */
+.rte-color-palette {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 4px;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    z-index: 9999;   /* ✅ Much higher, always on top */
+    min-width: 180px;
+}
+
+/* When button is near RIGHT edge - align palette to right */
+.rte-color-palette.align-right {
+    left: auto;
+    right: 0;
+    transform: none;
+}
+
+/* When button is near LEFT edge - align palette to left */
+.rte-color-palette.align-left {
+    left: 0;
+    right: auto;
+    transform: none;
+}
+
+.rte-color-palette-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    padding: 0 4px;
+}
+
+.rte-color-palette-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+
+.rte-palette-color {
+    width: 32px;
+    height: 32px;
+    border: 2px solid #e5e7eb;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.rte-palette-color:hover {
+    transform: scale(1.1);
+    border-color: #3b82f6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.rte-palette-color-none {
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #ef4444;
+    font-weight: bold;
+}
+
+/* Content Area */
+.rte-content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    overflow: auto; /* Scrollbar when content overflows */
+}
+
+.rte-content {
+    flex: 1;
+    padding: 12px;
+    outline: none;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #111827;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+.rte-content:empty::before {
+    content: attr(placeholder);
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.rte-content p {
+    margin: 0 0 0.5em 0;
+}
+
+.rte-content p:last-child {
+    margin-bottom: 0;
+}
+
+.rte-content strong,
+.rte-content b {
+    font-weight: 700;
+}
+
+.rte-content em,
+.rte-content i {
+    font-style: italic;
+}
+
+.rte-content u {
+    text-decoration: underline;
+}
+
+.rte-content s,
+.rte-content strike {
+    text-decoration: line-through;
+}
+
+.rte-content hr {
+    border: none;
+    border-top: 2px solid #d1d5db;
+    margin: 1em 0;
+}
+
+/* Heading Styles */
+.rte-content h1 {
+    font-size: 2em;
+    font-weight: 700;
+    margin: 0.5em 0;
+    line-height: 1.2;
+}
+
+.rte-content h2 {
+    font-size: 1.5em;
+    font-weight: 600;
+    margin: 0.5em 0;
+    line-height: 1.3;
+}
+
+.rte-content h3 {
+    font-size: 1.25em;
+    font-weight: 600;
+    margin: 0.5em 0;
+    line-height: 1.4;
+}
+
+.rte-content ul,
+.rte-content ol {
+    margin: 0.5em 0;
+    padding-left: 24px;
+}
+
+.rte-content li {
+    margin: 0.25em 0;
+}
+
+.rte-content a {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+.rte-content a:hover {
+    color: #1d4ed8;
+}
+
+.rte-content:focus {
+    outline: none;
+}
+
+/* Footer with Character Count */
+.rte-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    font-size: 12px;
+    color: #6b7280;
+    text-align: right;
+    border-bottom-left-radius: 8px;   /* ← ADD: Fix bottom-left corner */
+    border-bottom-right-radius: 8px;  /* ← ADD: Fix bottom-right corner */
+}
+
+.rte-char-count {
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.rte-word-count {
+    margin-left: 8px;
+    color: #9ca3af;
+}
+
+/* Scrollbar styling */
+.rte-content-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.rte-content-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.rte-content-wrapper::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+}
+
+.rte-content-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* SVG Icons */
+.rte-icon {
+    width: 18px;
+    height: 18px;
+    display: block;
+    pointer-events: none;
+}
+
+/* Ensure icons inherit button colors */
+.rte-btn .rte-icon {
+    stroke: currentColor;
+}
+
+.rte-btn:hover .rte-icon {
+    stroke: currentColor;
+}
+
+.rte-btn.active .rte-icon {
+    stroke: #3b82f6; /* Blue for active state */
+}
+
+/* Font Size Picker */
+.rte-font-size-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px;
+}
+
+.rte-font-option {
+    padding: 5px 16px;   /* ✅ More compact */
+    border: 1px solid transparent;
+    background: white;        /* ✅ White for light mode */
+    color: #1f2937;          /* ✅ Dark text for light mode */
+    text-align: left;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.rte-font-option:hover {
+    background: #f3f4f6;     /* ✅ Light gray hover */
+    border-color: #e5e7eb;   /* ✅ Light border */
+    transform: translateX(2px);
+}
+
+.rte-font-option:active {
+    background: #e5e7eb;     /* ✅ Slightly darker gray when clicked */
+}
+
+/* Font Family Picker - wider and taller for font names */
+.rte-font-family-palette {
+    min-width: 200px;
+}
+
+.rte-font-family-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+/* Scrollbar for font family list */
+.rte-font-family-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.rte-font-family-list::-webkit-scrollbar-track {
+    background: #f9fafb;  /* ✅ Light gray for light mode */
+    border-radius: 3px;
+}
+
+.rte-font-family-list::-webkit-scrollbar-thumb {
+    background: #d1d5db;  /* ✅ Medium gray for light mode */
+    border-radius: 3px;
+}
+
+.rte-font-family-list::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;  /* ✅ Darker gray on hover */
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .rich-text-editor {
+        background: #1f2937;
+        border-color: #374151;
+    }
+
+    .rte-toolbar {
+        background: #111827;
+        border-bottom-color: #374151;
+    }
+
+    .rte-dropdown {
+        background: #1f2937;
+        border-color: #374151;
+        color: #e5e7eb;
+    }
+
+    .rte-dropdown:hover {
+        background: #374151;
+        border-color: #4b5563;
+    }
+
+    .rte-btn {
+        color: #e7e9eb;
+    }
+
+    .rte-btn:hover {
+        background: #374151;
+        border-color: #4b5563;
+    }
+
+    .rte-btn.active {
+        background: #1e3a8a;
+        border-color: #3b82f6;
+        color: #93c5fd;
+    }
+
+    .rte-content {
+        color: #f9fafb;
+    }
+
+    .rte-content:empty::before {
+        color: #6b7280;
+    }
+
+    .rte-content hr {
+        border-top-color: #4b5563;
+    }
+
+    .rte-footer {
+        background: #111827;
+        border-top-color: #374151;
+    }
+
+    .rte-char-count {
+        color: #9ca3af;
+    }
+
+    .rte-color-palette {
+        background: #1f2937;
+        border-color: #374151;
+    }
+
+    .rte-color-palette-title {
+        color: #9ca3af;
+    }
+
+    .rte-palette-color {
+        border-color: #4b5563;
+    }
+
+    .rte-btn .rte-icon {
+        stroke: #e5e7eb;
+    }
+    
+    .rte-btn.active .rte-icon {
+        stroke: #60a5fa;
+    }
+
+    .rte-font-option {
+        color: #d1d5db;
+    }
+
+    .rte-font-option:hover {
+        background: #374151;
+    }
+    
+    /* ADD THESE - Scrollbar dark mode colors */
+    .rte-font-family-list::-webkit-scrollbar-track {
+        background: #1f2937;
+    }
+
+    .rte-font-family-list::-webkit-scrollbar-thumb {
+        background: #4b5563;
+    }
+
+    .rte-font-family-list::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+    }
+}
+
+.rte-content sub {
+    font-size: 0.75em;
+    vertical-align: sub;
+}
+
+.rte-content sup {
+    font-size: 0.75em;
+    vertical-align: super;
+}

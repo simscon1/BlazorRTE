@@ -1,0 +1,349 @@
+﻿@page "/events-demo"
+@using BlazorRTE.Components
+@using BlazorRTE.EventArgs
+
+<PageTitle>Events Demo - BlazorRTE</PageTitle>
+
+<h1 class="mb-4">Rich Text Editor Events Demo</h1>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Editor</h5>
+                <div>
+                    <button class="btn btn-sm btn-success" @onclick="LoadSampleContent">
+                        Load Sample
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger ms-2" @onclick="ClearEditor">
+                        Clear
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <RichTextEditor Value="@_content"
+                                ValueChanged="@HandleValueChanged"
+                                Placeholder="Start typing to trigger events..."
+                                OnContentChanged="@HandleContentChanged"
+                                OnHtmlChanged="@HandleHtmlChanged"                              
+                                OnBeforeCommand="@HandleBeforeCommand"
+                                OnAfterCommand="@HandleAfterCommand"
+                                OnFocused="@HandleFocused"
+                                OnBlurred="@HandleBlurred"
+                                OnBeforePaste="@HandleBeforePaste"
+                                OnAfterPaste="@HandleAfterPaste"
+                                OnShortcutPressed="@HandleShortcutPressed"
+                                OnMaxLengthReached="@HandleMaxLengthReached"
+                                OnCharacterCountChanged="@HandleCharacterCountChanged"
+                                OnWordCountChanged="@HandleWordCountChanged"
+                                OnLinkCreated="@HandleLinkCreated"
+                                OnLinkRemoved="@HandleLinkRemoved"
+                                OnUndo="@HandleUndo"
+                                OnRedo="@HandleRedo"
+                                OnDirtyStateChanged="@HandleDirtyStateChanged"
+                                OnEmojiInserted="@HandleEmojiInserted"
+                                OnEmojiPickerOpened="@HandleEmojiPickerOpened"
+                                OnEmojiPickerClosed="@HandleEmojiPickerClosed"
+                                OnError="@HandleError"
+                                MaxLength="1000" />
+
+                @* REMOVED: OnSelectionChanged - fires too frequently *@
+                @* REMOVED: OnFormatChanged - fires too frequently *@
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card mb-3 sticky-top" style="top: 20px;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Event Log</h5>
+                <button class="btn btn-sm btn-outline-secondary" @onclick="ClearLog">Clear</button>
+            </div>
+            <div class="card-body event-log">
+                @if (!_eventLog.Any())
+                {
+                    <p class="text-muted small">No events yet. Start interacting with the editor!</p>
+                }
+                else
+                {
+                    @foreach (var (eventInfo, index) in _eventLog.Select((e, i) => (e, i)))
+                    {
+                        <div class="event-item @GetEventClass(eventInfo.Category)" key="@index">
+                            <div class="d-flex justify-content-between">
+                                <strong>@eventInfo.Name</strong>
+                                <small class="text-muted">@eventInfo.Timestamp.ToString("HH:mm:ss.fff")</small>
+                            </div>
+                            @if (!string.IsNullOrEmpty(eventInfo.Details))
+                            {
+                                <small class="text-muted d-block mt-1">@eventInfo.Details</small>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="stat-item">
+                    <label>Characters:</label>
+                    <span class="badge bg-primary">@_characterCount</span>
+                </div>
+                <div class="stat-item">
+                    <label>Words:</label>
+                    <span class="badge bg-info">@_wordCount</span>
+                </div>
+                <div class="stat-item">
+                    <label>Is Dirty:</label>
+                    <span class="badge @(_isDirty ? "bg-warning" : "bg-success")">@_isDirty</span>
+                </div>
+                <div class="stat-item">
+                    <label>Focus State:</label>
+                    <span class="badge @(_isFocused ? "bg-success" : "bg-secondary")">@(_isFocused ? "Focused" : "Blurred")</span>
+                </div>
+                <div class="stat-item">
+                    <label>Total Events:</label>
+                    <span class="badge bg-dark">@_totalEvents</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _content = "";
+    private List<EventInfo> _eventLog = new();
+    private int _characterCount = 0;
+    private int _wordCount = 0;
+    private bool _isDirty = false;
+    private bool _isFocused = false;
+    private int _totalEvents = 0;
+
+    private const int MaxLogEntries = 50;
+
+    private void LoadSampleContent()
+    {
+        _content = @"
+<h1>Welcome to BlazorRTE! 🚀</h1>
+<p>This is a <strong>rich text editor</strong> with full <em>formatting support</em>.</p>
+
+<h2>Key Features:</h2>
+<ul>
+    <li><strong>Bold</strong>, <em>Italic</em>, <u>Underline</u>, and <del>Strikethrough</del></li>
+    <li>Multiple heading levels</li>
+    <li>Text colors and <mark style=""background-color: yellow;"">highlights</mark></li>
+    <li>Emoji support 😀🎉✨</li>
+</ul>
+
+<h3>Code Example:</h3>
+<p style=""font-family: 'Courier New';"">Console.WriteLine(""Hello, BlazorRTE!"");</p>
+
+<hr>
+
+<p style=""text-align: center;"">
+    Try the toolbar above or use keyboard shortcuts! 
+    <br>
+    Made with ❤️ for Blazor developers.
+</p>
+";
+        AddEvent("LoadSample", "Sample content loaded programmatically", EventCategory.Content);
+    }
+
+    private void ClearEditor()
+    {
+        _content = "";
+        AddEvent("ClearEditor", "Editor content cleared", EventCategory.Content);
+    }
+
+    private void HandleValueChanged(string value)
+    {
+        _content = value;
+    }
+
+    private void AddEvent(string name, string? details = null, EventCategory category = EventCategory.General)
+    {
+        _eventLog.Insert(0, new EventInfo
+        {
+            Name = name,
+            Details = details,
+            Timestamp = DateTime.Now,
+            Category = category
+        });
+
+        if (_eventLog.Count > MaxLogEntries)
+        {
+            _eventLog.RemoveAt(_eventLog.Count - 1);
+        }
+
+        _totalEvents++;
+    }
+
+    private void ClearLog()
+    {
+        _eventLog.Clear();
+    }
+
+    private string GetEventClass(EventCategory category) => category switch
+    {
+        EventCategory.Content => "event-content",
+        EventCategory.Format => "event-format",
+        EventCategory.Focus => "event-focus",
+        EventCategory.Input => "event-input",
+        EventCategory.Validation => "event-validation",
+        EventCategory.Link => "event-link",
+        EventCategory.History => "event-history",
+        EventCategory.State => "event-state",
+        EventCategory.Emoji => "event-emoji",
+        EventCategory.Error => "event-error",
+        _ => "event-general"
+    };
+
+    // Content Events
+    private void HandleContentChanged(string content)
+    {
+        AddEvent("OnContentChanged", $"Length: {content.Length}", EventCategory.Content);
+    }
+
+    private void HandleHtmlChanged(HtmlChangedEventArgs args)
+    {
+        AddEvent("OnHtmlChanged", $"Source: {args.Source}, Chars: {args.CharacterCount}, Words: {args.WordCount}", EventCategory.Content);
+    }
+
+    private void HandleBeforeCommand(CommandEventArgs args)
+    {
+        AddEvent("OnBeforeCommand", $"Command: {args.CommandName}", EventCategory.Format);
+    }
+
+    private void HandleAfterCommand(CommandEventArgs args)
+    {
+        AddEvent("OnAfterCommand",
+            args.Success ? $"Command: {args.CommandName}" : $"Failed: {args.Error}",
+            args.Success ? EventCategory.Format : EventCategory.Error);
+    }
+
+    // Focus Events
+    private void HandleFocused()
+    {
+        _isFocused = true;
+        AddEvent("OnFocused", null, EventCategory.Focus);
+    }
+
+    private void HandleBlurred()
+    {
+        _isFocused = false;
+        AddEvent("OnBlurred", null, EventCategory.Focus);
+    }
+
+    // Input Events
+    private void HandleBeforePaste(PasteEventArgs args)
+    {
+        AddEvent("OnBeforePaste",
+            $"Type: {(args.IsHtml ? "HTML" : "Text")}, Length: {args.ClipboardContent.Length}",
+            EventCategory.Input);
+    }
+
+    private void HandleAfterPaste(PasteEventArgs args)
+    {
+        AddEvent("OnAfterPaste", $"Pasted {args.ClipboardContent.Length} characters", EventCategory.Input);
+    }
+
+    private void HandleShortcutPressed(ShortcutEventArgs args)
+    {
+        AddEvent("OnShortcutPressed", $"Shortcut: {args.Shortcut}", EventCategory.Input);
+    }
+
+    // Validation Events
+    private void HandleMaxLengthReached()
+    {
+        AddEvent("OnMaxLengthReached", "Maximum character limit reached!", EventCategory.Validation);
+    }
+
+    private void HandleCharacterCountChanged(int count)
+    {
+        _characterCount = count;
+    }
+
+    private void HandleWordCountChanged(int count)
+    {
+        _wordCount = count;
+    }
+
+    // Link Events
+    private void HandleLinkCreated(LinkEventArgs args)
+    {
+        AddEvent("OnLinkCreated", $"URL: {args.Url}", EventCategory.Link);
+    }
+
+    private void HandleLinkRemoved(LinkEventArgs args)
+    {
+        AddEvent("OnLinkRemoved", $"URL: {args.Url}", EventCategory.Link);
+    }
+
+    // History Events
+    private void HandleUndo()
+    {
+        AddEvent("OnUndo", "Undo performed", EventCategory.History);
+    }
+
+    private void HandleRedo()
+    {
+        AddEvent("OnRedo", "Redo performed", EventCategory.History);
+    }
+
+    // State Events
+    private void HandleDirtyStateChanged(bool isDirty)
+    {
+        _isDirty = isDirty;
+        AddEvent("OnDirtyStateChanged", $"Dirty: {isDirty}", EventCategory.State);
+    }
+
+    // Emoji Events
+    private void HandleEmojiInserted(EmojiEventArgs args)
+    {
+        AddEvent("OnEmojiInserted",
+            $"Emoji: {args.Emoji}" + (args.Shortcode != null ? $", Shortcode: {args.Shortcode}" : ""),
+            EventCategory.Emoji);
+    }
+
+    private void HandleEmojiPickerOpened()
+    {
+        AddEvent("OnEmojiPickerOpened", null, EventCategory.Emoji);
+    }
+
+    private void HandleEmojiPickerClosed()
+    {
+        AddEvent("OnEmojiPickerClosed", null, EventCategory.Emoji);
+    }
+
+    // Error Events
+    private void HandleError(BlazorRTE.EventArgs.ErrorEventArgs args)
+    {
+        AddEvent("OnError", $"Error: {args.Message}", EventCategory.Error);
+    }
+
+    private class EventInfo
+    {
+        public string Name { get; set; } = "";
+        public string? Details { get; set; }
+        public DateTime Timestamp { get; set; }
+        public EventCategory Category { get; set; }
+    }
+
+    private enum EventCategory
+    {
+        General,
+        Content,
+        Format,
+        Focus,
+        Input,
+        Validation,
+        Link,
+        History,
+        State,
+        Emoji,
+        Error
+    }
+}

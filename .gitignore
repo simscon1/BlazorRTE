@@ -1,0 +1,20 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/BlazorRTE/.vs/BlazorRTE/v18
+/BlazorRTE.Demo/bin/Debug/net10.0
+/BlazorRTE.Demo/obj
+/BlazorRTE.Demo/Properties/launchSettings.json
+/BlazorRTE.Demo/wwwroot/lib/bootstrap/dist
+/BlazorRTE.Tests/bin/Debug/net10.0/cs
+/BlazorRTE.Tests/bin/Debug/net10.0/de
+/BlazorRTE.Tests/bin/Debug/net10.0/es
+/BlazorRTE.Tests/bin/Debug/net10.0
+/BlazorRTE.Tests/obj
+/BlazorRTE.Demo/bin/Release/net10.0
+/BlazorRTE.Tests/bin/Release/net10.0
+/BlazorRTE.Tests/bin/Release/net10.0/.msCoverageSourceRootsMapping_BlazorRTE.Tests
+/BlazorRTE.Tests/bin/Release/net10.0/CoverletSourceRootsMapping_BlazorRTE.Tests
+/obj
