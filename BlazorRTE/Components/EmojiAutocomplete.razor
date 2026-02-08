@@ -3,7 +3,7 @@
 @using Microsoft.JSInterop
 @inject IJSRuntime JSRuntime
 
-<div class="emoji-autocomplete" 
+<div class="emoji-autocomplete @(DarkMode ? "dark-mode" : "")" 
      style="@Style" 
      @ref="autocompleteElement"
      @onmousedown:preventDefault="false"
@@ -38,6 +38,7 @@
     private Position? position;
 
     [Parameter] public EventCallback<string> OnEmojiSelected { get; set; }
+    [Parameter] public bool DarkMode { get; set; }
 
     private string Style => position != null 
         ? $"left: {position.X}px; top: {position.Y}px; display: block;" 

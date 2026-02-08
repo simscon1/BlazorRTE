@@ -843,16 +843,26 @@
     width: 18px;
     height: 18px;
     font-weight: bold;
-    color: #000; /* Black text in light mode */
+    color: #000; /* Black text */
     border: 1px solid #374151;
     border-radius: 4px;
     font-size: 12px;
+    /* Outline effect ensures "A" is visible on any background */
+    text-shadow: 
+        0 0 2px #fff,
+        0 0 2px #fff,
+        0 0 2px #fff;
 }
 
-/* Dark mode - light text and lighter border */
+/* Dark mode - lighter border, same text approach */
 .rich-text-editor.dark-mode .rte-highlight-indicator {
-    color: #f3f4f6; /* Light gray text in dark mode */
-    border-color: #6b7280; /* Lighter border in dark mode */
+    border-color: #9ca3af;
+    /* Keep text dark with white outline - works for most highlight colors */
+    color: #000;
+    text-shadow: 
+        0 0 2px #fff,
+        0 0 2px #fff,
+        0 0 2px #fff;
 }
 
 /* ✅ DARK MODE ICON COLOR OVERRIDE - IF NEEDED */
