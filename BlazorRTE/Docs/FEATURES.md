@@ -5,14 +5,15 @@ Zero JavaScript dependencies • 51 Features • Production-Ready
 
 ---
 
-## 🎯 Current Version: v1.0.1 (Bug Fix Release)
+## 🎯 Current Version: v1.1.2 (Bug Fix & UX Release)
 
-**Release Status:** Ready for initial NuGet publication ✅  
+**Release Status:** Ready for NuGet publication ✅  
+**Release Date:** February 2026  
 **Total Features:** 51 ✅  
 **Visual Quality:** Commercial-grade ✅  
 **Code Quality:** Refactored & optimized ✅  
-**License:** GPL v3 (Community Edition Only)
-**Status:** Feature-complete, ready for NuGet publication
+**Accessibility:** Full ARIA Implementation ✅  
+**License:** GPL v3 (Community Edition Only)  
 **No service registration required!** BlazorRTE works out of the box.
 
 ---
@@ -186,9 +187,11 @@ Zero JavaScript dependencies • 51 Features • Production-Ready
 
 ## 🚀 Roadmap
 
-### Version 1.0.0 (Initial Release) - READY FOR PUBLICATION ✅
+### Version 1.0.0 (Initial Release) - ✅ PUBLISHED
+**Release Date:** January 2026
+
 **Core Features:**
-- ✅ All 51 features complete
+- ✅ All 51 core features
 - ✅ Professional SVG icons (17 icons)
 - ✅ Smart color & font pickers (4 total)
 - ✅ Compact toolbar (fits in one row)
@@ -199,61 +202,145 @@ Zero JavaScript dependencies • 51 Features • Production-Ready
 - ✅ Refactored architecture (FormatCommand enum, ColorPalettes, HtmlSanitizer)
 - ✅ Clean separation of concerns
 - ✅ Helper classes at root level
-- ✅ ~600 lines in main component (down from ~700)
 
-**Documentation:**
-- ✅ Complete FEATURES.md
-- ✅ README.md with quick start
-- ✅ LICENSE.txt (GPL v3)
-- ✅ NuGet metadata configured
-
-**Status:** Ready for NuGet publication & GitHub release
-
-### Version 1.0.1 (Bug Fix Release) - PUBLISHED ✅
+### Version 1.0.1 (Bug Fix Release) - ✅ PUBLISHED
 **Release Date:** January 2026
 
 **Fixes:**
 - ✅ Subscript/superscript toggle now properly removes formatting
-  - Added IsFormatActiveAsync to detect active formats
+  - Added `IsFormatActiveAsync` to detect active formats
   - Automatically removes opposite format when switching
   - Clicking again properly returns text to normal
   
 **Improvements:**
 - ✅ Industry-standard height management (200px-600px default)
-- ✅ MinHeight and MaxHeight parameters with flexible CSS unit support
-
+- ✅ `MinHeight` and `MaxHeight` parameters with flexible CSS unit support
+	
 **Documentation:**
 - ✅ Added `@rendermode InteractiveServer` requirement
 - ✅ Explained why interactive rendering is needed
-- ✅ Listed all supported render modes
-- ✅ Documented height control parameters
 
-**Status:** Ready for NuGet publication
+### Version 1.0.2 (Bug Fix Release) - ✅ PUBLISHED
+**Release Date:** February 2026
 
-### Version 1.1.0 (Future - After v1.0.0 Release) - PLANNED
-- [ ] GPL v3 licensing infrastructure - License service (non-enforcing)
-  - Community tier (Free - GPL v3)
-  - Professional tier ($79-99/year)
-  - Business tier ($149-199/year)
-  - Enterprise tier ($499+/year)
-- [ ] Dynamic button labels (show current font/size in button)
-- [ ] Additional code optimizations based on user feedback
+**Fixes:**
+- ✅ Minor bug fixes and improvements
 
-### Version 1.5.0 (Future Premium Features)
-Premium features for paid tiers:
+### Version 1.1.1 (Emoji Release) - ⏭️ SKIPPED
+**Note:** Version 1.1.1 was developed but not published. Features merged into v1.1.2.
+
+**Features developed:**
+- Emoji Picker with 1800+ searchable emojis
+- Emoji Autocomplete (type `:smile` for suggestions)
+- 27 keyboard shortcuts
+- 54 unit tests with 100% pass rate
+
+### Version 1.1.2 (Bug Fix & UX Release) - 🎯 CURRENT / READY TO PUBLISH
+**Release Date:** February 2026
+
+**Added:**
+- ✅ **Emoji Picker** - 1800+ searchable emojis with categories
+  - Search by name or keyword
+  - Recently used emojis (persisted)
+  - Full keyboard navigation
+  - Dark mode support
+- ✅ **Emoji Autocomplete** - Type `:smile` for inline suggestions
+  - 10 best matches shown
+  - Keyboard navigation (↑ ↓ Enter Esc)
+  - Auto-positioning (viewport-aware)
+- ✅ **27 Keyboard Shortcuts** - Full Ctrl+Key support
+  - Formatting (Ctrl+B, Ctrl+I, Ctrl+U, etc.)
+  - Headings (Ctrl+Alt+0-3)
+  - Font size (Ctrl+Shift+> / <)
+  - Lists, alignment, links, emoji picker
+- ✅ **54 Unit Tests** - bUnit + xUnit
+  - 100% pass rate
+  - Component, accessibility, security testing
+- ✅ **Dynamic font size button** - Shows current size at cursor position
+  - Displays: 10, 14, 16, 18, 24, or 32
+  - Updates in real-time when moving cursor
+  - Matches selected text's font size
+
+**Fixed:**
+- ✅ **Link button functionality** - Now prompts user for URL (was hardcoded)
+  - Validates text selection before allowing link creation
+  - Auto-adds `https://` prefix if missing
+  - Shows "Remove link?" dialog when cursor in existing link
+  - Properly raises `OnLinkCreated` events
+- ✅ **Mouse click fixes for all pickers** - Added `@onmousedown:stopPropagation`
+  - Heading picker clicks now work
+  - Font family picker clicks now work
+  - Font size picker clicks now work
+  - Text color picker clicks now work
+  - Background color picker clicks now work
+  - (Keyboard navigation was already working)
+- ✅ **ARIA improvements** - Correct semantics for link button
+  - Changed from `aria-pressed` (toggle) to `aria-haspopup="dialog"` (opens prompt)
+  - Dynamic `aria-label` based on context ("Insert link" vs "Edit link")
+
+**Accessibility:**
+- ✅ Complete ARIA implementation following WAI-ARIA 1.2 patterns
+  - All pickers have proper role attributes (listbox/grid)
+  - All palette titles have id + aria-labelledby relationships
+  - Color swatches use role="gridcell" with aria-label
+  - Emoji autocomplete has role="listbox" with aria-selected states
+  - Character count uses aria-live="polite"
+
+**Quality:**
+- ✅ All 54 unit tests passing
+- ✅ Both keyboard and mouse interaction verified
+- ✅ Event callbacks properly wired
+- ✅ Focus management confirmed
+
+### Version 1.2.0 (Planned - UX Improvements) 📋
+**Status:** Planned based on user feedback
+
+**Planned Features:**
+- [ ] Dynamic font family button (show current font, not just "Aa")
+- [ ] Custom link dialog (replace browser prompt)
+  - Link preview
+  - Link validation
+  - Recent links
+  - "Open in new tab" option
+  - Edit existing links
+
+**Documentation (as needed):**
+- [ ] Security documentation (SECURITY.md)
+- [ ] Additional accessibility testing (upon request)
+
+**Note:** This release focuses on UX improvements. Additional testing and certification will be conducted if requested by enterprise customers or if specific issues are reported.
+
+### Version 1.3.0 (Planned - Commercial Licensing) 💼
+**Target:** Q3 2026
+
+**Licensing Infrastructure:**
+- [ ] License validation service (non-enforcing)
+- [ ] License tiers:
+  - Community (Free - GPL v3)
+  - Professional (~$79-99/year)
+  - Business (~$149-199/year)
+  - Enterprise (~$499+/year)
+- [ ] License management dashboard
+- [ ] Email support system
+
+### Version 1.5.0 (Future - Premium Features) 🌟
+**Premium features for paid tiers:**
 - [ ] Collaborative editing - Real-time multi-user
 - [ ] Advanced themes - Professional pre-built themes
 - [ ] Image upload - Built-in with optimization
 - [ ] Tables - Advanced table editing
 - [ ] Find & replace
 - [ ] Spell check
+- [ ] Custom toolbar configuration
 
-### Version 2.0.0 (Future Major Features)
+### Version 2.0.0 (Future - Major Features) 🚀
 - [ ] Extended font library (Google Fonts integration)
 - [ ] Markdown support (import/export)
 - [ ] Document templates
 - [ ] Comments & annotations
 - [ ] Version history
+- [ ] Plugin system
+- [ ] AI-powered features (grammar, summarization)
 
 ---
 
@@ -326,6 +413,13 @@ For proprietary/closed-source applications, commercial licensing will be availab
 ---
 
 **Built with ❤️ for the Blazor community**
+
+
+
+
+
+
+
 
 
 

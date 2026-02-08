@@ -75,9 +75,10 @@
                              role="listbox"
                              aria-label="Heading levels"
                              @onclick:stopPropagation
+                             @onmousedown:stopPropagation
                              @onkeydown="@(e => HandleListPickerKeydown(e, "heading"))">
-                            <div class="rte-color-palette-title">Heading Level</div>
-                            <div class="rue-font-size-list">
+                            <div class="rte-color-palette-title" id="heading-level-label">Heading Level</div>
+                            <div class="rte-font-size-list" aria-labelledby="heading-level-label">
 
                                 @* Normal option *@
                                 <button type="button" class="rte-font-option" role="option" tabindex="-1"
@@ -137,6 +138,7 @@
                              role="listbox"
                              aria-label="Font families"
                              @onclick:stopPropagation
+                             @onmousedown:stopPropagation
                              @onkeydown="@(e => HandleListPickerKeydown(e, "fontFamily"))">
                             <div class="rte-color-palette-title" id="font-family-label">Font Family</div>
                             <div class="rte-font-family-list" aria-labelledby="font-family-label">
@@ -174,7 +176,7 @@
                             @onmousedown:preventDefault
                             @onclick:stopPropagation
                             data-tooltip="Font Size (Ctrl+Shift+> / Ctrl+Shift+<)">
-                        14
+                        @GetCurrentFontSizeLabel()  <!-- ✅ DYNAMIC! -->
                     </button>
 
                     @if (_showFontSizePicker)
@@ -183,6 +185,8 @@
                              class="rte-color-palette"
                              role="listbox"
                              aria-label="Font sizes"
+                             @onclick:stopPropagation
+                             @onmousedown:stopPropagation
                              @onkeydown="@(e => HandleListPickerKeydown(e, "fontSize"))">
                             <div class="rte-color-palette-title" id="font-size-label">Font Size</div>
                             <div class="rte-font-size-list" aria-labelledby="font-size-label">
@@ -332,7 +336,8 @@
                              class="rte-color-palette"
                              role="grid"
                              aria-label="Text colors"
-                             @onclick:stopPropagation>
+                             @onclick:stopPropagation
+                             @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="text-color-label">Text Color</div>
                             <div class="rte-color-palette-grid" aria-labelledby="text-color-label">
                                 @foreach (var color in ColorPalette.TextColors)
@@ -548,8 +553,8 @@
             <div role="group" aria-label="Insert">
                 <button type="button"
                         class="rte-btn @(IsFormatActive("link") ? "active" : "")"
-                        aria-pressed="@IsFormatActive("link").ToString().ToLower()"
-                        aria-label="Insert link"
+                        aria-haspopup="dialog"
+                        aria-label="@(IsFormatActive("link") ? "Edit link" : "Insert link")"
                         tabindex="-1"
                         data-toolbar-item
                         @onclick="CreateLink"
@@ -617,6 +622,7 @@
     <div class="rte-content-wrapper">
         <div class="rte-content"
              @ref="_editorRef"
+             id="rte-editor"
              contenteditable="true"
              tabindex="0"
              @oninput="OnInput"
