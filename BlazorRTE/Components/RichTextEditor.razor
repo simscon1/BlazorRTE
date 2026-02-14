@@ -622,7 +622,7 @@
     <div class="rte-content-wrapper">
         <div class="rte-content"
              @ref="_editorRef"
-             id="rte-editor"
+             id="@_editorId"
              contenteditable="true"
              tabindex="0"
              @oninput="OnInput"
@@ -634,6 +634,7 @@
              @onmousedown="OnToolbarMouseDown"
              placeholder="@Placeholder"
              aria-label="@AriaLabel"
+             aria-controls="@_editorId"
              aria-multiline="true"
              role="textbox">
         </div>

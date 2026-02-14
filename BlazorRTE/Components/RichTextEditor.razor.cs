@@ -99,6 +99,9 @@ namespace BlazorRTE.Components
         private ElementReference _headingButton;
         private ElementReference _headingPalette;
         private string _currentFontSize = "3"; // Default to Normal (14px = size 3)
+                                               // Add to the RichTextEditor class properties section (around line 15-20):
+
+        protected readonly string _editorId = $"rte-{Guid.NewGuid():N}";
 
         private readonly Dictionary<string, string> _fontSizes = new()
         {
@@ -159,7 +162,7 @@ namespace BlazorRTE.Components
                 {
                     _dotNetRef = DotNetObjectReference.Create(this);
                     _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/BlazorRTE/rich-text-editor.js");
-                    await _jsModule.InvokeVoidAsync("initializeEditor", _editorRef, _dotNetRef);
+                    await _jsModule.InvokeVoidAsync("initializeEditor", _editorRef, _dotNetRef, _editorId); // Pass editor ID
 
                     if (!string.IsNullOrEmpty(Value))
                     {
