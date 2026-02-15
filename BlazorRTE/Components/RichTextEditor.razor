@@ -9,8 +9,6 @@
              role="toolbar"
              aria-label="Rich text formatting"
              aria-controls="rte-editor"
-             @onkeydown="HandleToolbarKeydown"
-             @onkeydown:preventDefault
              @onmousedown="OnToolbarMouseDown"
              @onmousedown:preventDefault>
 
@@ -19,11 +17,7 @@
                 <button type="button"
                         class="rte-btn"
                         aria-label="Undo"
-                        tabindex="0"
-                        data-toolbar-item
-                        @onfocus="() => focusedIndex = 0"
                         @onclick="() => ExecuteCommand(FormatCommand.Undo)"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Undo)))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Undo (Ctrl+Z)">
@@ -34,10 +28,7 @@
                 <button type="button"
                         class="rte-btn"
                         aria-label="Redo"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Redo)"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Redo)))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Redo (Ctrl+Y)">
@@ -58,10 +49,7 @@
                             aria-label="Heading level"
                             aria-haspopup="true"
                             aria-expanded="@_showHeadingPicker.ToString().ToLower()"
-                            tabindex="-1"
-                            data-toolbar-item
                             @onclick="ToggleHeadingPicker"
-                            @onkeydown="@(e => HandleButtonKeyDown(e, ToggleHeadingPicker))"
                             @onmousedown:preventDefault
                             @onclick:stopPropagation
                             data-tooltip="Heading Level">
@@ -75,36 +63,31 @@
                              role="listbox"
                              aria-label="Heading levels"
                              @onclick:stopPropagation
-                             @onmousedown:stopPropagation
-                             @onkeydown="@(e => HandleListPickerKeydown(e, "heading"))">
+                             @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="heading-level-label">Heading Level</div>
                             <div class="rte-font-size-list" aria-labelledby="heading-level-label">
 
                                 @* Normal option *@
-                                <button type="button" class="rte-font-option" role="option" tabindex="-1"
-                                        @onclick="@(() => SelectHeading("p"))"
-                                        @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectHeading("p")))">
+                                <button type="button" class="rte-font-option" role="option"
+                                        @onclick="@(() => SelectHeading("p"))">
                                     Normal (Ctrl+Alt+0)
                                 </button>
 
                                 @* Heading 1 option *@
-                                <button type="button" class="rte-font-option" role="option" tabindex="-1"
-                                        @onclick="@(() => SelectHeading("h1"))"
-                                        @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectHeading("h1")))">
+                                <button type="button" class="rte-font-option" role="option"
+                                        @onclick="@(() => SelectHeading("h1"))">
                                     Heading 1 (Ctrl+Alt+1)
                                 </button>
 
                                 @* Heading 2 option *@
-                                <button type="button" class="rte-font-option" role="option" tabindex="-1"
-                                        @onclick="@(() => SelectHeading("h2"))"
-                                        @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectHeading("h2")))">
+                                <button type="button" class="rte-font-option" role="option"
+                                        @onclick="@(() => SelectHeading("h2"))">
                                     Heading 2 (Ctrl+Alt+2)
                                 </button>
 
                                 @* Heading 3 option *@
-                                <button type="button" class="rte-font-option" role="option" tabindex="-1"
-                                        @onclick="@(() => SelectHeading("h3"))"
-                                        @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectHeading("h3")))">
+                                <button type="button" class="rte-font-option" role="option"
+                                        @onclick="@(() => SelectHeading("h3"))">
                                     Heading 3 (Ctrl+Alt+3)
                                 </button>
 
@@ -121,10 +104,7 @@
                             aria-label="Font family"
                             aria-haspopup="true"
                             aria-expanded="@_showFontFamilyPicker.ToString().ToLower()"
-                            tabindex="-1"
-                            data-toolbar-item
                             @onclick="ToggleFontFamilyPicker"
-                            @onkeydown="@(e => HandleButtonKeyDown(e, ToggleFontFamilyPicker))"
                             @onmousedown:preventDefault
                             @onclick:stopPropagation
                             data-tooltip="Font Family">
@@ -138,8 +118,7 @@
                              role="listbox"
                              aria-label="Font families"
                              @onclick:stopPropagation
-                             @onmousedown:stopPropagation
-                             @onkeydown="@(e => HandleListPickerKeydown(e, "fontFamily"))">
+                             @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="font-family-label">Font Family</div>
                             <div class="rte-font-family-list" aria-labelledby="font-family-label">
                                 @foreach (var font in _fontFamilies)
@@ -147,11 +126,9 @@
                                     <button type="button"
                                             class="rte-font-option"
                                             role="option"
-                                            tabindex="-1"
                                             aria-label="@font.Value"
                                             style="font-family: @font.Key;"
                                             @onclick="@(() => SelectFontFamily(font.Key))"
-                                            @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectFontFamily(font.Key)))"
                                             data-tooltip="@font.Value">
                                         @font.Value
                                     </button>
@@ -169,14 +146,11 @@
                             aria-label="Font size"
                             aria-haspopup="true"
                             aria-expanded="@_showFontSizePicker.ToString().ToLower()"
-                            tabindex="-1"
-                            data-toolbar-item
                             @onclick="ToggleFontSizePicker"
-                            @onkeydown="@(e => HandleButtonKeyDown(e, ToggleFontSizePicker))"
                             @onmousedown:preventDefault
                             @onclick:stopPropagation
                             data-tooltip="Font Size (Ctrl+Shift+> / Ctrl+Shift+<)">
-                        @GetCurrentFontSizeLabel()  <!-- ✅ DYNAMIC! -->
+                        @GetCurrentFontSizeLabel()
                     </button>
 
                     @if (_showFontSizePicker)
@@ -186,8 +160,7 @@
                              role="listbox"
                              aria-label="Font sizes"
                              @onclick:stopPropagation
-                             @onmousedown:stopPropagation
-                             @onkeydown="@(e => HandleListPickerKeydown(e, "fontSize"))">
+                             @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="font-size-label">Font Size</div>
                             <div class="rte-font-size-list" aria-labelledby="font-size-label">
                                 @foreach (var size in _fontSizes)
@@ -195,10 +168,8 @@
                                     <button type="button"
                                             class="rte-font-option"
                                             role="option"
-                                            tabindex="-1"
                                             aria-label="@size.Value"
                                             @onclick="@(() => SelectFontSize(size.Key))"
-                                            @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectFontSize(size.Key)))"
                                             data-tooltip="@size.Value">
                                         @size.Value
                                     </button>
@@ -217,10 +188,7 @@
                         class="rte-btn @(IsFormatActive("bold") ? "active" : "")"
                         aria-pressed="@IsFormatActive("bold").ToString().ToLower()"
                         aria-label="Bold"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="ToggleBold"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, ToggleBold))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Bold (Ctrl+B)">
@@ -232,10 +200,7 @@
                         class="rte-btn @(IsFormatActive("italic") ? "active" : "")"
                         aria-pressed="@IsFormatActive("italic").ToString().ToLower()"
                         aria-label="Italic"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Italic)"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Italic)))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Italic (Ctrl+I)">
@@ -247,10 +212,7 @@
                         class="rte-btn @(IsFormatActive("underline") ? "active" : "")"
                         aria-pressed="@IsFormatActive("underline").ToString().ToLower()"
                         aria-label="Underline"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Underline)"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Underline)))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Underline (Ctrl+U)">
@@ -262,10 +224,7 @@
                         class="rte-btn @(IsFormatActive("strikeThrough") ? "active" : "")"
                         aria-pressed="@IsFormatActive("strikeThrough").ToString().ToLower()"
                         aria-label="Strikethrough"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Strikethrough)"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Strikethrough)))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Strikethrough (Ctrl+Shift+X)">
@@ -277,10 +236,7 @@
                         class="rte-btn @(IsFormatActive("subscript") ? "active" : "")"
                         aria-pressed="@IsFormatActive("subscript").ToString().ToLower()"
                         aria-label="Subscript"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Subscript)"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Subscript)))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Subscript (Ctrl+=)">
@@ -292,10 +248,7 @@
                         class="rte-btn @(IsFormatActive("superscript") ? "active" : "")"
                         aria-pressed="@IsFormatActive("superscript").ToString().ToLower()"
                         aria-label="Superscript"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Superscript)"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Superscript)))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Superscript (Ctrl+Shift+=)">
@@ -315,10 +268,7 @@
                             aria-label="Text color"
                             aria-haspopup="true"
                             aria-expanded="@_showTextColorPicker.ToString().ToLower()"
-                            tabindex="-1"
-                            data-toolbar-item
                             @onclick="ToggleTextColorPicker"
-                            @onkeydown="@(e => HandleButtonKeyDown(e, ToggleTextColorPicker))"
                             @onmousedown:preventDefault
                             @onclick:stopPropagation
                             data-tooltip="Text Color">
@@ -345,11 +295,9 @@
                                     <button type="button"
                                             class="rte-palette-color"
                                             role="gridcell"
-                                            tabindex="-1"
                                             aria-label="@color.Value"
                                             style="background-color: @color.Key;"
                                             @onclick="@(() => SelectTextColor(color.Key))"
-                                            @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectTextColor(color.Key)))"
                                             data-tooltip="@color.Value"></button>
                                 }
                             </div>
@@ -364,10 +312,7 @@
                             aria-label="Highlight color"
                             aria-haspopup="true"
                             aria-expanded="@_showBackgroundColorPicker.ToString().ToLower()"
-                            tabindex="-1"
-                            data-toolbar-item
                             @onclick="ToggleBackgroundColorPicker"
-                            @onkeydown="@(e => HandleButtonKeyDown(e, ToggleBackgroundColorPicker))"
                             @onmousedown:preventDefault
                             @onclick:stopPropagation
                             data-tooltip="Highlight Color">
@@ -391,10 +336,8 @@
                                         <button type="button"
                                                 class="rte-palette-color rte-palette-color-none"
                                                 role="gridcell"
-                                                tabindex="-1"
                                                 aria-label="@color.Value"
                                                 @onclick="@(() => SelectBackgroundColor(color.Key))"
-                                                @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectBackgroundColor(color.Key)))"
                                                 data-tooltip="@color.Value">
                                             <span aria-hidden="true">✕</span>
                                         </button>
@@ -404,11 +347,9 @@
                                         <button type="button"
                                                 class="rte-palette-color"
                                                 role="gridcell"
-                                                tabindex="-1"
                                                 aria-label="@color.Value"
                                                 style="background-color: @color.Key;"
                                                 @onclick="@(() => SelectBackgroundColor(color.Key))"
-                                                @onkeydown="@(e => HandleColorButtonKeyDown(e, () => SelectBackgroundColor(color.Key)))"
                                                 data-tooltip="@color.Value"></button>
                                     }
                                 }
@@ -427,10 +368,7 @@
                         class="rte-btn @(IsFormatActive("insertUnorderedList") ? "active" : "")"
                         aria-pressed="@IsFormatActive("insertUnorderedList").ToString().ToLower()"
                         aria-label="Bulleted list"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.InsertUnorderedList)"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.InsertUnorderedList)))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Bullet List (Ctrl+Shift+8)">
@@ -442,10 +380,7 @@
                         class="rte-btn @(IsFormatActive("insertOrderedList") ? "active" : "")"
                         aria-pressed="@IsFormatActive("insertOrderedList").ToString().ToLower()"
                         aria-label="Numbered list"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.InsertOrderedList)"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.InsertOrderedList)))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Numbered List (Ctrl+Shift+7)">
@@ -456,10 +391,7 @@
                 <button type="button"
                         class="rte-btn"
                         aria-label="Decrease indent"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Outdent)"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Outdent)))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Decrease Indent (Ctrl+[)">
@@ -470,13 +402,10 @@
                 <button type="button"
                         class="rte-btn"
                         aria-label="Increase indent"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.Indent)"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.Indent)))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
-                        data-tooltip="Increase Indent (Ctrl+]" )>
+                        data-tooltip="Increase Indent (Ctrl+])">
                     @((MarkupString)SvgIcons.Indent)
                     <span class="sr-only">Increase Indent</span>
                 </button>
@@ -490,10 +419,7 @@
                         class="rte-btn @(alignment == "left" ? "active" : "")"
                         aria-pressed="@(alignment == "left").ToString().ToLower()"
                         aria-label="Align left"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.AlignLeft)"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.AlignLeft)))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Align Left (Ctrl+L)">
@@ -505,10 +431,7 @@
                         class="rte-btn @(alignment == "center" ? "active" : "")"
                         aria-pressed="@(alignment == "center").ToString().ToLower()"
                         aria-label="Align center"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.AlignCenter)"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.AlignCenter)))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Align Center (Ctrl+E)">
@@ -520,10 +443,7 @@
                         class="rte-btn @(alignment == "right" ? "active" : "")"
                         aria-pressed="@(alignment == "right").ToString().ToLower()"
                         aria-label="Align right"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.AlignRight)"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.AlignRight)))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Align Right (Ctrl+R)">
@@ -535,10 +455,7 @@
                         class="rte-btn @(alignment == "justify" ? "active" : "")"
                         aria-pressed="@(alignment == "justify").ToString().ToLower()"
                         aria-label="Justify"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.AlignJustify)"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.AlignJustify)))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Justify (Ctrl+J)">
@@ -555,10 +472,7 @@
                         class="rte-btn @(IsFormatActive("link") ? "active" : "")"
                         aria-haspopup="dialog"
                         aria-label="@(IsFormatActive("link") ? "Edit link" : "Insert link")"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="CreateLink"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, CreateLink))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Insert Link (Ctrl+K)">
@@ -569,10 +483,7 @@
                 <button type="button"
                         class="rte-btn"
                         aria-label="Insert horizontal rule"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="() => ExecuteCommand(FormatCommand.HorizontalRule)"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.HorizontalRule)))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Horizontal Rule (Ctrl+Enter)">
@@ -588,10 +499,7 @@
                         aria-haspopup="true"
                         aria-expanded="@_showEmojiPicker.ToString().ToLower()"
                         aria-pressed="@_isEmojiSelected.ToString().ToLower()"
-                        tabindex="-1"
-                        data-toolbar-item
                         @onclick="ToggleEmojiPicker"
-                        @onkeydown="@(e => HandleButtonKeyDown(e, ToggleEmojiPicker))"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Insert Emoji (Ctrl+Shift+E)">
@@ -606,10 +514,7 @@
             <button type="button"
                     class="rte-btn"
                     aria-label="Clear formatting"
-                    tabindex="-1"
-                    data-toolbar-item
                     @onclick="() => ExecuteCommand(FormatCommand.RemoveFormat)"
-                    @onkeydown="@(e => HandleButtonKeyDown(e, () => ExecuteCommand(FormatCommand.RemoveFormat)))"
                     @onmousedown:preventDefault
                     @onclick:stopPropagation
                     data-tooltip="Clear Formatting (Ctrl+\)">
@@ -630,7 +535,7 @@
              @onpaste="OnPaste"
              @onfocus="OnFocus"
              @onblur="OnBlur"
-             @onclick="OnEditorClick"
+             @onclick="OnEditorClick"   
              @onmousedown="OnToolbarMouseDown"
              placeholder="@Placeholder"
              aria-label="@AriaLabel"
