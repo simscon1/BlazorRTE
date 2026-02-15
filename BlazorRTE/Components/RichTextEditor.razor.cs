@@ -127,9 +127,7 @@ namespace BlazorRTE.Components
             { "Verdana", "Verdana" }
         };
 
-        private string alignment = "left";
-        private int focusedIndex;
-        private const int ToolbarButtonCount = 25;
+        private string alignment = "left"; 
 
         private ElementReference _fontFamilyButton;
         private ElementReference _fontFamilyPalette;
@@ -1136,8 +1134,7 @@ namespace BlazorRTE.Components
                 await Task.Delay(50);
                 try
                 {
-                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
-                    await SetupColorPickerNavigation(_textColorPalette, ColorGridColumns);
+                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition"); 
                 }
                 catch { }
             }
@@ -1171,8 +1168,7 @@ namespace BlazorRTE.Components
                 await Task.Delay(50);
                 try
                 {
-                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
-                    await SetupColorPickerNavigation(_bgColorPalette, ColorGridColumns);
+                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition"); 
                 }
                 catch { }
             }
@@ -1199,8 +1195,7 @@ namespace BlazorRTE.Components
                 await Task.Delay(50);
                 try
                 {
-                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
-                    await SetupListPickerNavigation(_fontSizePalette);
+                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition"); 
                 }
                 catch { }
             }
@@ -1219,8 +1214,7 @@ namespace BlazorRTE.Components
                 await Task.Delay(50);
                 try
                 {
-                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
-                    await SetupListPickerNavigation(_fontFamilyPalette);
+                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition"); 
                 }
                 catch { }
             }
@@ -1240,8 +1234,7 @@ namespace BlazorRTE.Components
                 await Task.Delay(50);
                 try
                 {
-                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
-                    await SetupListPickerNavigation(_headingPalette);
+                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition"); 
                 }
                 catch { }
             }
@@ -1260,8 +1253,7 @@ namespace BlazorRTE.Components
             await ExecuteCommand(command);
             _showHeadingPicker = false;
             StateHasChanged();
-            await Task.Delay(10);
-            await FocusElement(_headingButton);
+           
         }
 
         protected string GetCurrentHeadingLabel()
@@ -1291,8 +1283,7 @@ namespace BlazorRTE.Components
             _currentTextColor = color; // Update immediately
             _showTextColorPicker = false;
             StateHasChanged();
-            await Task.Delay(10);
-            await FocusElement(_textColorButton);
+           
         }
 
         protected async Task SelectBackgroundColor(string color)
@@ -1301,8 +1292,7 @@ namespace BlazorRTE.Components
             _currentHighlightColor = color; // Update immediately
             _showBackgroundColorPicker = false;
             StateHasChanged();
-            await Task.Delay(10);
-            await FocusElement(_bgColorButton);
+           
         }
 
         protected async Task SelectFontSize(string size)
@@ -1323,8 +1313,7 @@ namespace BlazorRTE.Components
                 await ExecuteCommand(command.Value);
                 _showFontSizePicker = false;
                 StateHasChanged();
-                await Task.Delay(10);
-                await FocusElement(_fontSizeButton);
+               
             }
         }
 
@@ -1349,9 +1338,7 @@ namespace BlazorRTE.Components
             {
                 await ExecuteCommand(command.Value);
                 _showFontFamilyPicker = false;
-                StateHasChanged();
-                await Task.Delay(10);
-                await FocusElement(_fontFamilyButton);
+                StateHasChanged();               
             }
         }
 
@@ -1415,162 +1402,9 @@ namespace BlazorRTE.Components
             return value + "px";
         }
 
-        private async Task HandleToolbarKeydown(KeyboardEventArgs e)
-        {
-            switch (e.Key)
-            {
-                case "ArrowRight":
-                    focusedIndex = (focusedIndex + 1) % ToolbarButtonCount;
-                    await FocusToolbarButton();
-                    break;
-                case "ArrowLeft":
-                    focusedIndex = (focusedIndex - 1 + ToolbarButtonCount) % ToolbarButtonCount;
-                    await FocusToolbarButton();
-                    break;
-                case "Home":
-                    focusedIndex = 0;
-                    await FocusToolbarButton();
-                    break;
-                case "End":
-                    focusedIndex = ToolbarButtonCount - 1;
-                    await FocusToolbarButton();
-                    break;
-                case "Escape":
-                    // Close any open pickers and return focus to toolbar
-                    CloseColorPickers();
-                    await FocusToolbarButton();
-                    break;
-                case "Tab":
-                    if (!e.ShiftKey)
-                    {
-                        // Tab forward - move to editor
-                        await FocusAsync();
-                    }
-                    break;
-            }
-        }
-
-        private async Task FocusToolbarButton()
-        {
-            if (_jsModule == null) return;
-            try
-            {
-                await _jsModule.InvokeVoidAsync("focusToolbarButton", focusedIndex);
-            }
-            catch { }
-        }
-
         private async Task OnEditorClick()
         {
             await UpdateToolbarState();
-        }
-
-        private async Task HandleColorPickerKeydown(KeyboardEventArgs e, string pickerType)
-        {
-            if (_jsModule == null) return;
-
-            try
-            {
-                if (e.Key == "Escape")
-                {
-                    await ClosePickerAndFocusButton(pickerType);
-                    return;
-                }
-
-                if (e.Key.StartsWith("Arrow") || e.Key == "Home" || e.Key == "End")
-                {
-                    await _jsModule.InvokeVoidAsync("handleColorPickerKeydown", e, ColorGridColumns);
-                }
-            }
-            catch { }
-        }
-
-        private async Task HandleListPickerKeydown(KeyboardEventArgs e, string pickerType)
-        {
-            if (_jsModule == null) return;
-
-            try
-            {
-                if (e.Key == "Escape")
-                {
-                    await ClosePickerAndFocusButton(pickerType);
-                    return;
-                }
-
-                if (e.Key.StartsWith("Arrow") || e.Key == "Home" || e.Key == "End")
-                {
-                    await _jsModule.InvokeVoidAsync("handleListPickerKeydown", e);
-                }
-            }
-            catch { }
-        }
-
-        private async Task ClosePickerAndFocusButton(string pickerType)
-        {
-            switch (pickerType)
-            {
-                case "textColor":
-                    _showTextColorPicker = false;
-                    await Task.Delay(10);
-                    await FocusElement(_textColorButton);
-                    break;
-                case "backgroundColor":
-                    _showBackgroundColorPicker = false;
-                    await Task.Delay(10);
-                    await FocusElement(_bgColorButton);
-                    break;
-                case "fontFamily":
-                    _showFontFamilyPicker = false;
-                    await Task.Delay(10);
-                    await FocusElement(_fontFamilyButton);
-                    break;
-                case "fontSize":
-                    _showFontSizePicker = false;
-                    await Task.Delay(10);
-                    await FocusElement(_fontSizeButton);
-                    break;
-                case "heading":
-                    _showHeadingPicker = false;
-                    await Task.Delay(10);
-                    await FocusElement(_headingButton);
-                    break;
-            }
-            StateHasChanged();
-        }
-
-        private async Task FocusElement(ElementReference elementRef)
-        {
-            if (_jsModule == null) return;
-
-            try
-            {
-                await _jsModule.InvokeVoidAsync("focusElement", elementRef);
-            }
-            catch { }
-        }
-
-        private async Task SetupColorPickerNavigation(ElementReference palette, int columns)
-        {
-            if (_jsModule == null) return;
-
-            try
-            {
-                var buttonRef = palette.Equals(_textColorPalette) ? _textColorButton : _bgColorButton;
-                await _jsModule.InvokeVoidAsync("setupColorPickerNavigation", palette, columns, buttonRef);
-            }
-            catch { }
-        }
-
-        private async Task SetupListPickerNavigation(ElementReference palette)
-        {
-            if (_jsModule == null) return;
-
-            try
-            {
-                var buttonRef = palette.Equals(_fontFamilyPalette) ? _fontFamilyButton : _fontSizeButton;
-                await _jsModule.InvokeVoidAsync("setupListPickerNavigation", palette, buttonRef);
-            }
-            catch { }
         }
 
         private async Task ReturnFocusToEditor()
@@ -1868,30 +1702,7 @@ namespace BlazorRTE.Components
                 Console.WriteLine($"[C#] Stack: {ex.StackTrace}");
             }
         }
-
-        private async Task HandleButtonKeyDown(KeyboardEventArgs e, Func<Task> action)
-        {
-            // Only handle Enter and Space - let arrow keys bubble to HandleToolbarKeydown
-            if (e.Key == "Enter" || e.Key == " ")
-            {
-                // Execute the button's action
-                await action();
-
-                // CRITICAL: Re-focus the current toolbar button after action completes
-                // This is necessary because StateHasChanged() causes re-render which loses focus
-                await Task.Delay(10); // Allow render to complete
-                await FocusToolbarButton();
-            }
-        }
-
-        private async Task HandleColorButtonKeyDown(KeyboardEventArgs e, Func<Task> action)
-        {
-            // Handle Enter or Space to select color
-            if (e.Key == "Enter" || e.Key == " ")
-            {
-                await action();
-            }
-        }
+         
 
         protected string GetCurrentFontSizeLabel()
         {

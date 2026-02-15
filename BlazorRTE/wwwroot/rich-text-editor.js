@@ -1,6 +1,5 @@
 ﻿let editorInstances = new Map();
-let savedSelection = null;
-let selectionNeedsCollapse = false; // Track if we need to collapse on focus
+let savedSelection = null; 
 
 export function initializeEditor(element, dotNetRef) {
     if (!element) {
@@ -9,7 +8,7 @@ export function initializeEditor(element, dotNetRef) {
     }
 
     editorInstances.set(element, { dotNetRef });
-    let shiftTabPressed = false;
+ 
     
     // *** Autocomplete variables (inside initializeEditor scope) ***
     let shortcodeStart = -1;
@@ -206,106 +205,10 @@ export function initializeEditor(element, dotNetRef) {
     
     // Store function for external access
     element._insertEmojiAtShortcode = insertEmojiAtShortcode;
-
-    element.addEventListener('keydown', async (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && !e.shiftKey) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            try {
-                await dotNetRef.invokeMethodAsync('HandleCtrlK');
-            } catch (err) { }
-            return;
-        }
-
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'k') {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            try {
-                await dotNetRef.invokeMethodAsync('HandleCtrlShiftK');
-            } catch (err) { }
-            return;
-        }
-
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'e') {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            try {
-                await dotNetRef.invokeMethodAsync('HandleCtrlShiftE');
-            } catch (err) { }
-            return;
-        }
-
-        if (e.ctrlKey || e.metaKey) {
-            const key = e.key.toLowerCase();
-            if (e.altKey && ['0', '1', '2', '3'].includes(key)) {
-                e.preventDefault();
-                return;
-            }
-            if (e.shiftKey && ['x', 'z', '=', '+', '*', '8', '&', '7', '>', '<', '.', ','].includes(key)) {
-                e.preventDefault();
-                return;
-            }
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                return;
-            }
-            if (['b', 'i', 'u', 'z', 'y', 'l', 'e', 'r', 'j', '[', ']', '\\', '='].includes(key)) {
-                e.preventDefault();
-            }
-        }
-
-        if (e.key === 'Tab' && e.shiftKey) {
-            shiftTabPressed = true;
-        }
-
-        // Handle autocomplete navigation
-        if (e.key === 'Escape' && shortcodeStart !== -1) {
-            e.preventDefault();
-            clearShortcode();
-            await dotNetRef.invokeMethodAsync('HideEmojiAutocomplete');
-            return;
-        }
-        
-        if (shortcodeStart !== -1 && (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter')) {
-            e.preventDefault();
-            await dotNetRef.invokeMethodAsync('HandleAutocompleteKey', e.key);
-            return;
-        }
-    }, true);
-
-    // Focus event - DO NOT collapse selection here
-    // Collapse only happens via focusEditor() on Tab navigation
-    element.addEventListener('focus', (e) => {
-        // Handle Shift+Tab from toolbar
-        if (shiftTabPressed) {
-            shiftTabPressed = false;
-            const toolbar = document.querySelector('.rte-toolbar');
-            if (toolbar) {
-                const toolbarItems = toolbar.querySelectorAll('[data-toolbar-item]');
-                if (toolbarItems.length > 0) {
-                    e.preventDefault();
-                    toolbarItems[toolbarItems.length - 1].focus();
-                    return;
-                }
-            }
-        }
-        // Selection collapse is handled ONLY in focusEditor() - not here
-    });
-
+ 
     element.addEventListener('blur', (e) => {
-        const relatedTarget = e.relatedTarget;
-        const toolbar = document.querySelector('.rte-toolbar');
-        
         // Always save selection on blur
         saveSelection();
-        
-        // Mark for collapse only if focus is moving to toolbar
-        if (toolbar && relatedTarget && toolbar.contains(relatedTarget)) {
-            selectionNeedsCollapse = true;
-        }
     });
 
     element.addEventListener('paste', (e) => {
@@ -324,15 +227,7 @@ export function initializeEditor(element, dotNetRef) {
     });
 
     element.addEventListener('drop', (e) => e.preventDefault());
-
-    const toolbar = document.querySelector('.rte-toolbar');
-    if (toolbar) {
-        toolbar.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {  
-                e.preventDefault();
-            }
-        }, true);
-    }
+ 
 
     // Input event for autocomplete
     element.addEventListener('input', function(e) {
@@ -503,24 +398,12 @@ export function setHtml(element, html) {
     if (element) element.innerHTML = html;
 }
 
-// Called ONLY when Tab is pressed to return focus to editor
-// This is where selection collapse happens (industry standard)
+// Restore focus to the editor with saved selection
 export function focusEditor(element) {
     element.focus();
-    
-    // Collapse selection to end ONLY when returning via Tab
-    if (selectionNeedsCollapse && savedSelection) {
-        try {
-            const selection = window.getSelection();
-            const range = savedSelection.cloneRange();
-            range.collapse(false); // Collapse to end
-            selection.removeAllRanges();
-            selection.addRange(range);
-            savedSelection = range.cloneRange();
-        } catch (e) { }
-        selectionNeedsCollapse = false;
-    } else if (savedSelection) {
-        // Just restore saved selection as-is (for other focus scenarios)
+
+    // Restore saved selection if available
+    if (savedSelection) {
         try {
             const selection = window.getSelection();
             selection.removeAllRanges();
@@ -703,136 +586,9 @@ function isDefaultBackgroundColor(color) {
     ];
     return defaultBackgrounds.includes(normalized);
 }
-
-export function focusToolbarButton(index) {
-    const toolbar = document.querySelector('.rte-toolbar');
-    if (!toolbar) return;
-    const focusableElements = toolbar.querySelectorAll('[data-toolbar-item]');
-    if (index >= 0 && index < focusableElements.length) {
-        focusableElements[index].focus();
-    }
-}
-
-export function getToolbarFocusableCount() {
-    const toolbar = document.querySelector('.rte-toolbar');
-    return toolbar ? toolbar.querySelectorAll('button, select').length : 0;
-}
-
-export function setupPickerNavigation(palette, trigger, dotNetRef) {
-    if (!palette) return;
-    const items = palette.querySelectorAll('[role="option"]');
-    if (items.length === 0) return;
-    setTimeout(() => items[0].focus(), 10);
-    palette.addEventListener('keydown', (e) => {
-        const active = document.activeElement;
-        const index = Array.from(items).indexOf(active);
-        if (e.key === 'Escape') {
-            e.preventDefault();
-            e.stopPropagation();
-            dotNetRef.invokeMethodAsync('CloseActivePickers');
-            if (trigger) trigger.focus();
-        } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-            e.preventDefault();
-            items[(index + 1) % items.length].focus();
-        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-            e.preventDefault();
-            items[(index - 1 + items.length) % items.length].focus();
-        } else if (e.key === 'Tab') {
-            e.preventDefault();
-            const next = e.shiftKey ? (index - 1 + items.length) % items.length : (index + 1) % items.length;
-            items[next].focus();
-        } else if (e.key === 'Home') {
-            e.preventDefault();
-            items[0].focus();
-        } else if (e.key === 'End') {
-            e.preventDefault();
-            items[items.length - 1].focus();
-        }
-    });
-}
-
-export function setupColorPickerNavigation(palette, columns, triggerButton) {
-    if (!palette) return;
-    const colorButtons = Array.from(palette.querySelectorAll('.rte-palette-color'));
-    if (colorButtons.length === 0) return;
-    setTimeout(() => { if (colorButtons[0]) colorButtons[0].focus(); }, 50);
-    const keydownHandler = (event) => {
-        const key = event.key;
-        if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Escape'].includes(key)) return;
-        event.preventDefault();
-        event.stopPropagation();
-        const buttons = Array.from(palette.querySelectorAll('.rte-palette-color'));
-        const currentIndex = buttons.indexOf(event.target);
-        if (currentIndex === -1) return;
-        let newIndex = currentIndex;
-        const rows = Math.ceil(buttons.length / columns);
-        switch (key) {
-            case 'ArrowRight': newIndex = (currentIndex + 1) % buttons.length; break;
-            case 'ArrowLeft': newIndex = (currentIndex - 1 + buttons.length) % buttons.length; break;
-            case 'ArrowDown':
-                newIndex = currentIndex + columns;
-                if (newIndex >= buttons.length) newIndex = currentIndex % columns;
-                break;
-            case 'ArrowUp':
-                newIndex = currentIndex - columns;
-                if (newIndex < 0) {
-                    const column = currentIndex % columns;
-                    const lastRowStart = (rows - 1) * columns;
-                    newIndex = lastRowStart + column;
-                    if (newIndex >= buttons.length) newIndex = lastRowStart + column - columns;
-                }
-                break;
-            case 'Home': newIndex = 0; break;
-            case 'End': newIndex = buttons.length - 1; break;
-            case 'Escape':
-                if (triggerButton) {
-                    triggerButton.click();
-                    setTimeout(() => triggerButton.focus(), 10);
-                }
-                return;
-        }
-        if (newIndex >= 0 && newIndex < buttons.length) buttons[newIndex].focus();
-    };
-    palette.addEventListener('keydown', keydownHandler);
-    palette._keydownHandler = keydownHandler;
-}
-
-export function setupListPickerNavigation(palette, triggerButton) {
-    if (!palette) return;
-    const options = Array.from(palette.querySelectorAll('.rte-font-option'));
-    if (options.length === 0) return;
-    setTimeout(() => { if (options[0]) options[0].focus(); }, 50);
-    const keydownHandler = (event) => {
-        const key = event.key;
-        if (!['ArrowUp', 'ArrowDown', 'Home', 'End', 'Escape'].includes(key)) return;
-        event.preventDefault();
-        event.stopPropagation();
-        const opts = Array.from(palette.querySelectorAll('.rte-font-option'));
-        const currentIndex = opts.indexOf(event.target);
-        if (currentIndex === -1) return;
-        let newIndex = currentIndex;
-        switch (key) {
-            case 'ArrowDown': newIndex = (currentIndex + 1) % opts.length; break;
-            case 'ArrowUp': newIndex = (currentIndex - 1 + opts.length) % opts.length; break;
-            case 'Home': newIndex = 0; break;
-            case 'End': newIndex = opts.length - 1; break;
-            case 'Escape':
-                if (triggerButton) {
-                    triggerButton.click();
-                    setTimeout(() => triggerButton.focus(), 10);
-                }
-                return;
-        }
-        if (newIndex >= 0 && newIndex < opts.length) opts[newIndex].focus();
-    };
-    palette.addEventListener('keydown', keydownHandler);
-    palette._keydownHandler = keydownHandler;
-}
-
-export function focusElement(element) {
-    if (element) element.focus();
-}
-
+ 
+ 
+  
 export function getCurrentTextColor() {
     const color = document.queryCommandValue('foreColor');
     if (color && color.startsWith('rgb')) {
