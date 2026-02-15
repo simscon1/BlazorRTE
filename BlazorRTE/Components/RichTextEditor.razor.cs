@@ -30,6 +30,22 @@ namespace BlazorRTE.Components
         [Parameter]
         public bool DarkMode { get; set; } = false;
 
+        // ===== NEW PARAMETERS =====
+
+        /// <summary>
+        /// When true, pressing Enter without Shift will trigger OnEnterKeyPressed instead of creating a newline.
+        /// Press Shift+Enter to create a newline.
+        /// </summary>
+        [Parameter]
+        public bool BypassEnterKey { get; set; } = false;
+
+        /// <summary>
+        /// Event callback triggered when Enter key is pressed and BypassEnterKey is true.
+        /// Use this to send messages in chat applications.
+        /// </summary>
+        [Parameter]
+        public EventCallback OnEnterKeyPressed { get; set; }
+
         // ===== EVENT CALLBACKS =====
         [Parameter] public EventCallback<string> OnContentChanged { get; set; }
         [Parameter] public EventCallback<HtmlChangedEventArgs> OnHtmlChanged { get; set; }
@@ -83,6 +99,9 @@ namespace BlazorRTE.Components
         private ElementReference _headingButton;
         private ElementReference _headingPalette;
         private string _currentFontSize = "3"; // Default to Normal (14px = size 3)
+                                               // Add to the RichTextEditor class properties section (around line 15-20):
+
+        protected readonly string _editorId = $"rte-{Guid.NewGuid():N}";
 
         private readonly Dictionary<string, string> _fontSizes = new()
         {
@@ -143,7 +162,7 @@ namespace BlazorRTE.Components
                 {
                     _dotNetRef = DotNetObjectReference.Create(this);
                     _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/BlazorRTE/rich-text-editor.js");
-                    await _jsModule.InvokeVoidAsync("initializeEditor", _editorRef, _dotNetRef);
+                    await _jsModule.InvokeVoidAsync("initializeEditor", _editorRef, _dotNetRef, _editorId); // Pass editor ID
 
                     if (!string.IsNullOrEmpty(Value))
                     {
@@ -334,6 +353,17 @@ namespace BlazorRTE.Components
 
         protected async Task OnKeyDown(KeyboardEventArgs e)
         {
+            // NEW: Handle Enter key bypass for chat-style send functionality
+            if (BypassEnterKey && e.Key == "Enter" && !e.ShiftKey && !e.CtrlKey && !e.MetaKey)
+            {
+                // Prevent default newline behavior
+                if (OnEnterKeyPressed.HasDelegate)
+                {
+                    await OnEnterKeyPressed.InvokeAsync();
+                }
+                return;
+            }
+
             if (e.CtrlKey || e.MetaKey)
             {
                 // Handle Ctrl+Alt shortcuts (Headings)
@@ -1875,6 +1905,14 @@ namespace BlazorRTE.Components
                 "7" => "32",  // XX-Large
                 _ => "14"     // Default
             };
+        }
+
+        // Add helper method to determine when to prevent default key behavior:
+
+        protected bool ShouldPreventDefaultKey(KeyboardEventArgs e)
+        {
+            // Prevent Enter when BypassEnterKey is true and no modifiers (except Shift is allowed for newlines)
+            return BypassEnterKey && e.Key == "Enter" && !e.ShiftKey && !e.CtrlKey && !e.MetaKey;
         }
     }
 }
