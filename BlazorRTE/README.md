@@ -3,12 +3,11 @@
 **Native Blazor • 51 Features • Zero JavaScript Dependencies • Production-Ready**
 
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE.txt)
-[![ARIA](https://img.shields.io/badge/ARIA-Complete-green?logo=w3c)](Docs/ACCESSIBILITY.md)
 [![.NET 8+](https://img.shields.io/badge/.NET-8.0%2B-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 
 ## 🚀 Quick Start
 
-**⚠️ Important:** BlazorRTE requires interactive rendering. Add `@rendermode InteractiveServer` to your page.
+**⚠️ Important:** For Blazor Server, BlazorRTE requires interactive rendering. Add `@rendermode InteractiveServer` to your page.
 
 ### Installation
 
@@ -56,7 +55,7 @@ dotnet add package BlazorRTE
 - ✅ Max length enforcement
 - ✅ HTML sanitization (XSS protection)
 
-### Dynamic Toolbar Indicators (NEW in v1.1.2) ✨
+### Dynamic Toolbar Indicators ✨
 - ✅ **Font size button** - Shows current size (10, 14, 16, 18, 24, 32)
 - ✅ **Heading button** - Shows current level (¶, H1, H2, H3)
 - ✅ **Text color button** - Shows current color with colored underline
@@ -67,38 +66,28 @@ dotnet add package BlazorRTE
 - ✅ **Comprehensive API** - 20+ event callbacks, methods, parameters
 - ✅ **Dark mode support** - Automatic theme switching
 - ✅ **Responsive design** - Works on desktop, tablet, mobile
-- ✅ **Zero dependencies** - ~25KB, fully self-contained
-- ✅ **Industry Standard UX** - Follows Word/Google Docs patterns
+- ✅ **Zero dependencies** - ~25KB, fully self-contained 
 
 ---
 
-## ♿ Accessibility - Full ARIA Implementation ✅
+## 💬 Chat Integration - Enter Key Bypass (NEW in v1.1.4)
 
-BlazorRTE follows **WCAG 2.1 Level AAA guidelines** with complete ARIA implementation:
+Perfect for chat applications where Enter sends the message:
 
-- ✅ **Full keyboard navigation** - Tab, Arrow keys, 27 shortcuts
-- ✅ **Complete ARIA markup** - Follows WAI-ARIA 1.2 patterns
-- ✅ **Screen reader compatible markup** - Proper roles, labels, live regions
-- ✅ **High contrast mode** - 9.7:1 contrast ratio (exceeds 7:1 AAA minimum)
-- ✅ **Focus indicators** - Clear 2px outlines with offset
-- ✅ **Accessible color pickers** - Grid/listbox patterns with labels
-- ✅ **Touch targets** - 32×32px (exceeds 24px AAA minimum)
-- ✅ **Live regions** - Character count announcements (`aria-live="polite"`)
+- **Auto-submit on Enter** - Send messages with the Enter key
+- **Shift+Enter** - Insert newline
+- **Control over behavior** - `EnterKeyBehavior` parameter:
+  - `EnterKeyBehavior.AlwaysSubmit` - Always send on Enter
+  - `EnterKeyBehavior.WithModifier` - Send only with Shift/Ctrl
+  - `EnterKeyBehavior.NeverSubmit` - Disable Enter to send
 
-**Implementation verified with:**
-- ✅ 54 unit tests including accessibility checks
-- ✅ Manual keyboard navigation testing
-- ✅ ARIA attribute validation
-- ✅ Color contrast calculation (9.7:1 light mode, 13.4:1 dark mode)
-
-**Future improvements:**
-- Screen reader testing (planned when requested or for enterprise certification)
-- Automated accessibility audits (Lighthouse, axe DevTools, WAVE, Pa11y)
-
-> 📖 **[View ARIA Implementation Details →](Docs/ACCESSIBILITY.md)**
+**Example:**
+```razor
+<RichTextEditor @bind-Value="@message" EnterKeyBehavior="EnterKeyBehavior.WithModifier" />
+```
 
 ---
-
+ 
 ## 📖 Documentation
 
 **Full API Documentation:** [Docs/FEATURES.md](Docs/FEATURES.md)
@@ -128,60 +117,8 @@ string text = GetPlainText(); // Get plain text without HTML
 ```
 --- 
 
-## ⌨️ Keyboard Shortcuts
+ 
 
-The Rich Text Editor supports **27+ industry-standard keyboard shortcuts:**
-
-### History
-- `Ctrl+Z` - Undo
-- `Ctrl+Y` or `Ctrl+Shift+Z` - Redo
-
-### Headings
-- `Ctrl+Alt+0` - Normal Text
-- `Ctrl+Alt+1` - Heading 1
-- `Ctrl+Alt+2` - Heading 2
-- `Ctrl+Alt+3` - Heading 3
-
-### Font Size
-- `Ctrl+Shift+>` - Increase Font Size
-- `Ctrl+Shift+<` - Decrease Font Size
-
-### Text Formatting
-- `Ctrl+B` - Bold
-- `Ctrl+I` - Italic
-- `Ctrl+U` - Underline
-- `Ctrl+Shift+X` - Strikethrough
-- `Ctrl+=` - Subscript
-- `Ctrl+Shift+=` - Superscript
-
-### Lists & Indentation
-- `Ctrl+Shift+8` - Bullet List
-- `Ctrl+Shift+7` - Numbered List
-- `Ctrl+[` - Decrease Indent
-- `Ctrl+]` - Increase Indent
-
-### Alignment
-- `Ctrl+L` - Align Left
-- `Ctrl+E` - Align Center
-- `Ctrl+R` - Align Right
-- `Ctrl+J` - Justify
-
-### Insert
-- `Ctrl+K` - Insert/Edit Link
-- `Ctrl+Shift+K` - Remove Link
-- `Ctrl+Shift+E` - Toggle Emoji Picker 🆕
-- `Ctrl+Enter` - Horizontal Rule
-
-### Utility
-- `Ctrl+\` - Clear Formatting
-
-> **Note:** On macOS, use `Cmd` instead of `Ctrl`.
-
----
-
-## 🎭 Emoji Support
-
-BlazorRTE includes **two ways** to insert emojis:
 
  ## 🎭 Emoji Support
 
@@ -193,8 +130,7 @@ Click the 😀 button in the toolbar to open a searchable emoji picker with:
 - ✅ Search by name or keyword
 - ✅ Recently used emojis (persisted)
 - ✅ Full keyboard navigation
-- ✅ Smart positioning (viewport-aware)
-- ✅ Dark mode support
+- ✅ Smart positioning (viewport-aware) 
 
 **Keyboard Shortcut:** `Ctrl+Shift+E`
 
@@ -225,8 +161,7 @@ BlazorRTE includes comprehensive unit tests using **bUnit** and **xUnit**.
 **Test Coverage:**
 - ✅ **54 Unit Tests** covering all major functionality
 - ✅ **100% Pass Rate** (54/54 tests passing) ⭐
-- ✅ Component rendering & initialization
-- ✅ Accessibility (ARIA attributes, keyboard navigation)
+- ✅ Component rendering & initialization 
 - ✅ Security (XSS prevention, HTML sanitization)
 - ✅ UI components (buttons, pickers, toolbar)
 - ✅ Event handling and state management
@@ -261,45 +196,7 @@ BlazorRTE includes **enterprise-grade XSS protection**:
 - ⚠️ **GPL v3 Requirement:** Your application must also be open-source under GPL v3
 
 **See [LICENSE.txt](LICENSE.txt) for full GPL v3 terms.**
-
-### Commercial License (Planned)
-For proprietary/closed-source applications, commercial licensing will be available in a future release.
-
-**Planned pricing tiers:**
-- **Professional** (~$79-99/year): Commercial license + email support
-- **Business** (~$149-199/year): Priority support + phone/video
-- **Enterprise** (~$499+/year): Source code + custom development + SLA
-
-**For early access or enterprise licensing inquiries:**
-- 📧 Email: licensing@loneworx.com
-- 🌐 Website: https://www.loneworx.com
-- 📁 GitHub: https://github.com/simscon1/BlazorRTE
-
----
-
-## 🛠️ Development
-
-### Build from Source
-
-
-````````
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please submit pull requests to our GitHub repository.
-
-**Accessibility contributions are especially valued** - we follow WAI-ARIA 1.2 authoring practices.
-
----
-
-## 📞 Support
-
-- **Community (GPL v3):** [GitHub Issues](https://github.com/simscon1/BlazorRTE/issues)
-- **Accessibility Questions:** Use `accessibility` label
-- **Commercial Inquiries:** licensing@loneworx.com
-
+ 
 ---
 
 ## 🙏 Acknowledgments
@@ -309,6 +206,4 @@ Contributions are welcome! Please submit pull requests to our GitHub repository.
 - [BlazorEmo](https://github.com/simscon1/BlazorEmo) - Emoji picker component
 
 ---
-
-**Built with ❤️ for the Blazor community by [LoneWorx LLC](https://loneworx.com)**
-
+ 
