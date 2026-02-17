@@ -334,7 +334,7 @@
                         <div @ref="_textColorPalette"
                              id="textcolor-palette"
                              class="rte-color-palette"
-                             role="grid"
+                             role="listbox"
                              aria-label="Text colors"
                              @onkeydown="@(e => OnDropdownKeyDown(e, "textcolor-palette"))"
                              @onkeydown:stopPropagation
@@ -342,17 +342,29 @@
                              @onclick:stopPropagation
                              @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="text-color-label">Text Color</div>
-                            <div class="rte-color-palette-grid" aria-labelledby="text-color-label">
+                            <div class="rte-color-grid" role="grid" aria-labelledby="text-color-label">
                                 @foreach (var color in ColorPalette.TextColors)
                                 {
                                     <button type="button"
-                                            class="rte-palette-color"
-                                            role="gridcell"
+                                            class="rte-color-swatch @(color.Key == "#FFFFFF" ? "rte-color-swatch-white" : "") @(_currentTextColor.Equals(color.Key, StringComparison.OrdinalIgnoreCase) ? "selected" : "")"
+                                            role="option"
+                                            aria-selected="@(_currentTextColor.Equals(color.Key, StringComparison.OrdinalIgnoreCase))"
                                             aria-label="@color.Value"
                                             style="background-color: @color.Key;"
                                             @onclick="@(() => SelectTextColor(color.Key))"
-                                            data-tooltip="@color.Value"></button>
+                                            title="@color.Value">
+                                        <span class="visually-hidden">@color.Value</span>
+                                    </button>
                                 }
+                            </div>
+                            <div class="rte-color-custom">
+                                <label for="custom-text-color">Custom:</label>
+                                <input type="color" 
+                                       id="custom-text-color" 
+                                       class="rte-color-input"
+                                       value="@_currentTextColor"
+                                       @onchange="@(e => SelectTextColor(e.Value?.ToString() ?? "#000000"))" 
+                                       aria-label="Choose custom text color" />
                             </div>
                         </div>
                     }
@@ -380,7 +392,7 @@
                         <div @ref="_bgColorPalette"
                              id="highlight-palette"
                              class="rte-color-palette"
-                             role="grid"
+                             role="listbox"
                              aria-label="Highlight colors"
                              @onkeydown="@(e => OnDropdownKeyDown(e, "highlight-palette"))"
                              @onkeydown:stopPropagation
@@ -388,31 +400,42 @@
                              @onclick:stopPropagation
                              @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="bg-color-label">Highlight Color</div>
-                            <div class="rte-color-palette-grid" aria-labelledby="bg-color-label">
+                            <div class="rte-color-grid" role="grid" aria-labelledby="bg-color-label">
                                 @foreach (var color in ColorPalette.BackgroundColors)
                                 {
                                     @if (color.Key == "transparent")
                                     {
                                         <button type="button"
-                                                class="rte-palette-color rte-palette-color-none"
-                                                role="gridcell"
+                                                class="rte-color-swatch rte-color-swatch-none @(_currentHighlightColor == "transparent" ? "selected" : "")"
+                                                role="option"
+                                                aria-selected="@(_currentHighlightColor == "transparent")"
                                                 aria-label="@color.Value"
                                                 @onclick="@(() => SelectBackgroundColor(color.Key))"
-                                                data-tooltip="@color.Value">
-                                            <span aria-hidden="true">✕</span>
+                                                title="@color.Value">
+                                            <span class="visually-hidden">@color.Value</span>
                                         </button>
                                     }
                                     else
                                     {
                                         <button type="button"
-                                                class="rte-palette-color"
-                                                role="gridcell"
+                                                class="rte-color-swatch @(_currentHighlightColor.Equals(color.Key, StringComparison.OrdinalIgnoreCase) ? "selected" : "")"
+                                                role="option"
+                                                aria-selected="@(_currentHighlightColor.Equals(color.Key, StringComparison.OrdinalIgnoreCase))"
                                                 aria-label="@color.Value"
                                                 style="background-color: @color.Key;"
                                                 @onclick="@(() => SelectBackgroundColor(color.Key))"
-                                                data-tooltip="@color.Value"></button>
+                                                title="@color.Value">
+                                            <span class="visually-hidden">@color.Value</span>
+                                        </button>
                                     }
                                 }
+                            </div>
+                            <div class="rte-color-custom">
+                                <label for="custom-highlight-color">Custom:</label>
+                                <input type="color" 
+                                       id="custom-highlight-color" 
+                                       value="@(_currentHighlightColor == "transparent" ? "#FFFFFF" : _currentHighlightColor)"
+                                       @onchange="@(e => SelectBackgroundColor(e.Value?.ToString() ?? "#FFFFFF"))" />
                             </div>
                         </div>
                     }
@@ -672,3 +695,12 @@
 <EmojiAutocomplete @ref="emojiAutocomplete"
                    OnEmojiSelected="OnEmojiSelected"
                    DarkMode="@DarkMode" />
+
+@* ===== CLICK-OUTSIDE BACKDROP ===== *@
+@if (_showTextColorPicker || _showBackgroundColorPicker || _showFontSizePicker || _showFontFamilyPicker || _showHeadingPicker)
+{
+    <div class="rte-backdrop" 
+         @onclick="CloseAllDropdowns"
+         @onclick:stopPropagation="false">
+    </div>
+}

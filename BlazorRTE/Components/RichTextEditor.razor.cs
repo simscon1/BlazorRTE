@@ -138,7 +138,7 @@ namespace BlazorRTE.Components
         private ElementReference _fontSizeButton;
         private ElementReference _fontSizePalette;
 
-        private const int ColorGridColumns = 3;
+        private const int ColorGridColumns = 6;
 
         private string _currentTextColor = "#000000";
         private string _currentHighlightColor = "#FFFFFF";
@@ -1860,7 +1860,7 @@ namespace BlazorRTE.Components
             }
         }
 
-        private void CloseAllDropdowns()
+        protected void CloseAllDropdowns()
         {
             _showHeadingPicker = false;
             _showFontFamilyPicker = false;

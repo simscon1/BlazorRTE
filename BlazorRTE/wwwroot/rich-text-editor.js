@@ -869,7 +869,13 @@ export function navigateDropdown(elementId, direction) {
     const container = document.getElementById(elementId);
     if (!container) return;
 
-    const buttons = Array.from(container.querySelectorAll('button'));
+    // Check for nested grid element (color palettes have grid inside listbox)
+    const gridElement = container.querySelector('[role="grid"]');
+    const isGrid = gridElement !== null;
+    
+    // Get buttons from grid if it exists, otherwise from container
+    const buttonContainer = gridElement || container;
+    const buttons = Array.from(buttonContainer.querySelectorAll('button'));
     if (buttons.length === 0) return;
 
     const currentIndex = buttons.findIndex(b => b === document.activeElement);
@@ -879,7 +885,6 @@ export function navigateDropdown(elementId, direction) {
     }
 
     let nextIndex;
-    const isGrid = container.getAttribute('role') === 'grid';
     
     if (isGrid) {
         // For color grids: detect columns by checking button positions
@@ -887,7 +892,7 @@ export function navigateDropdown(elementId, direction) {
         const firstTop = firstButton.getBoundingClientRect().top;
         let columnsInRow = 0;
         for (const btn of buttons) {
-            if (btn.getBoundingClientRect().top === firstTop) {
+            if (Math.abs(btn.getBoundingClientRect().top - firstTop) < 2) { // Allow small tolerance
                 columnsInRow++;
             } else {
                 break;
