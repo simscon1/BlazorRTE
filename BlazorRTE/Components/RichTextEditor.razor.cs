@@ -644,7 +644,7 @@ namespace BlazorRTE.Components
         protected async Task ExecuteCommand(FormatCommand command)
         {
             if (_jsModule == null) return;
-
+             
             try
             {
                 var commandName = command switch
@@ -741,6 +741,12 @@ namespace BlazorRTE.Components
                     // NEW: Raise content changed and after command events
                     await RaiseContentChangedEvent(ChangeSource.Command);
                     await RaiseAfterCommandEvent(command, commandName, true);
+                }
+
+                // After command execution, refocus toolbar button
+                if (_toolbarFocusIndex >= 0 && _toolbarFocusIndex < _toolbarButtonIds.Count)
+                {
+                    await _jsModule.InvokeVoidAsync("focusElementById", _toolbarButtonIds[_toolbarFocusIndex]);
                 }
             }
             catch (Exception ex)
@@ -1262,7 +1268,9 @@ namespace BlazorRTE.Components
             await ExecuteCommand(command);
             _showHeadingPicker = false;
             StateHasChanged();
-
+            
+            // Refocus the heading button
+            await FocusToolbarButton(_toolbarFocusIndex);
         }
 
         protected string GetCurrentHeadingLabel()
@@ -1292,7 +1300,8 @@ namespace BlazorRTE.Components
             _currentTextColor = color; // Update immediately
             _showTextColorPicker = false;
             StateHasChanged();
-
+            // Refocus the heading button
+            await FocusToolbarButton(_toolbarFocusIndex);
         }
 
         protected async Task SelectBackgroundColor(string color)
@@ -1301,7 +1310,8 @@ namespace BlazorRTE.Components
             _currentHighlightColor = color; // Update immediately
             _showBackgroundColorPicker = false;
             StateHasChanged();
-
+            // Refocus the heading button
+            await FocusToolbarButton(_toolbarFocusIndex);
         }
 
         protected async Task SelectFontSize(string size)
@@ -1322,7 +1332,8 @@ namespace BlazorRTE.Components
                 await ExecuteCommand(command.Value);
                 _showFontSizePicker = false;
                 StateHasChanged();
-
+                // Refocus the heading button
+                await FocusToolbarButton(_toolbarFocusIndex);
             }
         }
 
@@ -1956,6 +1967,14 @@ namespace BlazorRTE.Components
             }
         }
 
+        protected void OnToolbarButtonFocus(string buttonId)
+        {
+            var index = _toolbarButtonIds.IndexOf(buttonId);
+            if (index >= 0)
+            {
+                _toolbarFocusIndex = index;
+            }
+        }
     }
 
 

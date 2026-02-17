@@ -20,6 +20,7 @@
                         tabindex="@GetToolbarTabIndex("rte-btn-undo")"
                         class="rte-btn"
                         aria-label="Undo"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-undo"))"
                         @onclick="() => ExecuteCommand(FormatCommand.Undo)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -33,6 +34,7 @@
                         tabindex="@GetToolbarTabIndex("rte-btn-redo")"
                         class="rte-btn"
                         aria-label="Redo"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-redo"))"
                         @onclick="() => ExecuteCommand(FormatCommand.Redo)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -56,6 +58,7 @@
                             aria-label="Heading level"
                             aria-haspopup="true"
                             aria-expanded="@_showHeadingPicker.ToString().ToLower()"
+                            @onfocus="@(() => OnToolbarButtonFocus("rte-btn-heading"))"
                             @onclick="ToggleHeadingPicker"
                             @onmousedown:preventDefault
                             @onclick:stopPropagation
@@ -117,6 +120,7 @@
                             aria-label="Font family"
                             aria-haspopup="true"
                             aria-expanded="@_showFontFamilyPicker.ToString().ToLower()"
+                            @onfocus="@(() => OnToolbarButtonFocus("rte-btn-fontfamily"))"
                             @onclick="ToggleFontFamilyPicker"
                             @onmousedown:preventDefault
                             @onclick:stopPropagation
@@ -165,6 +169,7 @@
                             aria-label="Font size"
                             aria-haspopup="true"
                             aria-expanded="@_showFontSizePicker.ToString().ToLower()"
+                            @onfocus="@(() => OnToolbarButtonFocus("rte-btn-fontsize"))"
                             @onclick="ToggleFontSizePicker"
                             @onmousedown:preventDefault
                             @onclick:stopPropagation
@@ -213,6 +218,7 @@
                         class="rte-btn @(IsFormatActiveOrPending("bold") ? "active" : "")"
                         aria-pressed="@IsFormatActiveOrPending("bold").ToString().ToLower()"
                         aria-label="Bold"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-bold"))"
                         @onclick="() => ExecuteCommandWithPendingFormat(FormatCommand.Bold)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -227,6 +233,7 @@
                         class="rte-btn @(IsFormatActiveOrPending("italic") ? "active" : "")"
                         aria-pressed="@IsFormatActiveOrPending("italic").ToString().ToLower()"
                         aria-label="Italic"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-italic"))"
                         @onclick="() => ExecuteCommandWithPendingFormat(FormatCommand.Italic)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -241,6 +248,7 @@
                         class="rte-btn @(IsFormatActiveOrPending("underline") ? "active" : "")"
                         aria-pressed="@IsFormatActiveOrPending("underline").ToString().ToLower()"
                         aria-label="Underline"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-underline"))"
                         @onclick="() => ExecuteCommandWithPendingFormat(FormatCommand.Underline)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -255,6 +263,7 @@
                         class="rte-btn @(IsFormatActiveOrPending("strikeThrough") ? "active" : "")"
                         aria-pressed="@IsFormatActiveOrPending("strikeThrough").ToString().ToLower()"
                         aria-label="Strikethrough"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-strikethrough"))"
                         @onclick="() => ExecuteCommandWithPendingFormat(FormatCommand.Strikethrough)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -269,6 +278,7 @@
                         class="rte-btn @(IsFormatActiveOrPending("subscript") ? "active" : "")"
                         aria-pressed="@IsFormatActiveOrPending("subscript").ToString().ToLower()"
                         aria-label="Subscript"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-subscript"))"
                         @onclick="() => ExecuteCommandWithPendingFormat(FormatCommand.Subscript)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -283,6 +293,7 @@
                         class="rte-btn @(IsFormatActiveOrPending("superscript") ? "active" : "")"
                         aria-pressed="@IsFormatActiveOrPending("superscript").ToString().ToLower()"
                         aria-label="Superscript"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-superscript"))"
                         @onclick="() => ExecuteCommandWithPendingFormat(FormatCommand.Superscript)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -305,6 +316,7 @@
                             aria-label="Text color"
                             aria-haspopup="true"
                             aria-expanded="@_showTextColorPicker.ToString().ToLower()"
+                            @onfocus="@(() => OnToolbarButtonFocus("rte-btn-textcolor"))"
                             @onclick="ToggleTextColorPicker"
                             @onmousedown:preventDefault
                             @onclick:stopPropagation
@@ -355,6 +367,7 @@
                             aria-label="Highlight color"
                             aria-haspopup="true"
                             aria-expanded="@_showBackgroundColorPicker.ToString().ToLower()"
+                            @onfocus="@(() => OnToolbarButtonFocus("rte-btn-highlight"))"
                             @onclick="ToggleBackgroundColorPicker"
                             @onmousedown:preventDefault
                             @onclick:stopPropagation
@@ -417,6 +430,7 @@
                         class="rte-btn @(IsFormatActive("insertUnorderedList") ? "active" : "")"
                         aria-pressed="@IsFormatActive("insertUnorderedList").ToString().ToLower()"
                         aria-label="Bulleted list"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-bulletlist"))"
                         @onclick="() => ExecuteCommand(FormatCommand.InsertUnorderedList)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -431,6 +445,7 @@
                         class="rte-btn @(IsFormatActive("insertOrderedList") ? "active" : "")"
                         aria-pressed="@IsFormatActive("insertOrderedList").ToString().ToLower()"
                         aria-label="Numbered list"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-numberlist"))"
                         @onclick="() => ExecuteCommand(FormatCommand.InsertOrderedList)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -444,6 +459,7 @@
                         tabindex="@GetToolbarTabIndex("rte-btn-outdent")"
                         class="rte-btn"
                         aria-label="Decrease indent"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-outdent"))"
                         @onclick="() => ExecuteCommand(FormatCommand.Outdent)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -457,6 +473,7 @@
                         tabindex="@GetToolbarTabIndex("rte-btn-indent")"
                         class="rte-btn"
                         aria-label="Increase indent"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-indent"))"
                         @onclick="() => ExecuteCommand(FormatCommand.Indent)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -476,6 +493,7 @@
                         class="rte-btn @(alignment == "left" ? "active" : "")"
                         aria-pressed="@(alignment == "left").ToString().ToLower()"
                         aria-label="Align left"
+                          @onfocus="@(() => OnToolbarButtonFocus("rte-btn-alignleft"))"
                         @onclick="() => ExecuteCommand(FormatCommand.AlignLeft)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -490,6 +508,7 @@
                         class="rte-btn @(alignment == "center" ? "active" : "")"
                         aria-pressed="@(alignment == "center").ToString().ToLower()"
                         aria-label="Align center"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-aligncenter"))"
                         @onclick="() => ExecuteCommand(FormatCommand.AlignCenter)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -504,6 +523,7 @@
                         class="rte-btn @(alignment == "right" ? "active" : "")"
                         aria-pressed="@(alignment == "right").ToString().ToLower()"
                         aria-label="Align right"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-alignright"))"
                         @onclick="() => ExecuteCommand(FormatCommand.AlignRight)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -518,6 +538,7 @@
                         class="rte-btn @(alignment == "justify" ? "active" : "")"
                         aria-pressed="@(alignment == "justify").ToString().ToLower()"
                         aria-label="Justify"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-alignjustify"))"
                         @onclick="() => ExecuteCommand(FormatCommand.AlignJustify)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -537,6 +558,7 @@
                         class="rte-btn @(IsFormatActive("link") ? "active" : "")"
                         aria-haspopup="dialog"
                         aria-label="@(IsFormatActive("link") ? "Edit link" : "Insert link")"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-link"))"
                         @onclick="CreateLink"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -550,6 +572,7 @@
                         tabindex="@GetToolbarTabIndex("rte-btn-hr")"
                         class="rte-btn"
                         aria-label="Insert horizontal rule"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-hr"))"
                         @onclick="() => ExecuteCommand(FormatCommand.HorizontalRule)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -568,6 +591,7 @@
                         aria-haspopup="true"
                         aria-expanded="@_showEmojiPicker.ToString().ToLower()"
                         aria-pressed="@_isEmojiSelected.ToString().ToLower()"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-emoji"))"
                         @onclick="ToggleEmojiPicker"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -585,6 +609,7 @@
                     tabindex="@GetToolbarTabIndex("rte-btn-clearformat")"
                     class="rte-btn"
                     aria-label="Clear formatting"
+                    @onfocus="@(() => OnToolbarButtonFocus("rte-btn-clearformat"))"
                     @onclick="() => ExecuteCommand(FormatCommand.RemoveFormat)"
                     @onmousedown:preventDefault
                     @onclick:stopPropagation

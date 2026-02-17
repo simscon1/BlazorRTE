@@ -48,6 +48,12 @@ public partial class RichTextEditor
                 await UpdateToolbarForPendingFormats();
             }
         }
+
+        // After command execution, refocus toolbar button
+        if (_jsModule != null && _toolbarFocusIndex >= 0 && _toolbarFocusIndex < _toolbarButtonIds.Count)
+        {
+            await _jsModule.InvokeVoidAsync("focusElementById", _toolbarButtonIds[_toolbarFocusIndex]);
+        }
     }
 
     /// <summary>
