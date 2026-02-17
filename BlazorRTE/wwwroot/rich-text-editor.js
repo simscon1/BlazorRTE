@@ -1,6 +1,15 @@
 ﻿let editorInstances = new Map();
 let savedSelection = null; 
 
+// ===== PENDING FORMAT MODULE =====
+import * as pendingModule from './rich-text-editor.pending.js';
+
+// Re-export for C# JSInterop
+export const hasTextSelection = pendingModule.hasTextSelection;
+export const keepSelectionAfterFormat = pendingModule.keepSelectionAfterFormat;
+export const applyPendingFormats = pendingModule.applyPendingFormats;
+export const clearPendingFormats = pendingModule.clearPendingFormats;
+
 export function initializeEditor(element, dotNetRef) {
     if (!element) {
         console.error("Element is null!");
@@ -758,5 +767,92 @@ export function insertEmojiAtShortcode(emoji) {
     const editor = document.querySelector('[contenteditable="true"]');
     if (editor && editor._insertEmojiAtShortcode) {
         editor._insertEmojiAtShortcode(emoji);
+    }
+}
+
+export function focusElementById(elementId) {
+    const el = document.getElementById(elementId);
+    if (el) el.focus();
+}
+
+export function focusFirstInElement(elementId) {
+    const container = document.getElementById(elementId);
+    if (!container) return;
+
+    const focusable = container.querySelector('button, [tabindex="0"]');
+    if (focusable) {
+        focusable.focus();
+    }
+}
+
+export function navigateDropdown(elementId, direction) {
+    const container = document.getElementById(elementId);
+    if (!container) return;
+
+    const buttons = Array.from(container.querySelectorAll('button'));
+    if (buttons.length === 0) return;
+
+    const currentIndex = buttons.findIndex(b => b === document.activeElement);
+    if (currentIndex === -1) {
+        buttons[0]?.focus();
+        return;
+    }
+
+    let nextIndex;
+    const isGrid = container.getAttribute('role') === 'grid';
+    
+    if (isGrid) {
+        // For color grids: detect columns by checking button positions
+        const firstButton = buttons[0];
+        const firstTop = firstButton.getBoundingClientRect().top;
+        let columnsInRow = 0;
+        for (const btn of buttons) {
+            if (btn.getBoundingClientRect().top === firstTop) {
+                columnsInRow++;
+            } else {
+                break;
+            }
+        }
+        columnsInRow = columnsInRow || 1;
+
+        switch (direction) {
+            case 'right':
+                nextIndex = currentIndex < buttons.length - 1 ? currentIndex + 1 : 0;
+                break;
+            case 'left':
+                nextIndex = currentIndex > 0 ? currentIndex - 1 : buttons.length - 1;
+                break;
+            case 'down':
+                nextIndex = currentIndex + columnsInRow;
+                if (nextIndex >= buttons.length) nextIndex = currentIndex % columnsInRow;
+                break;
+            case 'up':
+                nextIndex = currentIndex - columnsInRow;
+                if (nextIndex < 0) {
+                    // Go to last row, same column
+                    const lastRowStart = Math.floor((buttons.length - 1) / columnsInRow) * columnsInRow;
+                    nextIndex = lastRowStart + (currentIndex % columnsInRow);
+                    if (nextIndex >= buttons.length) nextIndex = buttons.length - 1;
+                }
+                break;
+            default:
+                return;
+        }
+    } else {
+        // For listbox dropdowns: linear navigation
+        if (direction === 'down' || direction === 'right') {
+            nextIndex = currentIndex < buttons.length - 1 ? currentIndex + 1 : 0;
+        } else {
+            nextIndex = currentIndex > 0 ? currentIndex - 1 : buttons.length - 1;
+        }
+    }
+
+    buttons[nextIndex]?.focus();
+}
+
+export function clickFocusedElement() {
+    const focused = document.activeElement;
+    if (focused && focused.tagName === 'BUTTON') {
+        focused.click();
     }
 }

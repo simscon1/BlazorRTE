@@ -8,13 +8,16 @@
         <div class="rte-toolbar"
              role="toolbar"
              aria-label="Rich text formatting"
-             aria-controls="rte-editor"
+             aria-controls="@_editorId"
+             @onkeydown="OnToolbarKeyDown"
              @onmousedown="OnToolbarMouseDown"
              @onmousedown:preventDefault>
 
             @* ===== HISTORY GROUP ===== *@
             <div role="group" aria-label="History">
                 <button type="button"
+                        id="rte-btn-undo"
+                        tabindex="@GetToolbarTabIndex("rte-btn-undo")"
                         class="rte-btn"
                         aria-label="Undo"
                         @onclick="() => ExecuteCommand(FormatCommand.Undo)"
@@ -26,6 +29,8 @@
                 </button>
 
                 <button type="button"
+                        id="rte-btn-redo"
+                        tabindex="@GetToolbarTabIndex("rte-btn-redo")"
                         class="rte-btn"
                         aria-label="Redo"
                         @onclick="() => ExecuteCommand(FormatCommand.Redo)"
@@ -44,6 +49,8 @@
                 @* Heading Level Picker *@
                 <div class="rte-color-dropdown">
                     <button type="button"
+                            id="rte-btn-heading"
+                            tabindex="@GetToolbarTabIndex("rte-btn-heading")"
                             @ref="_headingButton"
                             class="rte-btn rte-btn-wide"
                             aria-label="Heading level"
@@ -59,9 +66,13 @@
                     @if (_showHeadingPicker)
                     {
                         <div @ref="_headingPalette"
+                             id="heading-palette"
                              class="rte-color-palette"
                              role="listbox"
                              aria-label="Heading levels"
+                             @onkeydown="@(e => OnDropdownKeyDown(e, "heading-palette"))"
+                             @onkeydown:stopPropagation
+                             @onkeydown:preventDefault
                              @onclick:stopPropagation
                              @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="heading-level-label">Heading Level</div>
@@ -99,6 +110,8 @@
                 @* Font Family Picker *@
                 <div class="rte-color-dropdown">
                     <button type="button"
+                            id="rte-btn-fontfamily"
+                            tabindex="@GetToolbarTabIndex("rte-btn-fontfamily")"
                             @ref="_fontFamilyButton"
                             class="rte-btn"
                             aria-label="Font family"
@@ -114,9 +127,13 @@
                     @if (_showFontFamilyPicker)
                     {
                         <div @ref="_fontFamilyPalette"
+                             id="fontfamily-palette"
                              class="rte-color-palette rte-font-family-palette"
                              role="listbox"
                              aria-label="Font families"
+                             @onkeydown="@(e => OnDropdownKeyDown(e, "fontfamily-palette"))"
+                             @onkeydown:stopPropagation
+                             @onkeydown:preventDefault
                              @onclick:stopPropagation
                              @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="font-family-label">Font Family</div>
@@ -141,6 +158,8 @@
                 @* Font Size Picker *@
                 <div class="rte-color-dropdown">
                     <button type="button"
+                            id="rte-btn-fontsize"
+                            tabindex="@GetToolbarTabIndex("rte-btn-fontsize")"
                             @ref="_fontSizeButton"
                             class="rte-btn"
                             aria-label="Font size"
@@ -156,9 +175,13 @@
                     @if (_showFontSizePicker)
                     {
                         <div @ref="_fontSizePalette"
+                             id="fontsize-palette"
                              class="rte-color-palette"
                              role="listbox"
                              aria-label="Font sizes"
+                             @onkeydown="@(e => OnDropdownKeyDown(e, "fontsize-palette"))"
+                             @onkeydown:stopPropagation
+                             @onkeydown:preventDefault
                              @onclick:stopPropagation
                              @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="font-size-label">Font Size</div>
@@ -185,10 +208,12 @@
             @* ===== TEXT FORMAT GROUP ===== *@
             <div role="group" aria-label="Text formatting">
                 <button type="button"
-                        class="rte-btn @(IsFormatActive("bold") ? "active" : "")"
-                        aria-pressed="@IsFormatActive("bold").ToString().ToLower()"
+                        id="rte-btn-bold"
+                        tabindex="@GetToolbarTabIndex("rte-btn-bold")"
+                        class="rte-btn @(IsFormatActiveOrPending("bold") ? "active" : "")"
+                        aria-pressed="@IsFormatActiveOrPending("bold").ToString().ToLower()"
                         aria-label="Bold"
-                        @onclick="ToggleBold"
+                        @onclick="() => ExecuteCommandWithPendingFormat(FormatCommand.Bold)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Bold (Ctrl+B)">
@@ -197,10 +222,12 @@
                 </button>
 
                 <button type="button"
-                        class="rte-btn @(IsFormatActive("italic") ? "active" : "")"
-                        aria-pressed="@IsFormatActive("italic").ToString().ToLower()"
+                        id="rte-btn-italic"
+                        tabindex="@GetToolbarTabIndex("rte-btn-italic")"
+                        class="rte-btn @(IsFormatActiveOrPending("italic") ? "active" : "")"
+                        aria-pressed="@IsFormatActiveOrPending("italic").ToString().ToLower()"
                         aria-label="Italic"
-                        @onclick="() => ExecuteCommand(FormatCommand.Italic)"
+                        @onclick="() => ExecuteCommandWithPendingFormat(FormatCommand.Italic)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Italic (Ctrl+I)">
@@ -209,10 +236,12 @@
                 </button>
 
                 <button type="button"
-                        class="rte-btn @(IsFormatActive("underline") ? "active" : "")"
-                        aria-pressed="@IsFormatActive("underline").ToString().ToLower()"
+                        id="rte-btn-underline"
+                        tabindex="@GetToolbarTabIndex("rte-btn-underline")"
+                        class="rte-btn @(IsFormatActiveOrPending("underline") ? "active" : "")"
+                        aria-pressed="@IsFormatActiveOrPending("underline").ToString().ToLower()"
                         aria-label="Underline"
-                        @onclick="() => ExecuteCommand(FormatCommand.Underline)"
+                        @onclick="() => ExecuteCommandWithPendingFormat(FormatCommand.Underline)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Underline (Ctrl+U)">
@@ -221,10 +250,12 @@
                 </button>
 
                 <button type="button"
-                        class="rte-btn @(IsFormatActive("strikeThrough") ? "active" : "")"
-                        aria-pressed="@IsFormatActive("strikeThrough").ToString().ToLower()"
+                        id="rte-btn-strikethrough"
+                        tabindex="@GetToolbarTabIndex("rte-btn-strikethrough")"
+                        class="rte-btn @(IsFormatActiveOrPending("strikeThrough") ? "active" : "")"
+                        aria-pressed="@IsFormatActiveOrPending("strikeThrough").ToString().ToLower()"
                         aria-label="Strikethrough"
-                        @onclick="() => ExecuteCommand(FormatCommand.Strikethrough)"
+                        @onclick="() => ExecuteCommandWithPendingFormat(FormatCommand.Strikethrough)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Strikethrough (Ctrl+Shift+X)">
@@ -233,10 +264,12 @@
                 </button>
 
                 <button type="button"
-                        class="rte-btn @(IsFormatActive("subscript") ? "active" : "")"
-                        aria-pressed="@IsFormatActive("subscript").ToString().ToLower()"
+                        id="rte-btn-subscript"
+                        tabindex="@GetToolbarTabIndex("rte-btn-subscript")"
+                        class="rte-btn @(IsFormatActiveOrPending("subscript") ? "active" : "")"
+                        aria-pressed="@IsFormatActiveOrPending("subscript").ToString().ToLower()"
                         aria-label="Subscript"
-                        @onclick="() => ExecuteCommand(FormatCommand.Subscript)"
+                        @onclick="() => ExecuteCommandWithPendingFormat(FormatCommand.Subscript)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Subscript (Ctrl+=)">
@@ -245,10 +278,12 @@
                 </button>
 
                 <button type="button"
-                        class="rte-btn @(IsFormatActive("superscript") ? "active" : "")"
-                        aria-pressed="@IsFormatActive("superscript").ToString().ToLower()"
+                        id="rte-btn-superscript"
+                        tabindex="@GetToolbarTabIndex("rte-btn-superscript")"
+                        class="rte-btn @(IsFormatActiveOrPending("superscript") ? "active" : "")"
+                        aria-pressed="@IsFormatActiveOrPending("superscript").ToString().ToLower()"
                         aria-label="Superscript"
-                        @onclick="() => ExecuteCommand(FormatCommand.Superscript)"
+                        @onclick="() => ExecuteCommandWithPendingFormat(FormatCommand.Superscript)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
                         data-tooltip="Superscript (Ctrl+Shift+=)">
@@ -263,6 +298,8 @@
             <div role="group" aria-label="Text colors">
                 <div class="rte-color-dropdown">
                     <button type="button"
+                            id="rte-btn-textcolor"
+                            tabindex="@GetToolbarTabIndex("rte-btn-textcolor")"
                             @ref="_textColorButton"
                             class="rte-btn @(IsFormatActive("foreColor") ? "active" : "")"
                             aria-label="Text color"
@@ -283,9 +320,13 @@
                     @if (_showTextColorPicker)
                     {
                         <div @ref="_textColorPalette"
+                             id="textcolor-palette"
                              class="rte-color-palette"
                              role="grid"
                              aria-label="Text colors"
+                             @onkeydown="@(e => OnDropdownKeyDown(e, "textcolor-palette"))"
+                             @onkeydown:stopPropagation
+                             @onkeydown:preventDefault
                              @onclick:stopPropagation
                              @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="text-color-label">Text Color</div>
@@ -307,6 +348,8 @@
 
                 <div class="rte-color-dropdown">
                     <button type="button"
+                            id="rte-btn-highlight"
+                            tabindex="@GetToolbarTabIndex("rte-btn-highlight")"
                             @ref="_bgColorButton"
                             class="rte-btn @(IsFormatActive("backColor") ? "active" : "")"
                             aria-label="Highlight color"
@@ -322,9 +365,13 @@
                     @if (_showBackgroundColorPicker)
                     {
                         <div @ref="_bgColorPalette"
+                             id="highlight-palette"
                              class="rte-color-palette"
                              role="grid"
                              aria-label="Highlight colors"
+                             @onkeydown="@(e => OnDropdownKeyDown(e, "highlight-palette"))"
+                             @onkeydown:stopPropagation
+                             @onkeydown:preventDefault
                              @onclick:stopPropagation
                              @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="bg-color-label">Highlight Color</div>
@@ -365,6 +412,8 @@
             @* ===== PARAGRAPH GROUP ===== *@
             <div role="group" aria-label="Paragraph formatting">
                 <button type="button"
+                        id="rte-btn-bulletlist"
+                        tabindex="@GetToolbarTabIndex("rte-btn-bulletlist")"
                         class="rte-btn @(IsFormatActive("insertUnorderedList") ? "active" : "")"
                         aria-pressed="@IsFormatActive("insertUnorderedList").ToString().ToLower()"
                         aria-label="Bulleted list"
@@ -377,6 +426,8 @@
                 </button>
 
                 <button type="button"
+                        id="rte-btn-numberlist"
+                        tabindex="@GetToolbarTabIndex("rte-btn-numberlist")"
                         class="rte-btn @(IsFormatActive("insertOrderedList") ? "active" : "")"
                         aria-pressed="@IsFormatActive("insertOrderedList").ToString().ToLower()"
                         aria-label="Numbered list"
@@ -389,6 +440,8 @@
                 </button>
 
                 <button type="button"
+                        id="rte-btn-outdent"
+                        tabindex="@GetToolbarTabIndex("rte-btn-outdent")"
                         class="rte-btn"
                         aria-label="Decrease indent"
                         @onclick="() => ExecuteCommand(FormatCommand.Outdent)"
@@ -400,6 +453,8 @@
                 </button>
 
                 <button type="button"
+                        id="rte-btn-indent"
+                        tabindex="@GetToolbarTabIndex("rte-btn-indent")"
                         class="rte-btn"
                         aria-label="Increase indent"
                         @onclick="() => ExecuteCommand(FormatCommand.Indent)"
@@ -416,6 +471,8 @@
             @* ===== ALIGNMENT GROUP ===== *@
             <div role="group" aria-label="Text alignment">
                 <button type="button"
+                        id="rte-btn-alignleft"
+                        tabindex="@GetToolbarTabIndex("rte-btn-alignleft")"
                         class="rte-btn @(alignment == "left" ? "active" : "")"
                         aria-pressed="@(alignment == "left").ToString().ToLower()"
                         aria-label="Align left"
@@ -428,6 +485,8 @@
                 </button>
 
                 <button type="button"
+                        id="rte-btn-aligncenter"
+                        tabindex="@GetToolbarTabIndex("rte-btn-aligncenter")"
                         class="rte-btn @(alignment == "center" ? "active" : "")"
                         aria-pressed="@(alignment == "center").ToString().ToLower()"
                         aria-label="Align center"
@@ -440,6 +499,8 @@
                 </button>
 
                 <button type="button"
+                        id="rte-btn-alignright"
+                        tabindex="@GetToolbarTabIndex("rte-btn-alignright")"
                         class="rte-btn @(alignment == "right" ? "active" : "")"
                         aria-pressed="@(alignment == "right").ToString().ToLower()"
                         aria-label="Align right"
@@ -452,6 +513,8 @@
                 </button>
 
                 <button type="button"
+                        id="rte-btn-alignjustify"
+                        tabindex="@GetToolbarTabIndex("rte-btn-alignjustify")"
                         class="rte-btn @(alignment == "justify" ? "active" : "")"
                         aria-pressed="@(alignment == "justify").ToString().ToLower()"
                         aria-label="Justify"
@@ -469,6 +532,8 @@
             @* ===== INSERT GROUP ===== *@
             <div role="group" aria-label="Insert">
                 <button type="button"
+                        id="rte-btn-link"
+                        tabindex="@GetToolbarTabIndex("rte-btn-link")"
                         class="rte-btn @(IsFormatActive("link") ? "active" : "")"
                         aria-haspopup="dialog"
                         aria-label="@(IsFormatActive("link") ? "Edit link" : "Insert link")"
@@ -481,6 +546,8 @@
                 </button>
 
                 <button type="button"
+                        id="rte-btn-hr"
+                        tabindex="@GetToolbarTabIndex("rte-btn-hr")"
                         class="rte-btn"
                         aria-label="Insert horizontal rule"
                         @onclick="() => ExecuteCommand(FormatCommand.HorizontalRule)"
@@ -493,6 +560,8 @@
 
                 @* ===== EMOJI BUTTON (NO DROPDOWN WRAPPER) ===== *@
                 <button type="button"
+                        id="rte-btn-emoji"
+                        tabindex="@GetToolbarTabIndex("rte-btn-emoji")"
                         @ref="_emojiButton"
                         class="rte-btn @(_isEmojiSelected ? "active" : "")"
                         aria-label="Insert emoji"
@@ -512,6 +581,8 @@
 
             @* ===== CLEAR FORMATTING (always last) ===== *@
             <button type="button"
+                    id="rte-btn-clearformat"
+                    tabindex="@GetToolbarTabIndex("rte-btn-clearformat")"
                     class="rte-btn"
                     aria-label="Clear formatting"
                     @onclick="() => ExecuteCommand(FormatCommand.RemoveFormat)"

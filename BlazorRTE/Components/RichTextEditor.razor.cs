@@ -127,7 +127,7 @@ namespace BlazorRTE.Components
             { "Verdana", "Verdana" }
         };
 
-        private string alignment = "left"; 
+        private string alignment = "left";
 
         private ElementReference _fontFamilyButton;
         private ElementReference _fontFamilyPalette;
@@ -476,7 +476,7 @@ namespace BlazorRTE.Components
             }
 
             // After handling keyboard shortcuts, update colors
-            if (e.Key == "ArrowLeft" || e.Key == "ArrowRight" || 
+            if (e.Key == "ArrowLeft" || e.Key == "ArrowRight" ||
                 e.Key == "ArrowUp" || e.Key == "ArrowDown" ||
                 e.Key == "Home" || e.Key == "End")
             {
@@ -779,7 +779,7 @@ namespace BlazorRTE.Components
 
             // Prompt user for URL
             var url = await JS.InvokeAsync<string>("prompt", $"Enter URL for \"{selectedText}\":", "https://");
-            
+
             if (string.IsNullOrWhiteSpace(url))
             {
                 await ReturnFocusToEditor();
@@ -787,7 +787,7 @@ namespace BlazorRTE.Components
             }
 
             // Add https:// if missing
-            if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) && 
+            if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
                 !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
                 url = "https://" + url;
@@ -811,7 +811,7 @@ namespace BlazorRTE.Components
                 var linkEventArgs = new LinkEventArgs
                 {
                     Url = url,
-                    DisplayText = selectedText  
+                    DisplayText = selectedText
                 };
                 await OnLinkCreated.InvokeAsync(linkEventArgs);
             }
@@ -1121,6 +1121,7 @@ namespace BlazorRTE.Components
             _showBackgroundColorPicker = false;
             _showFontSizePicker = false;
             _showFontFamilyPicker = false;
+            _showHeadingPicker = false;
 
             if (_showTextColorPicker && _jsModule != null)
             {
@@ -1134,7 +1135,8 @@ namespace BlazorRTE.Components
                 await Task.Delay(50);
                 try
                 {
-                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition"); 
+                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
+                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "textcolor-palette");
                 }
                 catch { }
             }
@@ -1155,6 +1157,7 @@ namespace BlazorRTE.Components
             _showTextColorPicker = false;
             _showFontSizePicker = false;
             _showFontFamilyPicker = false;
+            _showHeadingPicker = false;
 
             if (_showBackgroundColorPicker && _jsModule != null)
             {
@@ -1168,7 +1171,8 @@ namespace BlazorRTE.Components
                 await Task.Delay(50);
                 try
                 {
-                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition"); 
+                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
+                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "highlight-palette");
                 }
                 catch { }
             }
@@ -1186,6 +1190,7 @@ namespace BlazorRTE.Components
         {
             _showFontSizePicker = !_showFontSizePicker;
             _showFontFamilyPicker = false;
+            _showHeadingPicker = false;
             _showTextColorPicker = false;
             _showBackgroundColorPicker = false;
 
@@ -1195,7 +1200,8 @@ namespace BlazorRTE.Components
                 await Task.Delay(50);
                 try
                 {
-                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition"); 
+                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
+                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "fontsize-palette");
                 }
                 catch { }
             }
@@ -1204,6 +1210,7 @@ namespace BlazorRTE.Components
         protected async Task ToggleFontFamilyPicker()
         {
             _showFontFamilyPicker = !_showFontFamilyPicker;
+            _showHeadingPicker = false;
             _showFontSizePicker = false;
             _showTextColorPicker = false;
             _showBackgroundColorPicker = false;
@@ -1214,7 +1221,8 @@ namespace BlazorRTE.Components
                 await Task.Delay(50);
                 try
                 {
-                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition"); 
+                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
+                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "fontfamily-palette");
                 }
                 catch { }
             }
@@ -1234,7 +1242,8 @@ namespace BlazorRTE.Components
                 await Task.Delay(50);
                 try
                 {
-                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition"); 
+                    await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
+                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "heading-palette");
                 }
                 catch { }
             }
@@ -1253,7 +1262,7 @@ namespace BlazorRTE.Components
             await ExecuteCommand(command);
             _showHeadingPicker = false;
             StateHasChanged();
-           
+
         }
 
         protected string GetCurrentHeadingLabel()
@@ -1283,7 +1292,7 @@ namespace BlazorRTE.Components
             _currentTextColor = color; // Update immediately
             _showTextColorPicker = false;
             StateHasChanged();
-           
+
         }
 
         protected async Task SelectBackgroundColor(string color)
@@ -1292,7 +1301,7 @@ namespace BlazorRTE.Components
             _currentHighlightColor = color; // Update immediately
             _showBackgroundColorPicker = false;
             StateHasChanged();
-           
+
         }
 
         protected async Task SelectFontSize(string size)
@@ -1313,7 +1322,7 @@ namespace BlazorRTE.Components
                 await ExecuteCommand(command.Value);
                 _showFontSizePicker = false;
                 StateHasChanged();
-               
+
             }
         }
 
@@ -1338,7 +1347,7 @@ namespace BlazorRTE.Components
             {
                 await ExecuteCommand(command.Value);
                 _showFontFamilyPicker = false;
-                StateHasChanged();               
+                StateHasChanged();
             }
         }
 
@@ -1683,13 +1692,13 @@ namespace BlazorRTE.Components
         private async Task OnEmojiSelected(string emoji)
         {
             Console.WriteLine($"[C#] OnEmojiSelected called with emoji: {emoji}");
-            
+
             if (_jsModule == null)
             {
                 Console.WriteLine("[C#] ERROR: _jsModule is null!");
                 return;
             }
-            
+
             try
             {
                 Console.WriteLine("[C#] Calling insertEmojiAtShortcode...");
@@ -1702,7 +1711,7 @@ namespace BlazorRTE.Components
                 Console.WriteLine($"[C#] Stack: {ex.StackTrace}");
             }
         }
-         
+
 
         protected string GetCurrentFontSizeLabel()
         {
@@ -1725,5 +1734,229 @@ namespace BlazorRTE.Components
             // Prevent Enter when BypassEnterKey is true and no modifiers (except Shift is allowed for newlines)
             return BypassEnterKey && e.Key == "Enter" && !e.ShiftKey && !e.CtrlKey && !e.MetaKey;
         }
+
+        // ===== TOOLBAR KEYBOARD NAVIGATION =====
+        private int _toolbarFocusIndex = 0;
+
+        private readonly List<string> _toolbarButtonIds =
+        [
+            "rte-btn-undo",
+            "rte-btn-redo",
+            "rte-btn-heading",
+            "rte-btn-fontfamily",
+            "rte-btn-fontsize",
+            "rte-btn-bold",
+            "rte-btn-italic",
+            "rte-btn-underline",
+            "rte-btn-strikethrough",
+            "rte-btn-subscript",
+            "rte-btn-superscript",
+            "rte-btn-textcolor",
+            "rte-btn-highlight",
+            "rte-btn-bulletlist",
+            "rte-btn-numberlist",
+            "rte-btn-outdent",
+            "rte-btn-indent",
+            "rte-btn-alignleft",
+            "rte-btn-aligncenter",
+            "rte-btn-alignright",
+            "rte-btn-alignjustify",
+            "rte-btn-link",
+            "rte-btn-hr",
+            "rte-btn-emoji",
+            "rte-btn-clearformat"
+        ];
+
+        protected async Task OnToolbarKeyDown(KeyboardEventArgs e)
+        {
+            var total = _toolbarButtonIds.Count;
+
+            switch (e.Key)
+            {
+                case "ArrowRight":
+                    _toolbarFocusIndex = (_toolbarFocusIndex + 1) % total;
+                    await FocusToolbarButton(_toolbarFocusIndex);
+                    break;
+                case "ArrowLeft":
+                    _toolbarFocusIndex = (_toolbarFocusIndex - 1 + total) % total;
+                    await FocusToolbarButton(_toolbarFocusIndex);
+                    break;
+                case "Home":
+                    _toolbarFocusIndex = 0;
+                    await FocusToolbarButton(0);
+                    break;
+                case "End":
+                    _toolbarFocusIndex = total - 1;
+                    await FocusToolbarButton(total - 1);
+                    break;
+                case "ArrowDown":
+                    // Only ArrowDown opens dropdown - Enter/Space handled by native click
+                    await HandleToolbarArrowDown();
+                    break;
+                case "Escape":
+                    CloseAllDropdowns();
+                    break;
+            }
+        }
+
+        private async Task HandleToolbarArrowDown()
+        {
+            if (_jsModule == null) return;
+            
+            var currentButtonId = _toolbarButtonIds[_toolbarFocusIndex];
+            _showFontFamilyPicker = false;
+            _showHeadingPicker = false;
+            _showFontSizePicker = false;
+            _showTextColorPicker = false;
+            _showBackgroundColorPicker = false;
+
+            switch (currentButtonId)
+            {
+                case "rte-btn-heading":
+                    _showHeadingPicker = true; 
+                    StateHasChanged();
+                    await Task.Delay(50);
+                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "heading-palette");
+                    break;
+                    
+                case "rte-btn-fontfamily":
+                    _showFontFamilyPicker = true; 
+                    StateHasChanged();
+                    await Task.Delay(50);
+                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "fontfamily-palette");
+                    break;
+                    
+                case "rte-btn-fontsize":
+                    _showFontSizePicker = true; 
+                    StateHasChanged();
+                    await Task.Delay(50);
+                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "fontsize-palette");
+                    break;
+                    
+                case "rte-btn-textcolor":
+                    _showTextColorPicker = true; 
+                    StateHasChanged();
+                    await Task.Delay(50);
+                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "textcolor-palette");
+                    break;
+                    
+                case "rte-btn-highlight":
+                    _showBackgroundColorPicker = true; 
+                    StateHasChanged();
+                    await Task.Delay(50);
+                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "highlight-palette");
+                    break;
+            }
+        }
+
+        private void CloseAllDropdowns()
+        {
+            _showHeadingPicker = false;
+            _showFontFamilyPicker = false;
+            _showFontSizePicker = false;
+            _showTextColorPicker = false;
+            _showBackgroundColorPicker = false;
+            _showEmojiPicker = false;
+            StateHasChanged();
+        }
+
+        private async Task FocusToolbarButton(int index)
+        {
+            if (_jsModule == null || index < 0 || index >= _toolbarButtonIds.Count) return;
+            await _jsModule.InvokeVoidAsync("focusElementById", _toolbarButtonIds[index]);
+        }
+
+        protected string GetToolbarTabIndex(string buttonId)
+        {
+            var index = _toolbarButtonIds.IndexOf(buttonId);
+            return index == _toolbarFocusIndex ? "0" : "-1";
+        }
+
+        // Add these methods to handle dropdown keyboard navigation
+
+        private async Task OpenHeadingPickerWithFocus()
+        {
+            await ToggleHeadingPicker();
+            if (_showHeadingPicker && _jsModule != null)
+            {
+                await Task.Delay(50);
+                await _jsModule.InvokeVoidAsync("focusFirstInElement", "heading-palette");
+            }
+        }
+
+        private async Task OpenFontFamilyPickerWithFocus()
+        {
+            await ToggleFontFamilyPicker();
+            if (_showFontFamilyPicker && _jsModule != null)
+            {
+                await Task.Delay(50);
+                await _jsModule.InvokeVoidAsync("focusFirstInElement", "fontfamily-palette");
+            }
+        }
+
+        private async Task OpenFontSizePickerWithFocus()
+        {
+            await ToggleFontSizePicker();
+            if (_showFontSizePicker && _jsModule != null)
+            {
+                await Task.Delay(50);
+                await _jsModule.InvokeVoidAsync("focusFirstInElement", "fontsize-palette");
+            }
+        }
+
+        private async Task OpenTextColorPickerWithFocus()
+        {
+            await ToggleTextColorPicker();
+            if (_showTextColorPicker && _jsModule != null)
+            {
+                await Task.Delay(50);
+                await _jsModule.InvokeVoidAsync("focusFirstInElement", "textcolor-palette");
+            }
+        }
+
+        private async Task OpenHighlightPickerWithFocus()
+        {
+            await ToggleBackgroundColorPicker();
+            if (_showBackgroundColorPicker && _jsModule != null)
+            {
+                await Task.Delay(50);
+                await _jsModule.InvokeVoidAsync("focusFirstInElement", "highlight-palette");
+            }
+        }
+
+        protected async Task OnDropdownKeyDown(KeyboardEventArgs e, string paletteId)
+        {
+            if (_jsModule == null) return;
+
+            switch (e.Key)
+            {
+                case "ArrowDown":
+                    await _jsModule.InvokeVoidAsync("navigateDropdown", paletteId, "down");
+                    break;
+                case "ArrowUp":
+                    await _jsModule.InvokeVoidAsync("navigateDropdown", paletteId, "up");
+                    break;
+                case "ArrowRight":
+                    await _jsModule.InvokeVoidAsync("navigateDropdown", paletteId, "right");
+                    break;
+                case "ArrowLeft":
+                    await _jsModule.InvokeVoidAsync("navigateDropdown", paletteId, "left");
+                    break;
+                case "Enter":
+                case " ":
+                    await _jsModule.InvokeVoidAsync("clickFocusedElement");
+                    break;
+                case "Escape":
+                    CloseAllDropdowns();
+                    await FocusToolbarButton(_toolbarFocusIndex);
+                    break;
+                case "Tab":
+                    CloseAllDropdowns();
+                    break;
+            }
+        }
+
     }
+
+
 }
