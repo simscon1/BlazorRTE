@@ -331,26 +331,94 @@ export function executeCommand(command, value = null) {
     if (!currentSelection || currentSelection.rangeCount === 0 || currentSelection.isCollapsed) {
         restoreSelection();
     }
+    
     if (command === 'insertHorizontalRule') {
         insertHorizontalRuleWithParagraph();
         return;
     }
-    if (command === 'subscript' && document.queryCommandState('superscript')) {
-        document.execCommand('superscript', false, null);
-    } else if (command === 'superscript' && document.queryCommandState('subscript')) {
-        document.execCommand('subscript', false, null);
+
+    // Handle subscript/superscript - manual implementation due to browser quirks
+    if (command === 'subscript' || command === 'superscript') {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) {
+            saveSelection();
+            return;
+        }
+        
+        const myTag = command === 'subscript' ? 'SUB' : 'SUP';
+        const oppositeTag = command === 'subscript' ? 'SUP' : 'SUB';
+        
+        // Save the current selection text for re-selection
+        const selectedText = selection.toString();
+        const range = selection.getRangeAt(0);
+        
+        // Check if we're inside the tags
+        let node = range.startContainer;
+        let myElement = null;
+        let oppositeElement = null;
+        
+        while (node && node !== document.body) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                if (node.tagName === myTag && !myElement) myElement = node;
+                if (node.tagName === oppositeTag && !oppositeElement) oppositeElement = node;
+            }
+            node = node.parentNode;
+        }
+        
+        // Remove opposite format if present
+        if (oppositeElement) {
+            const parent = oppositeElement.parentNode;
+            const firstChild = oppositeElement.firstChild;
+            while (oppositeElement.firstChild) {
+                parent.insertBefore(oppositeElement.firstChild, oppositeElement);
+            }
+            parent.removeChild(oppositeElement);
+            
+            // Re-select the text
+            if (firstChild && selectedText) {
+                const newRange = document.createRange();
+                newRange.selectNodeContents(firstChild.parentNode.contains(firstChild) ? firstChild : parent);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            }
+        }
+        
+        // Toggle same format
+        if (myElement) {
+            // Remove (toggle off) - preserve selection
+            const parent = myElement.parentNode;
+            const textContent = myElement.textContent;
+            const firstChild = myElement.firstChild;
+            
+            while (myElement.firstChild) {
+                parent.insertBefore(myElement.firstChild, myElement);
+            }
+            parent.removeChild(myElement);
+            
+            // Re-select the unwrapped text
+            if (firstChild && firstChild.nodeType === Node.TEXT_NODE) {
+                const newRange = document.createRange();
+                newRange.setStart(firstChild, 0);
+                newRange.setEnd(firstChild, firstChild.textContent.length);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            }
+        } else {
+            // Apply format
+            document.execCommand(command, false, null);
+        }
+        
+        saveSelection();
+        return;
     }
     
     // Handle alignment commands - they are mutually exclusive
     if (['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'].includes(command)) {
-        // Remove all alignments first by applying the new one
-        // (execCommand handles this automatically, but we ensure selection is correct)
         document.execCommand(command, false, null);
     } else {
         document.execCommand(command, false, value);
     }
     
-    // Save the current selection (keeps it highlighted for next command)
     saveSelection();
 }
 
@@ -436,18 +504,30 @@ export function getActiveFormats() {
     if (document.queryCommandState('underline') && !insideLink) formats.push('underline');
     if (document.queryCommandState('strikeThrough')) formats.push('strikeThrough');
 
+    // Check for subscript/superscript - use both tag check AND queryCommandState
+    let hasSubscript = false;
+    let hasSuperscript = false;
+
+
     const selection = window.getSelection();
     if (selection.rangeCount > 0) {
         let node = selection.getRangeAt(0).startContainer;
         while (node && node !== document.body) {
             if (node.nodeType === Node.ELEMENT_NODE) {
                 const tagName = node.tagName ? node.tagName.toLowerCase() : '';
-                if (tagName === 'sub') formats.push('subscript');
-                if (tagName === 'sup') formats.push('superscript');
+                if (tagName === 'sub') hasSubscript = true;
+                if (tagName === 'sup') hasSuperscript = true;
             }
             node = node.parentNode;
         }
     }
+
+    // Fallback to queryCommandState
+    if (!hasSubscript && document.queryCommandState('subscript')) hasSubscript = true;
+    if (!hasSuperscript && document.queryCommandState('superscript')) hasSuperscript = true;
+
+    if (hasSubscript) formats.push('subscript');
+    if (hasSuperscript) formats.push('superscript');
 
     if (document.queryCommandState('insertUnorderedList')) formats.push('insertUnorderedList');
     if (document.queryCommandState('insertOrderedList')) formats.push('insertOrderedList');
@@ -855,4 +935,13 @@ export function clickFocusedElement() {
     if (focused && focused.tagName === 'BUTTON') {
         focused.click();
     }
+}
+
+// Helper function to unwrap an element (remove tag but keep contents)
+function unwrapElement(element) {
+    const parent = element.parentNode;
+    while (element.firstChild) {
+        parent.insertBefore(element.firstChild, element);
+    }
+    parent.removeChild(element);
 }
