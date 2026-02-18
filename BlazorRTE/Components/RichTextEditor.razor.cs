@@ -717,9 +717,14 @@ namespace BlazorRTE.Components
                         await _jsModule.InvokeVoidAsync("executeCommand", commandName);
                     }
 
+                    // MOVE REFOCUS HERE - BEFORE the delay
+                    if (_toolbarFocusIndex >= 0 && _toolbarFocusIndex < _toolbarButtonIds.Count)
+                    {
+                        await _jsModule.InvokeVoidAsync("focusElementById", _toolbarButtonIds[_toolbarFocusIndex]);
+                    }
+                    
                     await UpdateToolbarState();
-
-                    await Task.Delay(50);
+                    //await Task.Delay(50);
                     var html = await GetHtmlAsync();
 
                     _isUpdating = true;
@@ -731,12 +736,6 @@ namespace BlazorRTE.Components
                     // NEW: Raise content changed and after command events
                     await RaiseContentChangedEvent(ChangeSource.Command);
                     await RaiseAfterCommandEvent(command, commandName, true);
-                }
-
-                // After command execution, refocus toolbar button
-                if (_toolbarFocusIndex >= 0 && _toolbarFocusIndex < _toolbarButtonIds.Count)
-                {
-                    await _jsModule.InvokeVoidAsync("focusElementById", _toolbarButtonIds[_toolbarFocusIndex]);
                 }
             }
             catch (Exception ex)
