@@ -876,30 +876,35 @@ export function navigateDropdown(elementId, direction) {
     const container = document.getElementById(elementId);
     if (!container) return;
 
-    // Check for nested grid element (color palettes have grid inside listbox)
     const gridElement = container.querySelector('[role="grid"]');
     const isGrid = gridElement !== null;
     
-    // Get buttons from grid if it exists, otherwise from container
     const buttonContainer = gridElement || container;
     const buttons = Array.from(buttonContainer.querySelectorAll('button'));
     if (buttons.length === 0) return;
 
-    const currentIndex = buttons.findIndex(b => b === document.activeElement);
+    let currentIndex = buttons.findIndex(b => b === document.activeElement);
+    
+    // If nothing is focused, start from the selected item or first item
     if (currentIndex === -1) {
-        buttons[0]?.focus();
-        return;
+        const selected = buttonContainer.querySelector('.selected, [aria-selected="true"]');
+        if (selected) {
+            currentIndex = buttons.indexOf(selected);
+        }
+        if (currentIndex === -1) {
+            buttons[0]?.focus({ preventScroll: true });
+            return;
+        }
     }
 
     let nextIndex;
     
     if (isGrid) {
-        // For color grids: detect columns by checking button positions
         const firstButton = buttons[0];
         const firstTop = firstButton.getBoundingClientRect().top;
         let columnsInRow = 0;
         for (const btn of buttons) {
-            if (Math.abs(btn.getBoundingClientRect().top - firstTop) < 2) { // Allow small tolerance
+            if (Math.abs(btn.getBoundingClientRect().top - firstTop) < 2) {
                 columnsInRow++;
             } else {
                 break;
@@ -921,7 +926,6 @@ export function navigateDropdown(elementId, direction) {
             case 'up':
                 nextIndex = currentIndex - columnsInRow;
                 if (nextIndex < 0) {
-                    // Go to last row, same column
                     const lastRowStart = Math.floor((buttons.length - 1) / columnsInRow) * columnsInRow;
                     nextIndex = lastRowStart + (currentIndex % columnsInRow);
                     if (nextIndex >= buttons.length) nextIndex = buttons.length - 1;
@@ -931,7 +935,6 @@ export function navigateDropdown(elementId, direction) {
                 return;
         }
     } else {
-        // For listbox dropdowns: linear navigation
         if (direction === 'down' || direction === 'right') {
             nextIndex = currentIndex < buttons.length - 1 ? currentIndex + 1 : 0;
         } else {
@@ -939,7 +942,7 @@ export function navigateDropdown(elementId, direction) {
         }
     }
 
-    buttons[nextIndex]?.focus();
+    buttons[nextIndex]?.focus({ preventScroll: true });
 }
 
 export function clickFocusedElement() {
@@ -1008,14 +1011,20 @@ export function scrollSelectedIntoView(elementId) {
     if (!container) return;
     
     // Find the selected item
-    const selected = container.querySelector('.selected, [aria-selected="true"]');
+    let selected = container.querySelector('.selected, [aria-selected="true"]');
+    
+    // If nothing is selected, focus the first button instead
+    if (!selected) {
+        selected = container.querySelector('button');
+    }
+    
     if (selected) {
-        // Scroll the selected item into view (center it if possible)
+        // Scroll the item into view
         selected.scrollIntoView({ block: 'nearest', behavior: 'instant' });
         
-        // Also focus it for keyboard navigation
+        // Focus it for keyboard navigation (without scrolling the page)
         if (selected.tagName === 'BUTTON') {
-            selected.focus();
+            selected.focus({ preventScroll: true });
         }
     }
 }
