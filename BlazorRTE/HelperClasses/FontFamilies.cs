@@ -22,6 +22,7 @@ public static class FontFamilies
         new("Arial", "Arial, sans-serif", "Sans-serif"),
         new("Calibri", "Calibri, sans-serif", "Sans-serif"),
         new("Helvetica", "Helvetica, sans-serif", "Sans-serif"),
+        new("Segoe UI", "'Segoe UI', sans-serif", "Sans-serif"),
         new("Tahoma", "Tahoma, sans-serif", "Sans-serif"),
         new("Trebuchet MS", "Trebuchet MS, sans-serif", "Sans-serif"),
         new("Verdana", "Verdana, sans-serif", "Sans-serif"),

@@ -74,8 +74,8 @@
                              role="listbox"
                              aria-label="Heading levels"
                              @onkeydown="@(e => OnDropdownKeyDown(e, "heading-palette"))"
-                             @onkeydown:stopPropagation
-                             @onkeydown:preventDefault
+                             @onkeydown:stopPropagation="true"
+                             @onkeydown:preventDefault="true"
                              @onclick:stopPropagation
                              @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="heading-level-label">Heading Level</div>
@@ -124,8 +124,8 @@
                              role="listbox"
                              aria-label="Font families"
                              @onkeydown="@(e => OnDropdownKeyDown(e, "fontfamily-palette"))"
-                             @onkeydown:stopPropagation
-                             @onkeydown:preventDefault
+                             @onkeydown:stopPropagation="true"
+                             @onkeydown:preventDefault="true"
                              @onclick:stopPropagation
                              @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="font-family-label">Font Family</div>
@@ -175,8 +175,8 @@
                              role="listbox"
                              aria-label="Font sizes"
                              @onkeydown="@(e => OnDropdownKeyDown(e, "fontsize-palette"))"
-                             @onkeydown:stopPropagation
-                             @onkeydown:preventDefault
+                             @onkeydown:stopPropagation="true"
+                             @onkeydown:preventDefault="true"
                              @onclick:stopPropagation
                              @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="font-size-label">Font Size</div>

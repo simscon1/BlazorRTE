@@ -9,7 +9,7 @@
         <div class="header-content">
             <h1>@((MarkupString)SvgIcons.GetLogo(400))</h1>
         </div>
-        <p class="lead">A ich text editor for Blazor WebAssembly and Blazor Server with emoji support! 🎉</p>
+        <p class="lead">A rich text editor for Blazor WebAssembly and Blazor Server with emoji support! 🎉</p>
     </div>
 
     <div class="demo-content">
@@ -26,7 +26,7 @@
                             MaxLength="5000"
                             DarkMode="@isDarkMode"
                             AriaLabel="Demo rich text editor"
-                            OnFocusChanged="HandleFocusChanged" />
+                            OnFocusChanged="HandleFocusChanged"  />
         </div>
 
         <div class="controls-section">
@@ -155,7 +155,7 @@
 </div>
 
 @code {
-    private string? editorContent = "<p>Welcome to <strong>BlazorRTE</strong>! 👋</p><p>Try formatting this text or add your own content.</p>";
+    private string? editorContent = @"<p>Welcome to <b>Blazor<font color=""#9933ff"">RTE</font></b>! 👋</p><p>Try formatting this text or add your own content.</p>";
     private bool showHtml = false;
     private bool isFocused = false;
     private bool isDarkMode = false;
@@ -178,7 +178,7 @@
     private void LoadSampleContent()
     {
         editorContent = @"
-<h1>Welcome to Blazor<font color=""#9933ff"">RTE</font>! 🚀</h1>
+<h1>Welcome to <b>Blazor<font color=""#9933ff"">RTE</font></b>! 🚀</h1>
 <p>This is a <strong>rich text editor</strong> with full <em>formatting support</em>.</p>
 
 <h2>Key Features:</h2>
