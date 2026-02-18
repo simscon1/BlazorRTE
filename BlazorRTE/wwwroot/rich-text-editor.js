@@ -893,6 +893,7 @@ export function navigateDropdown(elementId, direction) {
         }
         if (currentIndex === -1) {
             buttons[0]?.focus({ preventScroll: true });
+            buttons[0]?.scrollIntoView({ block: 'nearest', behavior: 'instant' });
             return;
         }
     }
@@ -942,7 +943,12 @@ export function navigateDropdown(elementId, direction) {
         }
     }
 
-    buttons[nextIndex]?.focus({ preventScroll: true });
+    const nextButton = buttons[nextIndex];
+    if (nextButton) {
+        nextButton.focus({ preventScroll: true });
+        // Scroll the button into view within the dropdown
+        nextButton.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+    }
 }
 
 export function clickFocusedElement() {
@@ -1010,7 +1016,7 @@ export function scrollSelectedIntoView(elementId) {
     const container = document.getElementById(elementId);
     if (!container) return;
     
-    // Find the selected item
+    // Find the selected item (works for fonts, sizes, headings, AND colors)
     let selected = container.querySelector('.selected, [aria-selected="true"]');
     
     // If nothing is selected, focus the first button instead
@@ -1019,10 +1025,8 @@ export function scrollSelectedIntoView(elementId) {
     }
     
     if (selected) {
-        // Scroll the item into view
         selected.scrollIntoView({ block: 'nearest', behavior: 'instant' });
         
-        // Focus it for keyboard navigation (without scrolling the page)
         if (selected.tagName === 'BUTTON') {
             selected.focus({ preventScroll: true });
         }

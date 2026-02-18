@@ -717,9 +717,14 @@ namespace BlazorRTE.Components
                         await _jsModule.InvokeVoidAsync("executeCommand", commandName);
                     }
 
+                    // MOVE REFOCUS HERE - BEFORE the delay
+                    if (_toolbarFocusIndex >= 0 && _toolbarFocusIndex < _toolbarButtonIds.Count)
+                    {
+                        await _jsModule.InvokeVoidAsync("focusElementById", _toolbarButtonIds[_toolbarFocusIndex]);
+                    }
+                    
                     await UpdateToolbarState();
-
-                    await Task.Delay(50);
+                    //await Task.Delay(50);
                     var html = await GetHtmlAsync();
 
                     _isUpdating = true;
@@ -731,12 +736,6 @@ namespace BlazorRTE.Components
                     // NEW: Raise content changed and after command events
                     await RaiseContentChangedEvent(ChangeSource.Command);
                     await RaiseAfterCommandEvent(command, commandName, true);
-                }
-
-                // After command execution, refocus toolbar button
-                if (_toolbarFocusIndex >= 0 && _toolbarFocusIndex < _toolbarButtonIds.Count)
-                {
-                    await _jsModule.InvokeVoidAsync("focusElementById", _toolbarButtonIds[_toolbarFocusIndex]);
                 }
             }
             catch (Exception ex)
@@ -1121,7 +1120,6 @@ namespace BlazorRTE.Components
 
             if (_showTextColorPicker && _jsModule != null)
             {
-                // NEW: Raise color picker opened event
                 if (OnColorPickerOpened.HasDelegate)
                 {
                     await OnColorPickerOpened.InvokeAsync("text");
@@ -1132,20 +1130,19 @@ namespace BlazorRTE.Components
                 try
                 {
                     await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
-                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "textcolor-palette");
+                    // Changed: Use scrollSelectedIntoView instead of focusFirstInElement
+                    await _jsModule.InvokeVoidAsync("scrollSelectedIntoView", "textcolor-palette");
                 }
                 catch { }
             }
             else if (!_showTextColorPicker && wasOpen)
             {
-                // NEW: Raise color picker closed event
                 if (OnColorPickerClosed.HasDelegate)
                 {
                     await OnColorPickerClosed.InvokeAsync("text");
                 }
             }
         }
-
         protected async Task ToggleBackgroundColorPicker()
         {
             var wasOpen = _showBackgroundColorPicker;
@@ -1157,7 +1154,6 @@ namespace BlazorRTE.Components
 
             if (_showBackgroundColorPicker && _jsModule != null)
             {
-                // NEW: Raise color picker opened event
                 if (OnColorPickerOpened.HasDelegate)
                 {
                     await OnColorPickerOpened.InvokeAsync("background");
@@ -1168,13 +1164,13 @@ namespace BlazorRTE.Components
                 try
                 {
                     await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
-                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "highlight-palette");
+                    // Changed: Use scrollSelectedIntoView instead of focusFirstInElement
+                    await _jsModule.InvokeVoidAsync("scrollSelectedIntoView", "highlight-palette");
                 }
                 catch { }
             }
             else if (!_showBackgroundColorPicker && wasOpen)
             {
-                // NEW: Raise color picker closed event
                 if (OnColorPickerClosed.HasDelegate)
                 {
                     await OnColorPickerClosed.InvokeAsync("background");
@@ -1818,17 +1814,20 @@ namespace BlazorRTE.Components
                     _showTextColorPicker = true;
                     StateHasChanged();
                     await Task.Delay(50);
-                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "textcolor-palette");
+                    // Changed: scrollSelectedIntoView for colors too
+                    await _jsModule.InvokeVoidAsync("scrollSelectedIntoView", "textcolor-palette");
                     break;
 
                 case "rte-btn-highlight":
                     _showBackgroundColorPicker = true;
                     StateHasChanged();
                     await Task.Delay(50);
-                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "highlight-palette");
+                    // Changed: scrollSelectedIntoView for colors too
+                    await _jsModule.InvokeVoidAsync("scrollSelectedIntoView", "highlight-palette");
                     break;
             }
         }
+
         protected void CloseAllDropdowns()
         {
             _showHeadingPicker = false;

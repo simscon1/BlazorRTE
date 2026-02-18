@@ -10,6 +10,7 @@
              aria-label="Rich text formatting"
              aria-controls="@_editorId"
              @onkeydown="OnToolbarKeyDown"
+             @onkeydown:stopPropagation
              @onmousedown="OnToolbarMouseDown"
              @onmousedown:preventDefault>
 
