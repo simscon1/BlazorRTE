@@ -70,7 +70,7 @@
                     {
                         <div @ref="_headingPalette"
                              id="heading-palette"
-                             class="rte-color-palette"
+                             class="rte-color-palette rte-heading-palette"
                              role="listbox"
                              aria-label="Heading levels"
                              @onkeydown="@(e => OnDropdownKeyDown(e, "heading-palette"))"
@@ -79,32 +79,20 @@
                              @onclick:stopPropagation
                              @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="heading-level-label">Heading Level</div>
-                            <div class="rte-font-size-list" aria-labelledby="heading-level-label">
-
-                                @* Normal option *@
-                                <button type="button" class="rte-font-option" role="option"
-                                        @onclick="@(() => SelectHeading("p"))">
-                                    Normal (Ctrl+Alt+0)
-                                </button>
-
-                                @* Heading 1 option *@
-                                <button type="button" class="rte-font-option" role="option"
-                                        @onclick="@(() => SelectHeading("h1"))">
-                                    Heading 1 (Ctrl+Alt+1)
-                                </button>
-
-                                @* Heading 2 option *@
-                                <button type="button" class="rte-font-option" role="option"
-                                        @onclick="@(() => SelectHeading("h2"))">
-                                    Heading 2 (Ctrl+Alt+2)
-                                </button>
-
-                                @* Heading 3 option *@
-                                <button type="button" class="rte-font-option" role="option"
-                                        @onclick="@(() => SelectHeading("h3"))">
-                                    Heading 3 (Ctrl+Alt+3)
-                                </button>
-
+                            <div class="rte-heading-list" aria-labelledby="heading-level-label">
+                                @foreach (var heading in HeadingStyles.Options)
+                                {
+                                    <button type="button" 
+                                            class="rte-heading-option @(_currentHeadingLevel == heading.Tag ? "selected" : "")" 
+                                            role="option"
+                                            aria-selected="@(_currentHeadingLevel == heading.Tag)"
+                                            @onclick="@(() => SelectHeading(heading.Tag))">
+                                        <span class="rte-heading-preview" style="font-size: @heading.FontSize; font-weight: @heading.FontWeight;">
+                                            @heading.Label
+                                        </span>
+                                        <span class="rte-heading-shortcut">@heading.Shortcut</span>
+                                    </button>
+                                }
                             </div>
                         </div>
                     }
@@ -141,17 +129,19 @@
                              @onclick:stopPropagation
                              @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="font-family-label">Font Family</div>
-                            <div class="rte-font-family-list" aria-labelledby="font-family-label">
-                                @foreach (var font in _fontFamilies)
+                            <div class="rte-heading-list" aria-labelledby="font-family-label">
+                                @foreach (var font in FontFamilies.Options)
                                 {
                                     <button type="button"
-                                            class="rte-font-option"
+                                            class="rte-heading-option @(IsFontFamilySelected(font.Name) ? "selected" : "")"
                                             role="option"
-                                            aria-label="@font.Value"
-                                            style="font-family: @font.Key;"
-                                            @onclick="@(() => SelectFontFamily(font.Key))"
-                                            data-tooltip="@font.Value">
-                                        @font.Value
+                                            aria-selected="@IsFontFamilySelected(font.Name)"
+                                            aria-label="@font.Name"
+                                            @onclick="@(() => SelectFontFamily(font.Name))">
+                                        <span class="rte-heading-preview" style="font-family: @font.CssValue;">
+                                            @font.Name
+                                        </span>
+                                        <span class="rte-heading-shortcut">@font.Category</span>
                                     </button>
                                 }
                             </div>
@@ -181,7 +171,7 @@
                     {
                         <div @ref="_fontSizePalette"
                              id="fontsize-palette"
-                             class="rte-color-palette"
+                             class="rte-color-palette rte-font-size-palette"
                              role="listbox"
                              aria-label="Font sizes"
                              @onkeydown="@(e => OnDropdownKeyDown(e, "fontsize-palette"))"
@@ -190,16 +180,19 @@
                              @onclick:stopPropagation
                              @onmousedown:stopPropagation>
                             <div class="rte-color-palette-title" id="font-size-label">Font Size</div>
-                            <div class="rte-font-size-list" aria-labelledby="font-size-label">
-                                @foreach (var size in _fontSizes)
+                            <div class="rte-heading-list" aria-labelledby="font-size-label">
+                                @foreach (var size in FontSizes.Options)
                                 {
                                     <button type="button"
-                                            class="rte-font-option"
+                                            class="rte-heading-option @(IsFontSizeSelected(size.Value) ? "selected" : "")"
                                             role="option"
-                                            aria-label="@size.Value"
-                                            @onclick="@(() => SelectFontSize(size.Key))"
-                                            data-tooltip="@size.Value">
-                                        @size.Value
+                                            aria-selected="@IsFontSizeSelected(size.Value)"
+                                            aria-label="@size.Label"
+                                            @onclick="@(() => SelectFontSize(size.Value))">
+                                        <span class="rte-heading-preview" style="font-size: @size.PixelSize;">
+                                            @size.Label
+                                        </span>
+                                        <span class="rte-heading-shortcut">@size.PixelSize</span>
                                     </button>
                                 }
                             </div>

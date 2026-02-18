@@ -98,35 +98,10 @@ namespace BlazorRTE.Components
         private bool _showHeadingPicker;
         private ElementReference _headingButton;
         private ElementReference _headingPalette;
-        private string _currentFontSize = "3"; // Default to Normal (14px = size 3)
-                                               // Add to the RichTextEditor class properties section (around line 15-20):
-
+        private string _currentFontSize = "3";  
+        private string _currentFontFamily = "Arial";
         protected readonly string _editorId = $"rte-{Guid.NewGuid():N}";
-
-        private readonly Dictionary<string, string> _fontSizes = new()
-        {
-            { "1", "Small (10px)" },
-            { "3", "Normal (14px)" },
-            { "4", "Medium (16px)" },
-            { "5", "Large (18px)" },
-            { "6", "X-Large (24px)" },
-            { "7", "XX-Large (32px)" }
-        };
-
-        private readonly Dictionary<string, string> _fontFamilies = new()
-        {
-            { "Arial", "Arial" },
-            { "Courier New", "Courier New" },
-            { "Garamond", "Garamond" },
-            { "Georgia", "Georgia" },
-            { "Helvetica", "Helvetica" },
-            { "Impact", "Impact" },
-            { "Tahoma", "Tahoma" },
-            { "Times New Roman", "Times New Roman" },
-            { "Trebuchet MS", "Trebuchet MS" },
-            { "Verdana", "Verdana" }
-        };
-
+ 
         private string alignment = "left";
 
         private ElementReference _fontFamilyButton;
@@ -160,7 +135,12 @@ namespace BlazorRTE.Components
                 {
                     _dotNetRef = DotNetObjectReference.Create(this);
                     _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/BlazorRTE/rich-text-editor.js");
-                    await _jsModule.InvokeVoidAsync("initializeEditor", _editorRef, _dotNetRef, _editorId); // Pass editor ID
+                    
+                    // Get font names from helper class
+                    var fontNames = FontFamilies.Options.Select(f => f.Name).ToArray();
+                    var fontSizeValues = FontSizes.Options.Select(f => f.Value).ToArray();
+                    
+                    await _jsModule.InvokeVoidAsync("initializeEditor", _editorRef, _dotNetRef, _editorId, fontNames, fontSizeValues);
 
                     if (!string.IsNullOrEmpty(Value))
                     {
@@ -579,6 +559,16 @@ namespace BlazorRTE.Components
                     _currentFontSize = "3"; // Default to Normal
                 }
 
+                // New: Get current font family
+                try
+                {
+                    _currentFontFamily = await _jsModule.InvokeAsync<string>("getCurrentFontFamily");
+                }
+                catch
+                {
+                    _currentFontFamily = ""; 
+                }
+
                 await UpdateHeadingState();
 
                 // NEW: Raise format changed event
@@ -644,7 +634,7 @@ namespace BlazorRTE.Components
         protected async Task ExecuteCommand(FormatCommand command)
         {
             if (_jsModule == null) return;
-             
+
             try
             {
                 var commandName = command switch
@@ -1207,7 +1197,7 @@ namespace BlazorRTE.Components
                 try
                 {
                     await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
-                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "fontsize-palette");
+                    await _jsModule.InvokeVoidAsync("scrollSelectedIntoView", "fontsize-palette");
                 }
                 catch { }
             }
@@ -1228,7 +1218,7 @@ namespace BlazorRTE.Components
                 try
                 {
                     await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
-                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "fontfamily-palette");
+                    await _jsModule.InvokeVoidAsync("scrollSelectedIntoView", "fontfamily-palette");
                 }
                 catch { }
             }
@@ -1249,7 +1239,7 @@ namespace BlazorRTE.Components
                 try
                 {
                     await _jsModule.InvokeVoidAsync("adjustColorPalettePosition");
-                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "heading-palette");
+                    await _jsModule.InvokeVoidAsync("scrollSelectedIntoView", "heading-palette");
                 }
                 catch { }
             }
@@ -1268,21 +1258,12 @@ namespace BlazorRTE.Components
             await ExecuteCommand(command);
             _showHeadingPicker = false;
             StateHasChanged();
-            
+
             // Refocus the heading button
             await FocusToolbarButton(_toolbarFocusIndex);
         }
 
-        protected string GetCurrentHeadingLabel()
-        {
-            return _currentHeadingLevel switch
-            {
-                "h1" => "H1",
-                "h2" => "H2",
-                "h3" => "H3",
-                _ => "¶"
-            };
-        }
+        protected string GetCurrentHeadingLabel() => HeadingStyles.GetButtonLabel(_currentHeadingLevel);
 
         protected void CloseColorPickers()
         {
@@ -1336,30 +1317,31 @@ namespace BlazorRTE.Components
                 await FocusToolbarButton(_toolbarFocusIndex);
             }
         }
-
         protected async Task SelectFontFamily(string fontName)
         {
-            var command = fontName switch
-            {
-                "Arial" => FormatCommand.FontFamilyArial,
-                "Courier New" => FormatCommand.FontFamilyCourierNew,
-                "Garamond" => FormatCommand.FontFamilyGaramond,
-                "Georgia" => FormatCommand.FontFamilyGeorgia,
-                "Helvetica" => FormatCommand.FontFamilyHelvetica,
-                "Impact" => FormatCommand.FontFamilyImpact,
-                "Tahoma" => FormatCommand.FontFamilyTahoma,
-                "Times New Roman" => FormatCommand.FontFamilyTimesNewRoman,
-                "Trebuchet MS" => FormatCommand.FontFamilyTrebuchet,
-                "Verdana" => FormatCommand.FontFamilyVerdana,
-                _ => (FormatCommand?)null
-            };
+            if (_jsModule == null) return;
 
-            if (command.HasValue)
+            try
             {
-                await ExecuteCommand(command.Value);
+                await _jsModule.InvokeVoidAsync("executeFontName", fontName);
+                _currentFontFamily = fontName; // Update immediately
+
+                await UpdateToolbarState();
+                await Task.Delay(50);
+                var html = await GetHtmlAsync();
+
+                _isUpdating = true;
+                Value = HtmlSanitizer.Sanitize(html);
+                _previousValue = Value;
+                await ValueChanged.InvokeAsync(Value);
+                _isUpdating = false;
+
                 _showFontFamilyPicker = false;
                 StateHasChanged();
+
+                await FocusToolbarButton(_toolbarFocusIndex);
             }
+            catch { }
         }
 
         private async Task ApplyTextColor(string color)
@@ -1724,19 +1706,7 @@ namespace BlazorRTE.Components
         }
 
 
-        protected string GetCurrentFontSizeLabel()
-        {
-            return _currentFontSize switch
-            {
-                "1" => "10",  // Small
-                "3" => "14",  // Normal
-                "4" => "16",  // Medium
-                "5" => "18",  // Large
-                "6" => "24",  // X-Large
-                "7" => "32",  // XX-Large
-                _ => "14"     // Default
-            };
-        }
+        protected string GetCurrentFontSizeLabel() => FontSizes.GetButtonLabel(_currentFontSize);
 
         // Add helper method to determine when to prevent default key behavior:
 
@@ -1813,7 +1783,7 @@ namespace BlazorRTE.Components
         private async Task HandleToolbarArrowDown()
         {
             if (_jsModule == null) return;
-            
+
             var currentButtonId = _toolbarButtonIds[_toolbarFocusIndex];
             _showFontFamilyPicker = false;
             _showHeadingPicker = false;
@@ -1824,42 +1794,41 @@ namespace BlazorRTE.Components
             switch (currentButtonId)
             {
                 case "rte-btn-heading":
-                    _showHeadingPicker = true; 
+                    _showHeadingPicker = true;
                     StateHasChanged();
                     await Task.Delay(50);
-                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "heading-palette");
+                    await _jsModule.InvokeVoidAsync("scrollSelectedIntoView", "heading-palette");
                     break;
-                    
+
                 case "rte-btn-fontfamily":
-                    _showFontFamilyPicker = true; 
+                    _showFontFamilyPicker = true;
                     StateHasChanged();
                     await Task.Delay(50);
-                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "fontfamily-palette");
+                    await _jsModule.InvokeVoidAsync("scrollSelectedIntoView", "fontfamily-palette");
                     break;
-                    
+
                 case "rte-btn-fontsize":
-                    _showFontSizePicker = true; 
+                    _showFontSizePicker = true;
                     StateHasChanged();
                     await Task.Delay(50);
-                    await _jsModule.InvokeVoidAsync("focusFirstInElement", "fontsize-palette");
+                    await _jsModule.InvokeVoidAsync("scrollSelectedIntoView", "fontsize-palette");
                     break;
-                    
+
                 case "rte-btn-textcolor":
-                    _showTextColorPicker = true; 
+                    _showTextColorPicker = true;
                     StateHasChanged();
                     await Task.Delay(50);
                     await _jsModule.InvokeVoidAsync("focusFirstInElement", "textcolor-palette");
                     break;
-                    
+
                 case "rte-btn-highlight":
-                    _showBackgroundColorPicker = true; 
+                    _showBackgroundColorPicker = true;
                     StateHasChanged();
                     await Task.Delay(50);
                     await _jsModule.InvokeVoidAsync("focusFirstInElement", "highlight-palette");
                     break;
             }
         }
-
         protected void CloseAllDropdowns()
         {
             _showHeadingPicker = false;
@@ -1974,6 +1943,40 @@ namespace BlazorRTE.Components
             {
                 _toolbarFocusIndex = index;
             }
+        }
+
+        /// <summary>
+        /// Checks if the given font family matches the current font (case-insensitive)
+        /// </summary>
+        protected bool IsFontFamilySelected(string fontName)
+        {
+            // If no explicit font is set, nothing should be selected
+            if (string.IsNullOrEmpty(_currentFontFamily))
+                return false;
+
+            if (string.IsNullOrEmpty(fontName))
+                return false;
+
+            // Direct match
+            if (_currentFontFamily.Equals(fontName, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            // Check if current font starts with the font name (handles "Arial, sans-serif" matching "Arial")
+            if (_currentFontFamily.StartsWith(fontName, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if the given font size matches the current size
+        /// </summary>
+        protected bool IsFontSizeSelected(string sizeValue)
+        {
+            if (string.IsNullOrEmpty(_currentFontSize))
+                return sizeValue == "3"; // Default to Normal if not set
+            
+            return _currentFontSize == sizeValue;
         }
     }
 

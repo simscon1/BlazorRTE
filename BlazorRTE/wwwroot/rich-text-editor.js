@@ -10,10 +10,17 @@ export const keepSelectionAfterFormat = pendingModule.keepSelectionAfterFormat;
 export const applyPendingFormats = pendingModule.applyPendingFormats;
 export const clearPendingFormats = pendingModule.clearPendingFormats;
 
-export function initializeEditor(element, dotNetRef) {
+let knownFontFamilies = []; // Module-level variable
+
+export function initializeEditor(element, dotNetRef, editorId, fontFamilies = []) {
     if (!element) {
         console.error("Element is null!");
         return;
+    }
+
+    // Store known fonts passed from C#
+    if (fontFamilies && fontFamilies.length > 0) {
+        knownFontFamilies = fontFamilies;
     }
 
     editorInstances.set(element, { dotNetRef });
@@ -949,4 +956,66 @@ function unwrapElement(element) {
         parent.insertBefore(element.firstChild, element);
     }
     parent.removeChild(element);
+}
+
+export function getCurrentFontFamily() {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return '';
+
+    const range = selection.getRangeAt(0);
+    let element = range.commonAncestorContainer;
+
+    if (element.nodeType === Node.TEXT_NODE) {
+        element = element.parentElement;
+    }
+
+    if (!element) return '';
+
+    // Check for <font face="..."> tag
+    let node = element;
+    while (node && node !== document.body) {
+        if (node.tagName === 'FONT' && node.face) {
+            return node.face;
+        }
+        node = node.parentElement;
+    }
+
+    // Get computed font family
+    const computedFont = window.getComputedStyle(element).fontFamily;
+    if (!computedFont) return '';
+
+    const firstFont = computedFont.split(',')[0].trim().replace(/['"]/g, '');
+
+    // Use fonts from C# helper class
+    for (const font of knownFontFamilies) {
+        if (firstFont.toLowerCase() === font.toLowerCase()) {
+            return font;
+        }
+    }
+
+    const lowerComputed = computedFont.toLowerCase();
+    for (const font of knownFontFamilies) {
+        if (lowerComputed.includes(font.toLowerCase())) {
+            return font;
+        }
+    }
+
+    return '';
+}
+// New function to scroll selected element into view
+export function scrollSelectedIntoView(elementId) {
+    const container = document.getElementById(elementId);
+    if (!container) return;
+    
+    // Find the selected item
+    const selected = container.querySelector('.selected, [aria-selected="true"]');
+    if (selected) {
+        // Scroll the selected item into view (center it if possible)
+        selected.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+        
+        // Also focus it for keyboard navigation
+        if (selected.tagName === 'BUTTON') {
+            selected.focus();
+        }
+    }
 }
