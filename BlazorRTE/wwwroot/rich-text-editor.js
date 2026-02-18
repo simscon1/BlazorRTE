@@ -1,6 +1,15 @@
 ﻿let editorInstances = new Map();
 let savedSelection = null; 
 
+// ===== PENDING FORMAT MODULE =====
+import * as pendingModule from './rich-text-editor.pending.js';
+
+// Re-export for C# JSInterop
+export const hasTextSelection = pendingModule.hasTextSelection;
+export const keepSelectionAfterFormat = pendingModule.keepSelectionAfterFormat;
+export const applyPendingFormats = pendingModule.applyPendingFormats;
+export const clearPendingFormats = pendingModule.clearPendingFormats;
+
 export function initializeEditor(element, dotNetRef) {
     if (!element) {
         console.error("Element is null!");
@@ -322,26 +331,94 @@ export function executeCommand(command, value = null) {
     if (!currentSelection || currentSelection.rangeCount === 0 || currentSelection.isCollapsed) {
         restoreSelection();
     }
+    
     if (command === 'insertHorizontalRule') {
         insertHorizontalRuleWithParagraph();
         return;
     }
-    if (command === 'subscript' && document.queryCommandState('superscript')) {
-        document.execCommand('superscript', false, null);
-    } else if (command === 'superscript' && document.queryCommandState('subscript')) {
-        document.execCommand('subscript', false, null);
+
+    // Handle subscript/superscript - manual implementation due to browser quirks
+    if (command === 'subscript' || command === 'superscript') {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) {
+            saveSelection();
+            return;
+        }
+        
+        const myTag = command === 'subscript' ? 'SUB' : 'SUP';
+        const oppositeTag = command === 'subscript' ? 'SUP' : 'SUB';
+        
+        // Save the current selection text for re-selection
+        const selectedText = selection.toString();
+        const range = selection.getRangeAt(0);
+        
+        // Check if we're inside the tags
+        let node = range.startContainer;
+        let myElement = null;
+        let oppositeElement = null;
+        
+        while (node && node !== document.body) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                if (node.tagName === myTag && !myElement) myElement = node;
+                if (node.tagName === oppositeTag && !oppositeElement) oppositeElement = node;
+            }
+            node = node.parentNode;
+        }
+        
+        // Remove opposite format if present
+        if (oppositeElement) {
+            const parent = oppositeElement.parentNode;
+            const firstChild = oppositeElement.firstChild;
+            while (oppositeElement.firstChild) {
+                parent.insertBefore(oppositeElement.firstChild, oppositeElement);
+            }
+            parent.removeChild(oppositeElement);
+            
+            // Re-select the text
+            if (firstChild && selectedText) {
+                const newRange = document.createRange();
+                newRange.selectNodeContents(firstChild.parentNode.contains(firstChild) ? firstChild : parent);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            }
+        }
+        
+        // Toggle same format
+        if (myElement) {
+            // Remove (toggle off) - preserve selection
+            const parent = myElement.parentNode;
+            const textContent = myElement.textContent;
+            const firstChild = myElement.firstChild;
+            
+            while (myElement.firstChild) {
+                parent.insertBefore(myElement.firstChild, myElement);
+            }
+            parent.removeChild(myElement);
+            
+            // Re-select the unwrapped text
+            if (firstChild && firstChild.nodeType === Node.TEXT_NODE) {
+                const newRange = document.createRange();
+                newRange.setStart(firstChild, 0);
+                newRange.setEnd(firstChild, firstChild.textContent.length);
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+            }
+        } else {
+            // Apply format
+            document.execCommand(command, false, null);
+        }
+        
+        saveSelection();
+        return;
     }
     
     // Handle alignment commands - they are mutually exclusive
     if (['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'].includes(command)) {
-        // Remove all alignments first by applying the new one
-        // (execCommand handles this automatically, but we ensure selection is correct)
         document.execCommand(command, false, null);
     } else {
         document.execCommand(command, false, value);
     }
     
-    // Save the current selection (keeps it highlighted for next command)
     saveSelection();
 }
 
@@ -427,18 +504,30 @@ export function getActiveFormats() {
     if (document.queryCommandState('underline') && !insideLink) formats.push('underline');
     if (document.queryCommandState('strikeThrough')) formats.push('strikeThrough');
 
+    // Check for subscript/superscript - use both tag check AND queryCommandState
+    let hasSubscript = false;
+    let hasSuperscript = false;
+
+
     const selection = window.getSelection();
     if (selection.rangeCount > 0) {
         let node = selection.getRangeAt(0).startContainer;
         while (node && node !== document.body) {
             if (node.nodeType === Node.ELEMENT_NODE) {
                 const tagName = node.tagName ? node.tagName.toLowerCase() : '';
-                if (tagName === 'sub') formats.push('subscript');
-                if (tagName === 'sup') formats.push('superscript');
+                if (tagName === 'sub') hasSubscript = true;
+                if (tagName === 'sup') hasSuperscript = true;
             }
             node = node.parentNode;
         }
     }
+
+    // Fallback to queryCommandState
+    if (!hasSubscript && document.queryCommandState('subscript')) hasSubscript = true;
+    if (!hasSuperscript && document.queryCommandState('superscript')) hasSuperscript = true;
+
+    if (hasSubscript) formats.push('subscript');
+    if (hasSuperscript) formats.push('superscript');
 
     if (document.queryCommandState('insertUnorderedList')) formats.push('insertUnorderedList');
     if (document.queryCommandState('insertOrderedList')) formats.push('insertOrderedList');
@@ -759,4 +848,105 @@ export function insertEmojiAtShortcode(emoji) {
     if (editor && editor._insertEmojiAtShortcode) {
         editor._insertEmojiAtShortcode(emoji);
     }
+}
+
+export function focusElementById(elementId) {
+    const el = document.getElementById(elementId);
+    if (el) el.focus();
+}
+
+export function focusFirstInElement(elementId) {
+    const container = document.getElementById(elementId);
+    if (!container) return;
+
+    const focusable = container.querySelector('button, [tabindex="0"]');
+    if (focusable) {
+        focusable.focus();
+    }
+}
+
+export function navigateDropdown(elementId, direction) {
+    const container = document.getElementById(elementId);
+    if (!container) return;
+
+    // Check for nested grid element (color palettes have grid inside listbox)
+    const gridElement = container.querySelector('[role="grid"]');
+    const isGrid = gridElement !== null;
+    
+    // Get buttons from grid if it exists, otherwise from container
+    const buttonContainer = gridElement || container;
+    const buttons = Array.from(buttonContainer.querySelectorAll('button'));
+    if (buttons.length === 0) return;
+
+    const currentIndex = buttons.findIndex(b => b === document.activeElement);
+    if (currentIndex === -1) {
+        buttons[0]?.focus();
+        return;
+    }
+
+    let nextIndex;
+    
+    if (isGrid) {
+        // For color grids: detect columns by checking button positions
+        const firstButton = buttons[0];
+        const firstTop = firstButton.getBoundingClientRect().top;
+        let columnsInRow = 0;
+        for (const btn of buttons) {
+            if (Math.abs(btn.getBoundingClientRect().top - firstTop) < 2) { // Allow small tolerance
+                columnsInRow++;
+            } else {
+                break;
+            }
+        }
+        columnsInRow = columnsInRow || 1;
+
+        switch (direction) {
+            case 'right':
+                nextIndex = currentIndex < buttons.length - 1 ? currentIndex + 1 : 0;
+                break;
+            case 'left':
+                nextIndex = currentIndex > 0 ? currentIndex - 1 : buttons.length - 1;
+                break;
+            case 'down':
+                nextIndex = currentIndex + columnsInRow;
+                if (nextIndex >= buttons.length) nextIndex = currentIndex % columnsInRow;
+                break;
+            case 'up':
+                nextIndex = currentIndex - columnsInRow;
+                if (nextIndex < 0) {
+                    // Go to last row, same column
+                    const lastRowStart = Math.floor((buttons.length - 1) / columnsInRow) * columnsInRow;
+                    nextIndex = lastRowStart + (currentIndex % columnsInRow);
+                    if (nextIndex >= buttons.length) nextIndex = buttons.length - 1;
+                }
+                break;
+            default:
+                return;
+        }
+    } else {
+        // For listbox dropdowns: linear navigation
+        if (direction === 'down' || direction === 'right') {
+            nextIndex = currentIndex < buttons.length - 1 ? currentIndex + 1 : 0;
+        } else {
+            nextIndex = currentIndex > 0 ? currentIndex - 1 : buttons.length - 1;
+        }
+    }
+
+    buttons[nextIndex]?.focus();
+}
+
+export function clickFocusedElement() {
+    const focused = document.activeElement;
+    if (focused && focused.tagName === 'BUTTON') {
+        focused.click();
+    }
+}
+
+// Helper function to unwrap an element (remove tag but keep contents)
+function unwrapElement(element) {
+    const parent = element.parentNode;
+    while (element.firstChild) {
+        parent.insertBefore(element.firstChild, element);
+    }
+    parent.removeChild(element);
 }

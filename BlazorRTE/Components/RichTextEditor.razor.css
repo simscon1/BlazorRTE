@@ -172,13 +172,10 @@
     transform: scale(1.0);
 }
 
-/* Color Dropdown Container */
-.rte-color-dropdown {
-    position: relative;
-    display: inline-block;
-}
+/* ========================================
+   COLOR PALETTE STYLES (shared)
+   ======================================== */
 
-/* Color Palette Popup */
 .rte-color-palette {
     position: absolute;
     top: 100%;
@@ -190,8 +187,209 @@
     border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     padding: 8px;
-    z-index: 9999;   /* ✅ Much higher, always on top */
-    min-width: 180px;
+    z-index: 9999;
+    min-width: 220px;
+}
+
+.rte-color-palette.align-right {
+    left: auto;
+    right: 0;
+    transform: none;
+}
+
+.rte-color-palette.align-left {
+    left: 0;
+    right: auto;
+    transform: none;
+}
+
+.rte-color-palette-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    padding: 0 2px;
+}
+
+/* 8-column color grid */
+.rte-color-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+}
+
+/* Individual color swatch - SQUARE */
+.rte-color-swatch {
+    width: 24px;
+    height: 24px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.1s ease;
+    position: relative;
+    /* Ensure square aspect ratio */
+    aspect-ratio: 1 / 1;
+    min-width: 24px;
+    min-height: 24px;
+}
+
+.rte-color-swatch:hover {
+    transform: scale(1.15);
+    border-color: #000;
+    z-index: 1;
+}
+
+.rte-color-swatch:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.rte-color-swatch.selected {
+    outline: 3px solid #3b82f6;
+    outline-offset: 1px;
+}
+
+/* White swatch needs visible border */
+.rte-color-swatch-white {
+    border: 1px solid #999;
+}
+
+/* "No color" swatch with diagonal slash */
+.rte-color-swatch-none {
+    background: linear-gradient(135deg, #fff 45%, #ff0000 45%, #ff0000 55%, #fff 55%);
+    border: 1px solid #ccc;
+}
+
+/* Custom color picker section */
+.rte-color-custom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.rte-color-custom label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7280;
+    white-space: nowrap;
+}
+
+.rte-color-input {
+    flex: 1;
+    height: 28px;
+    padding: 0;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    cursor: pointer;
+    background: transparent;
+}
+
+.rte-color-input:hover {
+    border-color: #3b82f6;
+}
+
+.rte-color-input::-webkit-color-swatch-wrapper {
+    padding: 2px;
+}
+
+.rte-color-input::-webkit-color-swatch {
+    border: none;
+    border-radius: 2px;
+}
+
+/* Visually hidden for screen readers */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ===== REMOVE OLD CONFLICTING CLASSES ===== */
+/* DELETE these if they exist in your CSS:
+   - .rte-color-palette-wide
+   - .rte-color-palette-grid
+   - .rte-color-grid-6
+   - .rte-palette-color
+   - .rte-palette-color-none
+*/
+
+
+/* Dark mode focus style */
+.rich-text-editor.dark-mode .rte-btn:focus-visible {
+    /* High-contrast outline for dark mode */
+    outline-color: #00b2ff;
+    /* Original dark mode background/shadow */
+    border-color: #60a5fa;
+    background-color: #1e3a8a;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+}
+
+
+.rte-separator {
+    width: 1px;
+    height: 24px;
+    background: #d1d5db;
+    margin: 0 4px;
+}
+
+/* Color Picker */
+.rte-color-picker {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+}
+
+.rte-color-btn {
+    width: 20px;
+    height: 20px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.15s ease;
+}
+
+.rte-color-btn:hover {
+    transform: scale(1.15);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.rte-color-btn:active {
+    transform: scale(1.0);
+}
+
+/* Color Dropdown Container */
+.rte-color-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dark mode support for custom color picker */
+.rich-text-editor.dark-mode .rte-color-custom {
+    border-top-color: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-color-custom label {
+    color: #9ca3af;
+}
+
+.rich-text-editor.dark-mode .rte-color-custom input[type="color"] {
+    border-color: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-color-custom input[type="color"]:hover {
+    border-color: #60a5fa;
 }
 
 /* When button is near RIGHT edge - align palette to right */
@@ -215,330 +413,6 @@
     text-transform: uppercase;
     margin-bottom: 6px;
     padding: 0 4px;
-}
-
-.rte-color-palette-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-}
-
-.rte-palette-color {
-    width: 32px;
-    height: 32px;
-    border: 2px solid #e5e7eb;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    padding: 0;
-}
-
-.rte-palette-color:hover {
-    transform: scale(1.1);
-    border-color: #3b82f6;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.rte-palette-color-none {
-    background: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    color: #ef4444;
-    font-weight: bold;
-}
-
-/* Content Area */
-.rte-content-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    overflow: auto; /* Scrollbar when content overflows */
-}
-
-.rte-content {
-    flex: 1;
-    padding: 12px;
-    outline: none;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-size: 14px;
-    line-height: 1.6;
-    color: #111827;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-}
-
-.rte-content:empty::before {
-    content: attr(placeholder);
-    color: #9ca3af;
-    pointer-events: none;
-}
-
-.rte-content p {
-    margin: 0 0 0.5em 0;
-}
-
-.rte-content p:last-child {
-    margin-bottom: 0;
-}
-
-.rte-content strong,
-.rte-content b {
-    font-weight: 700;
-}
-
-.rte-content em,
-.rte-content i {
-    font-style: italic;
-}
-
-.rte-content u {
-    text-decoration: underline;
-}
-
-.rte-content s,
-.rte-content strike {
-    text-decoration: line-through;
-}
-
-.rte-content hr {
-    border: none;
-    border-top: 2px solid #d1d5db;
-    margin: 1em 0;
-}
-
-/* Heading Styles */
-.rte-content h1 {
-    font-size: 2em;
-    font-weight: 700;
-    margin: 0.5em 0;
-    line-height: 1.2;
-}
-
-.rte-content h2 {
-    font-size: 1.5em;
-    font-weight: 600;
-    margin: 0.5em 0;
-    line-height: 1.3;
-}
-
-.rte-content h3 {
-    font-size: 1.25em;
-    font-weight: 600;
-    margin: 0.5em 0;
-    line-height: 1.4;
-}
-
-.rte-content ul,
-.rte-content ol {
-    margin: 0.5em 0;
-    padding-left: 24px;
-}
-
-.rte-content li {
-    margin: 0.25em 0;
-}
-
-.rte-content a {
-    color: #2563eb;
-    text-decoration: underline;
-}
-
-.rte-content a:hover {
-    color: #1d4ed8;
-}
-
-.rte-content:focus {
-    outline: none;
-}
-
-/* Footer with Character Count */
-.rte-footer {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 8px 12px;
-    background: #f9fafb;
-    border-top: 1px solid #e5e7eb;
-    font-size: 12px;
-    color: #6b7280;
-    text-align: right;
-    border-bottom-left-radius: 8px;   /* ← ADD: Fix bottom-left corner */
-    border-bottom-right-radius: 8px;  /* ← ADD: Fix bottom-right corner */
-}
-
-.rte-char-count {
-    font-size: 12px;
-    color: #6b7280;
-    font-weight: 500;
-}
-
-.rte-word-count {
-    margin-left: 8px;
-    color: #9ca3af;
-}
-
-/* Scrollbar styling */
-.rte-content-wrapper::-webkit-scrollbar {
-    width: 8px;
-}
-
-.rte-content-wrapper::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-.rte-content-wrapper::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 4px;
-}
-
-.rte-content-wrapper::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af;
-}
-
-/* SVG Icons - BASE RULES (Light Mode) */
-.rte-icon {
-    width: 18px;
-    height: 18px;
-    display: block;
-    pointer-events: none;
-}
-
-/* Stroke-based icons (undo, redo, etc.) */
-.rte-btn .rte-icon[fill="none"] {
-    stroke: currentColor;
-    fill: none !important;  /* ✅ CRITICAL: Keep transparent */
-}
-
-.rte-btn:hover .rte-icon[fill="none"] {
-    stroke: currentColor;
-    fill: none !important;
-}
-
-.rte-btn.active .rte-icon[fill="none"] {
-    stroke: #3b82f6;
-    fill: none !important;
-}
-
-/* Fill-based icons (bold, italic, link, etc.) */
-.rte-btn .rte-icon[fill="currentColor"],
-.rte-btn .rte-icon:not([fill="none"]) {
-    fill: currentColor;
-}
-
-.rte-btn:hover .rte-icon[fill="currentColor"],
-.rte-btn:hover .rte-icon:not([fill="none"]) {
-    fill: currentColor;
-}
-
-.rte-btn.active .rte-icon[fill="currentColor"],
-.rte-btn.active .rte-icon:not([fill="none"]) {
-    fill: #3b82f6;
-}
-
-/* ============================================
-   DARK MODE - ICONS
-   ============================================ */
-
-/* Stroke-based icons in dark mode */
-.rich-text-editor.dark-mode .rte-btn .rte-icon[fill="none"] {
-    stroke: #f3f4f6;
-    fill: none !important;
-}
-
-.rich-text-editor.dark-mode .rte-btn:hover .rte-icon[fill="none"] {
-    stroke: #f3f4f6;
-    fill: none !important;
-}
-
-.rich-text-editor.dark-mode .rte-btn.active .rte-icon[fill="none"] {
-    stroke: #a78bfa;
-    fill: none !important;
-}
-
-/* Fill-based icons in dark mode */
-.rich-text-editor.dark-mode .rte-btn .rte-icon[fill="currentColor"],
-.rich-text-editor.dark-mode .rte-btn .rte-icon:not([fill="none"]) {
-    fill: #f3f4f6;
-}
-
-.rich-text-editor.dark-mode .rte-btn:hover .rte-icon[fill="currentColor"],
-.rich-text-editor.dark-mode .rte-btn:hover .rte-icon:not([fill="none"]) {
-    fill: #f3f4f6;
-}
-
-.rich-text-editor.dark-mode .rte-btn.active .rte-icon[fill="currentColor"],
-.rich-text-editor.dark-mode .rte-btn.active .rte-icon:not([fill="none"]) {
-    fill: #a78bfa;
-}
-
-/* Font Size Picker */
-.rte-font-size-list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 4px;
-}
-
-.rte-font-option {
-    padding: 5px 16px;   /* ✅ More compact */
-    border: 1px solid transparent;
-    background: white;        /* ✅ White for light mode */
-    color: #1f2937;          /* ✅ Dark text for light mode */
-    text-align: left;
-    cursor: pointer;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-
-.rte-font-option:hover {
-    background: #f3f4f6;     /* ✅ Light gray hover */
-    border-color: #e5e7eb;   /* ✅ Light border */
-    transform: translateX(2px);
-}
-
-.rte-font-option:active {
-    background: #e5e7eb;     /* ✅ Slightly darker gray when clicked */
-}
-
-/* Font Family Picker - wider and taller for font names */
-.rte-font-family-palette {
-    min-width: 200px;
-}
-
-.rte-font-family-list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 4px;
-    max-height: 280px;
-    overflow-y: auto;
-}
-
-/* Scrollbar for font family list */
-.rte-font-family-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.rte-font-family-list::-webkit-scrollbar-track {
-    background: #f9fafb;  /* ✅ Light gray for light mode */
-    border-radius: 3px;
-}
-
-.rte-font-family-list::-webkit-scrollbar-thumb {
-    background: #d1d5db;  /* ✅ Medium gray for light mode */
-    border-radius: 3px;
-}
-
-.rte-font-family-list::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af;  /* ✅ Darker gray on hover */
 }
 
 /* Dark mode support */
@@ -892,4 +766,260 @@
 
 .rich-text-editor.dark-mode .rte-btn.active .rte-icon path[fill="currentColor"] {
     fill: #a78bfa !important;
+}
+
+/* ========================================
+   CONTENT AREA STYLES
+   ======================================== */
+
+.rte-content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    overflow: auto;
+}
+
+.rte-content {
+    flex: 1;
+    padding: 12px;
+    outline: none;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #111827;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+.rte-content:empty::before {
+    content: attr(placeholder);
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.rte-content p {
+    margin: 0 0 0.5em 0;
+}
+
+.rte-content p:last-child {
+    margin-bottom: 0;
+}
+
+.rte-content h1 {
+    font-size: 2em;
+    font-weight: 700;
+    margin: 0.5em 0;
+    line-height: 1.2;
+}
+
+.rte-content h2 {
+    font-size: 1.5em;
+    font-weight: 600;
+    margin: 0.5em 0;
+    line-height: 1.3;
+}
+
+.rte-content h3 {
+    font-size: 1.25em;
+    font-weight: 600;
+    margin: 0.5em 0;
+    line-height: 1.4;
+}
+
+.rte-content ul,
+.rte-content ol {
+    margin: 0.5em 0;
+    padding-left: 24px;
+}
+
+.rte-content li {
+    margin: 0.25em 0;
+}
+
+.rte-content hr {
+    border: none;
+    border-top: 2px solid #d1d5db;
+    margin: 1em 0;
+}
+
+.rte-content a {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+.rte-content a:hover {
+    color: #1d4ed8;
+}
+
+/* ========================================
+   FOOTER STYLES
+   ======================================== */
+
+.rte-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 6px 12px;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    flex-shrink: 0;
+}
+
+.rte-char-count {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.rte-word-count {
+    margin-left: 8px;
+    color: #9ca3af;
+}
+
+/* ========================================
+   FONT PICKER STYLES
+   ======================================== */
+
+.rte-font-family-palette {
+    min-width: 180px;
+}
+
+.rte-font-family-list,
+.rte-font-size-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.rte-font-option {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #374151;
+    transition: background 0.15s ease;
+}
+
+.rte-font-option:hover {
+    background: #f3f4f6;
+}
+
+.rte-font-option:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: -2px;
+}
+
+/* Scrollbar styling for font lists */
+.rte-font-family-list::-webkit-scrollbar,
+.rte-font-size-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.rte-font-family-list::-webkit-scrollbar-track,
+.rte-font-size-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.rte-font-family-list::-webkit-scrollbar-thumb,
+.rte-font-size-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.rte-font-family-list::-webkit-scrollbar-thumb:hover,
+.rte-font-size-list::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* ========================================
+   DARK MODE - FOOTER & CONTENT
+   ======================================== */
+
+.rich-text-editor.dark-mode .rte-content-wrapper {
+    background: #1f2937;
+}
+
+.rich-text-editor.dark-mode .rte-content a {
+    color: #60a5fa;
+}
+
+.rich-text-editor.dark-mode .rte-content a:hover {
+    color: #93c5fd;
+}
+
+.rich-text-editor.dark-mode .rte-content hr {
+    border-top-color: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-footer {
+    background: #374151;
+    border-top-color: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-char-count {
+    color: #9ca3af;
+}
+
+.rich-text-editor.dark-mode .rte-word-count {
+    color: #6b7280;
+}
+
+/* Dark mode font picker */
+.rich-text-editor.dark-mode .rte-color-palette {
+    background: #1f2937;
+    border-color: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-color-palette-title {
+    color: #9ca3af;
+}
+
+.rich-text-editor.dark-mode .rte-font-option {
+    color: #e5e7eb;
+}
+
+.rich-text-editor.dark-mode .rte-font-option:hover {
+    background: #374151;
+}
+
+.rich-text-editor.dark-mode .rte-color-swatch {
+    border-color: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-color-swatch:hover {
+    border-color: #fff;
+}
+
+.rich-text-editor.dark-mode .rte-color-input {
+    border-color: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-color-input:hover {
+    border-color: #60a5fa;
+}
+
+/* ========================================
+   BACKDROP FOR CLICK-OUTSIDE DETECTION
+   ======================================== */
+
+.rte-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9998; /* Just below the color palette (9999) */
+    background: transparent;
+    cursor: default;
 }
