@@ -455,6 +455,7 @@
 
     .rte-content {
         color: #f9fafb;
+        font-family: Arial, sans-serif;
     }
 
     .rte-content:empty::before {
@@ -884,62 +885,41 @@
    ======================================== */
 
 .rte-font-family-palette {
-    min-width: 180px;
-}
-
-.rte-font-family-list,
-.rte-font-size-list {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    max-height: 200px;
+    min-width: 260px;
+    max-height: 320px;
     overflow-y: auto;
 }
 
-.rte-font-option {
-    display: block;
-    width: 100%;
-    padding: 8px 12px;
-    border: none;
-    background: transparent;
-    text-align: left;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 14px;
-    color: #374151;
-    transition: background 0.15s ease;
-}
-
-.rte-font-option:hover {
-    background: #f3f4f6;
-}
-
-.rte-font-option:focus {
-    outline: 2px solid #3b82f6;
-    outline-offset: -2px;
-}
-
-/* Scrollbar styling for font lists */
-.rte-font-family-list::-webkit-scrollbar,
-.rte-font-size-list::-webkit-scrollbar {
+/* Scrollbar styling for font family list */
+.rte-font-family-palette::-webkit-scrollbar {
     width: 8px;
 }
 
-.rte-font-family-list::-webkit-scrollbar-track,
-.rte-font-size-list::-webkit-scrollbar-track {
+.rte-font-family-palette::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 4px;
 }
 
-.rte-font-family-list::-webkit-scrollbar-thumb,
-.rte-font-size-list::-webkit-scrollbar-thumb {
+.rte-font-family-palette::-webkit-scrollbar-thumb {
     background: #c1c1c1;
     border-radius: 4px;
 }
 
-.rte-font-family-list::-webkit-scrollbar-thumb:hover,
-.rte-font-size-list::-webkit-scrollbar-thumb:hover {
+.rte-font-family-palette::-webkit-scrollbar-thumb:hover {
     background: #a1a1a1;
+}
+
+/* Dark mode scrollbar */
+.rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
+.rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-thumb {
+    background: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
 }
 
 /* ========================================
@@ -975,7 +955,6 @@
     color: #6b7280;
 }
 
-/* Dark mode font picker */
 .rich-text-editor.dark-mode .rte-color-palette {
     background: #1f2937;
     border-color: #4b5563;
@@ -1022,4 +1001,150 @@
     z-index: 9998; /* Just below the color palette (9999) */
     background: transparent;
     cursor: default;
+}
+
+/* ========================================
+   HEADING PICKER STYLES
+   ======================================== */
+
+.rte-heading-palette {
+    min-width: 260px;
+}
+
+.rte-heading-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.rte-heading-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid transparent;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.rte-heading-option:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.rte-heading-option:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: -2px;
+}
+
+/* Selected state - matches .rte-btn.active */
+.rte-heading-option.selected {
+    background: #dbeafe;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.rte-heading-preview {
+    color: #374151;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.rte-heading-option.selected .rte-heading-preview {
+    color: #1e40af;
+}
+
+.rte-heading-shortcut {
+    font-size: 11px;
+    color: #9ca3af;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin-left: 16px;
+    flex-shrink: 0;
+}
+
+.rte-heading-option.selected .rte-heading-shortcut {
+    color: #3b82f6;
+}
+
+/* ===== DARK MODE - HEADING PICKER ===== */
+
+.rich-text-editor.dark-mode .rte-heading-option:hover {
+    background: #374151;
+    border-color: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-heading-option.selected {
+    background: #1e3a8a;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.rich-text-editor.dark-mode .rte-heading-preview {
+    color: #e5e7eb;
+}
+
+.rich-text-editor.dark-mode .rte-heading-option.selected .rte-heading-preview {
+    color: #93c5fd;
+}
+
+.rich-text-editor.dark-mode .rte-heading-shortcut {
+    color: #6b7280;
+}
+
+.rich-text-editor.dark-mode .rte-heading-option.selected .rte-heading-shortcut {
+    color: #60a5fa;
+}
+
+/* ========================================
+   FONT SIZE PALETTE - MATCHES HEADING STYLE
+   ======================================== */
+
+.rte-font-size-palette {
+    min-width: 200px;
+}
+
+/* ========================================
+   FONT FAMILY PALETTE - MATCHES HEADING STYLE
+   ======================================== */
+
+.rte-font-family-palette {
+    min-width: 260px;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+/* Scrollbar styling for font family list */
+.rte-font-family-palette::-webkit-scrollbar {
+    width: 8px;
+}
+
+.rte-font-family-palette::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.rte-font-family-palette::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.rte-font-family-palette::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Dark mode scrollbar */
+.rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
+.rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-thumb {
+    background: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
 }
