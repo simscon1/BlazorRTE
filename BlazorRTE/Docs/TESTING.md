@@ -17,6 +17,7 @@ This document provides comprehensive manual testing steps to verify all features
 9. [Dark Mode](#9-dark-mode)
 10. [Edge Cases](#10-edge-cases)
 11. [Multiple Instances](#11-multiple-editor-instances)
+12. [WASM Toolbar Protection](#12-wasm-toolbar-protection)
 
 ---
 
@@ -258,6 +259,38 @@ This document provides comprehensive manual testing steps to verify all features
 
 ---
 
+## 12. WASM Toolbar Protection
+
+### Key Repeat Prevention
+
+| Test | Steps | Expected Result | Pass |
+|------|-------|-----------------|------|
+| Hold Enter on Indent | Focus Indent button → Hold Enter key | Only one indent applied, no freeze/hang | ☐ |
+| Hold Enter on Bold | Focus Bold button → Hold Enter key | Only one toggle, no rapid flashing | ☐ |
+| Hold Space on Indent | Focus Indent button → Hold Space key | Only one indent applied | ☐ |
+| Hold Enter on Undo | Focus Undo button → Hold Enter key | Only one undo applied | ☐ |
+| Single press still works | Focus Indent → Press Enter once | Indent applied normally | ☐ |
+| Single click still works | Click Indent button once | Indent applied normally | ☐ |
+| Rapid single clicks | Click Indent 5 times quickly | 5 indents applied (not dropped) | ☐ |
+
+### Command Interleave Prevention
+
+| Test | Steps | Expected Result | Pass |
+|------|-------|-----------------|------|
+| No double execution | Click Bold while another command is running | Second click ignored, no crash | ☐ |
+| Flag resets | Execute command → Wait → Execute again | Second command works normally | ☐ |
+| Error recovery | Trigger error during command | `_commandInProgress` resets, next command works | ☐ |
+
+### Deferred Toolbar Update (Repeatable Commands)
+
+| Test | Steps | Expected Result | Pass |
+|------|-------|-----------------|------|
+| Indent toolbar sync | Click Indent → Wait 200ms | Toolbar state updates correctly | ☐ |
+| Outdent toolbar sync | Click Outdent → Wait 200ms | Toolbar state updates correctly | ☐ |
+| Undo toolbar sync | Click Undo → Wait 200ms | Toolbar state reflects undone content | ☐ |
+| Redo toolbar sync | Click Redo → Wait 200ms | Toolbar state reflects redone content | ☐ |
+| Value binding | Indent text → Check @bind-Value | Value updated with indented HTML | ☐ |
+
 ## 🔧 Quick Test Page
 
 Use this Razor page to test all scenarios:
@@ -303,7 +336,8 @@ void HandleSend()
 | Dark Mode | 8 | ☐ | ☐ |
 | Edge Cases | 10 | ☐ | ☐ |
 | Multiple Instances | 4 | ☐ | ☐ |
-| **TOTAL** | **111** | ☐ | ☐ |
+| WASM Toolbar Protection | 15 | ☐ | ☐ |
+| **TOTAL** | **126** | ☐ | ☐ |
 
 ---
 

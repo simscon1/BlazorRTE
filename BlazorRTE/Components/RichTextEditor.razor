@@ -5,7 +5,8 @@
 <div class="rich-text-editor @(IsFocused ? "focused" : "") @(DarkMode ? "dark-mode" : "")" style="@GetEditorStyle()">
     @if (ShowToolbar)
     {
-        <div class="rte-toolbar"
+        <div @ref="_toolbarRef"
+             class="rte-toolbar"
              role="toolbar"
              aria-label="Rich text formatting"
              aria-controls="@_editorId"
@@ -83,8 +84,8 @@
                             <div class="rte-heading-list" aria-labelledby="heading-level-label">
                                 @foreach (var heading in HeadingStyles.Options)
                                 {
-                                    <button type="button" 
-                                            class="rte-heading-option @(_currentHeadingLevel == heading.Tag ? "selected" : "")" 
+                                    <button type="button"
+                                            class="rte-heading-option @(_currentHeadingLevel == heading.Tag ? "selected" : "")"
                                             role="option"
                                             aria-selected="@(_currentHeadingLevel == heading.Tag)"
                                             @onclick="@(() => SelectHeading(heading.Tag))">
@@ -353,11 +354,11 @@
                             </div>
                             <div class="rte-color-custom">
                                 <label for="custom-text-color">Custom:</label>
-                                <input type="color" 
-                                       id="custom-text-color" 
+                                <input type="color"
+                                       id="custom-text-color"
                                        class="rte-color-input"
                                        value="@_currentTextColor"
-                                       @onchange="@(e => SelectTextColor(e.Value?.ToString() ?? "#000000"))" 
+                                       @onchange="@(e => SelectTextColor(e.Value?.ToString() ?? "#000000"))"
                                        aria-label="Choose custom text color" />
                             </div>
                         </div>
@@ -426,8 +427,8 @@
                             </div>
                             <div class="rte-color-custom">
                                 <label for="custom-highlight-color">Custom:</label>
-                                <input type="color" 
-                                       id="custom-highlight-color" 
+                                <input type="color"
+                                       id="custom-highlight-color"
                                        value="@(_currentHighlightColor == "transparent" ? "#FFFFFF" : _currentHighlightColor)"
                                        @onchange="@(e => SelectBackgroundColor(e.Value?.ToString() ?? "#FFFFFF"))" />
                             </div>
@@ -510,7 +511,7 @@
                         class="rte-btn @(alignment == "left" ? "active" : "")"
                         aria-pressed="@(alignment == "left").ToString().ToLower()"
                         aria-label="Align left"
-                          @onfocus="@(() => OnToolbarButtonFocus("rte-btn-alignleft"))"
+                        @onfocus="@(() => OnToolbarButtonFocus("rte-btn-alignleft"))"
                         @onclick="() => ExecuteCommand(FormatCommand.AlignLeft)"
                         @onmousedown:preventDefault
                         @onclick:stopPropagation
@@ -648,7 +649,7 @@
              @onpaste="OnPaste"
              @onfocus="OnFocus"
              @onblur="OnBlur"
-             @onclick="OnEditorClick"   
+             @onclick="OnEditorClick"
              @onmousedown="OnToolbarMouseDown"
              placeholder="@Placeholder"
              aria-label="@AriaLabel"
@@ -693,7 +694,7 @@
 @* ===== CLICK-OUTSIDE BACKDROP ===== *@
 @if (_showTextColorPicker || _showBackgroundColorPicker || _showFontSizePicker || _showFontFamilyPicker || _showHeadingPicker)
 {
-    <div class="rte-backdrop" 
+    <div class="rte-backdrop"
          @onclick="CloseAllDropdowns"
          @onclick:stopPropagation="false">
     </div>

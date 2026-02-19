@@ -98,12 +98,13 @@ namespace BlazorRTE.Components
         private bool _showHeadingPicker;
         private ElementReference _headingButton;
         private ElementReference _headingPalette;
-        private string _currentFontSize = "3";  
+        private string _currentFontSize = "3";
         private string _currentFontFamily = "Arial";
         protected readonly string _editorId = $"rte-{Guid.NewGuid():N}";
- 
+
         private string alignment = "left";
 
+        private ElementReference _toolbarRef;
         private ElementReference _fontFamilyButton;
         private ElementReference _fontFamilyPalette;
         private ElementReference _textColorButton;
@@ -127,6 +128,13 @@ namespace BlazorRTE.Components
 
         private bool _preventTabDefault = false;
 
+        private bool _commandInProgress;
+        private CancellationTokenSource? _toolbarUpdateCts;
+
+        private static bool IsRepeatableCommand(FormatCommand command) =>
+            command is FormatCommand.Indent or FormatCommand.Outdent
+                    or FormatCommand.Undo or FormatCommand.Redo;
+
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             if (firstRender)
@@ -135,12 +143,13 @@ namespace BlazorRTE.Components
                 {
                     _dotNetRef = DotNetObjectReference.Create(this);
                     _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/BlazorRTE/rich-text-editor.js");
-                    
+
                     // Get font names from helper class
                     var fontNames = FontFamilies.Options.Select(f => f.Name).ToArray();
                     var fontSizeValues = FontSizes.Options.Select(f => f.Value).ToArray();
-                    
+
                     await _jsModule.InvokeVoidAsync("initializeEditor", _editorRef, _dotNetRef, _editorId, fontNames, fontSizeValues);
+                    await _jsModule.InvokeVoidAsync("preventToolbarKeyRepeat", _toolbarRef);
 
                     if (!string.IsNullOrEmpty(Value))
                     {
@@ -566,7 +575,7 @@ namespace BlazorRTE.Components
                 }
                 catch
                 {
-                    _currentFontFamily = ""; 
+                    _currentFontFamily = "";
                 }
 
                 await UpdateHeadingState();
@@ -634,6 +643,10 @@ namespace BlazorRTE.Components
         protected async Task ExecuteCommand(FormatCommand command)
         {
             if (_jsModule == null) return;
+
+            // Prevent interleaved commands in WASM (holding Enter on toolbar button)
+            if (_commandInProgress) return;
+            _commandInProgress = true;
 
             try
             {
@@ -722,16 +735,31 @@ namespace BlazorRTE.Components
                     {
                         await _jsModule.InvokeVoidAsync("focusElementById", _toolbarButtonIds[_toolbarFocusIndex]);
                     }
-                    
-                    await UpdateToolbarState();
-                    //await Task.Delay(50);
-                    var html = await GetHtmlAsync();
 
-                    _isUpdating = true;
-                    Value = HtmlSanitizer.Sanitize(html);
-                    _previousValue = Value;
-                    await ValueChanged.InvokeAsync(Value);
-                    _isUpdating = false;
+                    if (IsRepeatableCommand(command))
+                    {
+                        var html = await GetHtmlAsync();
+                        _isUpdating = true;
+                        Value = HtmlSanitizer.Sanitize(html);
+                        _previousValue = Value;
+                        await ValueChanged.InvokeAsync(Value);
+                        _isUpdating = false;
+
+                        _toolbarUpdateCts?.Cancel();
+                        _toolbarUpdateCts = new CancellationTokenSource();
+                        var token = _toolbarUpdateCts.Token;
+                        _ = DeferredToolbarUpdate(token);
+                    }
+                    else
+                    {
+                        await UpdateToolbarState();
+                        var html = await GetHtmlAsync();
+                        _isUpdating = true;
+                        Value = HtmlSanitizer.Sanitize(html);
+                        _previousValue = Value;
+                        await ValueChanged.InvokeAsync(Value);
+                        _isUpdating = false;
+                    }
 
                     // NEW: Raise content changed and after command events
                     await RaiseContentChangedEvent(ChangeSource.Command);
@@ -743,6 +771,23 @@ namespace BlazorRTE.Components
                 await RaiseErrorEvent($"Command execution failed: {command}", ex);
                 await RaiseAfterCommandEvent(command, command.ToString(), false, ex.Message);
             }
+            finally
+            {
+                _commandInProgress = false;
+            }
+        }
+
+        private async Task DeferredToolbarUpdate(CancellationToken token)
+        {
+            try
+            {
+                await Task.Delay(150, token);
+                if (!token.IsCancellationRequested)
+                {
+                    await InvokeAsync(async () => await UpdateToolbarState());
+                }
+            }
+            catch (TaskCanceledException) { }
         }
 
         protected async Task CreateLink()
@@ -1974,7 +2019,7 @@ namespace BlazorRTE.Components
         {
             if (string.IsNullOrEmpty(_currentFontSize))
                 return sizeValue == "3"; // Default to Normal if not set
-            
+
             return _currentFontSize == sizeValue;
         }
     }

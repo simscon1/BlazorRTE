@@ -1,5 +1,8 @@
 ﻿let editorInstances = new Map();
 let savedSelection = null; 
+let lastCommandTime = 0;
+let lastCommand = null;
+let toolbarUpdateCts = null;
 
 // ===== PENDING FORMAT MODULE =====
 import * as pendingModule from './rich-text-editor.pending.js';
@@ -301,6 +304,15 @@ export function initializeEditor(element, dotNetRef, editorId, fontFamilies = []
     });
 }
 
+export function preventToolbarKeyRepeat(toolbarElement) {
+    if (!toolbarElement) return;
+    toolbarElement.addEventListener('keydown', (e) => {
+        if (e.repeat && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+        }
+    }, true); // capture phase — runs BEFORE Blazor's handler
+}
 export function disposeEditor(element) {
     if (element && editorInstances.has(element)) {
         editorInstances.delete(element);
@@ -334,6 +346,15 @@ export function restoreSelection() {
 }
 
 export function executeCommand(command, value = null) {
+
+    // Throttle rapid repeated commands (WASM perf)
+    const now = Date.now();
+    if (command === lastCommand && (now - lastCommandTime) < 50) {
+        return;
+    }
+    lastCommandTime = now;
+    lastCommand = command;
+    
     const currentSelection = window.getSelection();
     if (!currentSelection || currentSelection.rangeCount === 0 || currentSelection.isCollapsed) {
         restoreSelection();
@@ -355,11 +376,9 @@ export function executeCommand(command, value = null) {
         const myTag = command === 'subscript' ? 'SUB' : 'SUP';
         const oppositeTag = command === 'subscript' ? 'SUP' : 'SUB';
         
-        // Save the current selection text for re-selection
         const selectedText = selection.toString();
         const range = selection.getRangeAt(0);
         
-        // Check if we're inside the tags
         let node = range.startContainer;
         let myElement = null;
         let oppositeElement = null;
@@ -372,7 +391,6 @@ export function executeCommand(command, value = null) {
             node = node.parentNode;
         }
         
-        // Remove opposite format if present
         if (oppositeElement) {
             const parent = oppositeElement.parentNode;
             const firstChild = oppositeElement.firstChild;
@@ -381,7 +399,6 @@ export function executeCommand(command, value = null) {
             }
             parent.removeChild(oppositeElement);
             
-            // Re-select the text
             if (firstChild && selectedText) {
                 const newRange = document.createRange();
                 newRange.selectNodeContents(firstChild.parentNode.contains(firstChild) ? firstChild : parent);
@@ -390,11 +407,8 @@ export function executeCommand(command, value = null) {
             }
         }
         
-        // Toggle same format
         if (myElement) {
-            // Remove (toggle off) - preserve selection
             const parent = myElement.parentNode;
-            const textContent = myElement.textContent;
             const firstChild = myElement.firstChild;
             
             while (myElement.firstChild) {
@@ -402,7 +416,6 @@ export function executeCommand(command, value = null) {
             }
             parent.removeChild(myElement);
             
-            // Re-select the unwrapped text
             if (firstChild && firstChild.nodeType === Node.TEXT_NODE) {
                 const newRange = document.createRange();
                 newRange.setStart(firstChild, 0);
@@ -411,7 +424,6 @@ export function executeCommand(command, value = null) {
                 selection.addRange(newRange);
             }
         } else {
-            // Apply format
             document.execCommand(command, false, null);
         }
         
