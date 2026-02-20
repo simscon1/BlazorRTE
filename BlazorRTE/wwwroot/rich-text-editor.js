@@ -246,7 +246,11 @@ export function initializeEditor(element, dotNetRef, editorId, fontFamilies = []
     });
 
     element.addEventListener('drop', (e) => e.preventDefault());
- 
+
+    // ← ADD: apply pending bold/italic/underline/strikethrough on each typed character
+    element.addEventListener('keypress', (e) => {
+        pendingModule.handleKeyPressWithPendingFormats(element, e, dotNetRef);
+    });
 
     // Input event for autocomplete
     element.addEventListener('input', function(e) {

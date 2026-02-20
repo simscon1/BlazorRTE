@@ -55,14 +55,20 @@ export function collapseSelectionToEnd(element) {
  */
 export function applyPendingFormats(pendingData) {
     if (!pendingData) return;
-    
+
+    const hasFormats = (pendingData.formats?.length > 0)
+        || pendingData.textColor
+        || pendingData.backgroundColor
+        || pendingData.fontSize
+        || pendingData.fontFamily;
+
     pendingFormatState = {
-        formats: pendingData.formats || [],
-        textColor: pendingData.textColor,
+        formats:         pendingData.formats || [],
+        textColor:       pendingData.textColor,
         backgroundColor: pendingData.backgroundColor,
-        fontSize: pendingData.fontSize,
-        fontFamily: pendingData.fontFamily,
-        isApplying: true
+        fontSize:        pendingData.fontSize,
+        fontFamily:      pendingData.fontFamily,
+        isApplying:      hasFormats   // ← only intercept keypresses when there is work to do
     };
 }
 

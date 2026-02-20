@@ -45,6 +45,7 @@ public partial class RichTextEditor
             if (formatName != null)
             {
                 TogglePendingFormat(formatName);
+                await SyncPendingFormatsToJs(); // ← pre-set JS state so keypress handler fires
                 await UpdateToolbarForPendingFormats();
             }
         }
@@ -54,6 +55,24 @@ public partial class RichTextEditor
         {
             await _jsModule.InvokeVoidAsync("focusElementById", _toolbarButtonIds[_toolbarFocusIndex]);
         }
+    }
+
+    /// <summary>
+    /// Pushes current C# pending state to the JS module so the keypress
+    /// handler can wrap typed characters without a JS→C# round-trip.
+    /// </summary>
+    private async Task SyncPendingFormatsToJs()
+    {
+        if (_jsModule == null) return;
+
+        await _jsModule.InvokeVoidAsync("applyPendingFormats", new PendingFormatData
+        {
+            Formats            = [.. _pendingFormats],
+            TextColor          = _pendingTextColor,
+            BackgroundColor    = _pendingBackgroundColor,
+            FontSize           = _pendingFontSize,
+            FontFamily         = _pendingFontFamily
+        });
     }
 
     /// <summary>
