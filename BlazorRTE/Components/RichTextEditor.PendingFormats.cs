@@ -13,14 +13,24 @@ public partial class RichTextEditor
 {
     // ===== PENDING FORMAT STATE =====
     private HashSet<string> _pendingFormats = [];
+
+    /// <summary>
+    /// Formats the user has explicitly turned OFF while the cursor sits inside a
+    /// matching element. Prevents _activeFormats (DOM query) from overriding the
+    /// user's intent after UpdateToolbarState() fires (e.g. after color is applied).
+    /// Cleared automatically when the cursor leaves the formatted region.
+    /// </summary>
+    private HashSet<string> _suppressedFormats = [];
+
     private string? _pendingTextColor;
     private string? _pendingBackgroundColor;
     private string? _pendingFontSize;
     private string? _pendingFontFamily;
-    private bool _hasPendingFormats => _pendingFormats.Count > 0 
-        || _pendingTextColor != null 
-        || _pendingBackgroundColor != null 
-        || _pendingFontSize != null 
+    private bool _hasPendingFormats => _pendingFormats.Count > 0
+        || _suppressedFormats.Count > 0
+        || _pendingTextColor != null
+        || _pendingBackgroundColor != null
+        || _pendingFontSize != null
         || _pendingFontFamily != null;
 
     /// <summary>
@@ -40,12 +50,27 @@ public partial class RichTextEditor
         }
         else
         {
-            // Scenario 2: No text selected → toggle pending format
+            // Scenario 2: No text selected → toggle pending format.
+            // Use IsFormatActiveOrPending (not just _pendingFormats) to determine
+            // direction, so clicking bold OFF while cursor is inside a bold element
+            // correctly suppresses it instead of re-adding it to pending.
             var formatName = GetFormatName(command);
             if (formatName != null)
             {
-                TogglePendingFormat(formatName);
-                await SyncPendingFormatsToJs(); // ← pre-set JS state so keypress handler fires
+                if (IsFormatActiveOrPending(formatName))
+                {
+                    // Currently appears ON → user intends to turn it OFF
+                    _pendingFormats.Remove(formatName);
+                    _suppressedFormats.Add(formatName);
+                }
+                else
+                {
+                    // Currently appears OFF → user intends to turn it ON
+                    _pendingFormats.Add(formatName);
+                    _suppressedFormats.Remove(formatName);
+                }
+
+                await SyncPendingFormatsToJs();
                 await UpdateToolbarForPendingFormats();
             }
         }
@@ -67,11 +92,12 @@ public partial class RichTextEditor
 
         await _jsModule.InvokeVoidAsync("applyPendingFormats", new PendingFormatData
         {
-            Formats            = [.. _pendingFormats],
-            TextColor          = _pendingTextColor,
-            BackgroundColor    = _pendingBackgroundColor,
-            FontSize           = _pendingFontSize,
-            FontFamily         = _pendingFontFamily
+            Formats           = [.. _pendingFormats],
+            SuppressedFormats = [.. _suppressedFormats],
+            TextColor         = _pendingTextColor,
+            BackgroundColor   = _pendingBackgroundColor,
+            FontSize          = _pendingFontSize,
+            FontFamily        = _pendingFontFamily
         });
     }
 
@@ -139,7 +165,7 @@ public partial class RichTextEditor
             _currentFontSize = size;
             StateHasChanged();
         }
-        
+
         _showFontSizePicker = false;
     }
 
@@ -162,7 +188,7 @@ public partial class RichTextEditor
             _pendingFontFamily = _pendingFontFamily == fontFamily ? null : fontFamily;
             StateHasChanged();
         }
-        
+
         _showFontFamilyPicker = false;
     }
 
@@ -209,11 +235,12 @@ public partial class RichTextEditor
         {
             var pendingData = new PendingFormatData
             {
-                Formats = [.. _pendingFormats],
-                TextColor = _pendingTextColor,
-                BackgroundColor = _pendingBackgroundColor,
-                FontSize = _pendingFontSize,
-                FontFamily = _pendingFontFamily
+                Formats           = [.. _pendingFormats],
+                SuppressedFormats = [.. _suppressedFormats],
+                TextColor         = _pendingTextColor,
+                BackgroundColor   = _pendingBackgroundColor,
+                FontSize          = _pendingFontSize,
+                FontFamily        = _pendingFontFamily
             };
 
             await _jsModule.InvokeVoidAsync("applyPendingFormats", pendingData);
@@ -244,6 +271,7 @@ public partial class RichTextEditor
     private void ClearPendingFormats()
     {
         _pendingFormats.Clear();
+        _suppressedFormats.Clear();
         _pendingTextColor = null;
         _pendingBackgroundColor = null;
         _pendingFontSize = null;
@@ -258,9 +286,13 @@ public partial class RichTextEditor
 
     /// <summary>
     /// Gets combined active/pending state for toolbar visual.
+    /// A format that is in _activeFormats but also in _suppressedFormats is treated
+    /// as OFF — the user explicitly clicked it off and we must honor that intent even
+    /// when the cursor is still physically inside the formatted element.
     /// </summary>
     protected bool IsFormatActiveOrPending(string formatName) =>
-        _activeFormats.Contains(formatName) || _pendingFormats.Contains(formatName);
+        (_activeFormats.Contains(formatName) && !_suppressedFormats.Contains(formatName))
+        || _pendingFormats.Contains(formatName);
 }
 
 /// <summary>
@@ -269,6 +301,14 @@ public partial class RichTextEditor
 public class PendingFormatData
 {
     public string[] Formats { get; set; } = [];
+
+    /// <summary>
+    /// Formats the user explicitly turned off while the cursor is inside a matching
+    /// element. Passed to JS so Chrome/Edge's caret-inheritance can be reset via
+    /// execCommand before the next typed character.
+    /// </summary>
+    public string[] SuppressedFormats { get; set; } = [];
+
     public string? TextColor { get; set; }
     public string? BackgroundColor { get; set; }
     public string? FontSize { get; set; }

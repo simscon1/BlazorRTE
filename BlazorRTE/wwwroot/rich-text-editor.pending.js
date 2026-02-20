@@ -3,6 +3,7 @@
 
 let pendingFormatState = {
     formats: [],
+    suppressedFormats: [],
     textColor: null,
     backgroundColor: null,
     fontSize: null,
@@ -59,13 +60,26 @@ export function applyPendingFormats(pendingData) {
         }
     }
 
+    // Reset Chrome/Edge caret inheritance for formats the user explicitly suppressed
+    // (clicked OFF while cursor is still inside a matching element, e.g. inside <strong>).
+    // Without this, Chrome continues to produce bold/italic/etc. text because the caret
+    // inherits formatting from the surrounding element.
+    for (const fmt of (pendingData.suppressedFormats || [])) {
+        try {
+            if (document.queryCommandState(fmt)) {
+                document.execCommand(fmt, false, null);
+            }
+        } catch (e) { /* execCommand deprecated - ignore */ }
+    }
+
     pendingFormatState = {
-        formats:         pendingData.formats || [],
-        textColor:       pendingData.textColor,
-        backgroundColor: pendingData.backgroundColor,
-        fontSize:        pendingData.fontSize,
-        fontFamily:      pendingData.fontFamily,
-        isApplying:      hasFormats
+        formats:          pendingData.formats || [],
+        suppressedFormats: pendingData.suppressedFormats || [],
+        textColor:        pendingData.textColor,
+        backgroundColor:  pendingData.backgroundColor,
+        fontSize:         pendingData.fontSize,
+        fontFamily:       pendingData.fontFamily,
+        isApplying:       hasFormats
     };
 }
 
@@ -143,6 +157,7 @@ export function handleKeyPressWithPendingFormats(element, event, dotNetRef) {
 export function clearPendingFormats() {
     pendingFormatState = {
         formats: [],
+        suppressedFormats: [],
         textColor: null,
         backgroundColor: null,
         fontSize: null,

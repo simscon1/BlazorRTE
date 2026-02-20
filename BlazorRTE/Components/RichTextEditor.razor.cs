@@ -522,6 +522,10 @@ namespace BlazorRTE.Components
                 var formats = await _jsModule.InvokeAsync<string[]>("getActiveFormats");
                 _activeFormats = new HashSet<string>(formats);
 
+                // When the cursor moves out of a previously-suppressed element, lift the
+                // suppression so the button accurately reflects the new cursor position.
+                _suppressedFormats.RemoveWhere(f => !_activeFormats.Contains(f));
+
                 if (_activeFormats.Contains("justifyCenter"))
                     alignment = "center";
                 else if (_activeFormats.Contains("justifyRight"))
