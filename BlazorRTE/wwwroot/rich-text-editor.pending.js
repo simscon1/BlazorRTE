@@ -60,10 +60,17 @@ export function applyPendingFormats(pendingData) {
         }
     }
 
-    // Reset Chrome/Edge caret inheritance for formats the user explicitly suppressed
-    // (clicked OFF while cursor is still inside a matching element, e.g. inside <strong>).
-    // Without this, Chrome continues to produce bold/italic/etc. text because the caret
-    // inherits formatting from the surrounding element.
+    // For explicitly suppressed formats, first physically move the cursor OUTSIDE
+    // the matching element (if the cursor is at its trailing edge). This is the key
+    // fix: executeForeColor / executeFontSize etc. call restoreSelection() before
+    // applying their command, so the saved selection must reflect the escaped position.
+    // Without the DOM escape, Chrome inherits bold/italic/etc. as an inline style
+    // on the newly created <font> element even when the cursor is nominally "after"
+    // the formatted run (e.g. <font color="..." style="font-weight: bold;">).
+    escapeCursorFromSuppressedElements(pendingData.suppressedFormats);
+
+    // Belt-and-suspenders: also call execCommand for each suppressed format so
+    // Chrome's internal caret state is reset in case the DOM escape wasn't needed.
     for (const fmt of (pendingData.suppressedFormats || [])) {
         try {
             if (document.queryCommandState(fmt)) {
@@ -73,13 +80,13 @@ export function applyPendingFormats(pendingData) {
     }
 
     pendingFormatState = {
-        formats:          pendingData.formats || [],
+        formats:           pendingData.formats || [],
         suppressedFormats: pendingData.suppressedFormats || [],
-        textColor:        pendingData.textColor,
-        backgroundColor:  pendingData.backgroundColor,
-        fontSize:         pendingData.fontSize,
-        fontFamily:       pendingData.fontFamily,
-        isApplying:       hasFormats
+        textColor:         pendingData.textColor,
+        backgroundColor:   pendingData.backgroundColor,
+        fontSize:          pendingData.fontSize,
+        fontFamily:        pendingData.fontFamily,
+        isApplying:        hasFormats
     };
 }
 
@@ -176,6 +183,87 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+/**
+ * Maps each pending-format name to the HTML tags that represent it.
+ */
+const FORMAT_TAGS = {
+    bold:          ['b', 'strong'],
+    italic:        ['i', 'em'],
+    underline:     ['u'],
+    strikeThrough: ['del', 's'],
+    subscript:     ['sub'],
+    superscript:   ['sup']
+};
+
+/**
+ * Physically moves the cursor to just AFTER the outermost element that matches
+ * a suppressed format, but only when the cursor is already at the trailing edge
+ * of that element's content.
+ *
+ * Why: toolbar commands like executeForeColor call restoreSelection() before
+ * applying document.execCommand(). The "saved selection" is refreshed on the
+ * toolbar button's @onmousedown, which fires AFTER this escape has run.
+ * So the save captures the escaped position, and foreColor is applied without
+ * inheriting bold/italic/etc. from the surrounding element.
+ *
+ * Mid-element cursors are intentionally left in place so users can split an
+ * existing formatted run without having their cursor position hijacked.
+ */
+function escapeCursorFromSuppressedElements(suppressedFormats) {
+    if (!suppressedFormats?.length) return;
+
+    const selection = window.getSelection();
+    if (!selection.rangeCount || !selection.isCollapsed) return;
+
+    const range        = selection.getRangeAt(0);
+    const startNode    = range.startContainer;
+    const startOffset  = range.startOffset;
+
+    // Only escape when cursor is at the END of its text node.
+    // If it's mid-text the user deliberately placed it there — don't move it.
+    if (startNode.nodeType === Node.TEXT_NODE &&
+        startOffset < startNode.textContent.length) {
+        return;
+    }
+
+    const cursorElement = startNode.nodeType === Node.TEXT_NODE
+        ? startNode.parentElement
+        : startNode;
+
+    // Walk up the tree to find the OUTERMOST ancestor matching a suppressed format.
+    let outermost = null;
+    let current   = cursorElement;
+    while (current && current !== document.body) {
+        const tag = current.tagName?.toLowerCase();
+        for (const fmt of suppressedFormats) {
+            if (FORMAT_TAGS[fmt]?.includes(tag)) {
+                outermost = current;
+                break;
+            }
+        }
+        current = current.parentElement;
+    }
+
+    if (!outermost) return;
+
+    // Guard: only escape if the cursor is truly at the deepest trailing text node.
+    // This prevents jumping when the cursor is e.g. between two child elements.
+    const deepestLast = getDeepestLastTextNode(outermost);
+    if (deepestLast) {
+        if (startNode !== deepestLast ||
+            startOffset < deepestLast.textContent.length) {
+            return;
+        }
+    }
+
+    // Move cursor to just after the outermost suppressed element.
+    const newRange = document.createRange();
+    newRange.setStartAfter(outermost);
+    newRange.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
 }
 
 /**
