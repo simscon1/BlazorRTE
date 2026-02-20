@@ -97,17 +97,16 @@ export function handleKeyPressWithPendingFormats(element, event, dotNetRef) {
         return false;
     }
 
-    // ── Extend existing run ───────────────────────────────────────────────────
-    // If the cursor is already inside elements that cover all pending formats,
-    // let the browser insert natively so the character is appended to the SAME
-    // element rather than each character getting its own wrapper tag.
-    //
-    //   Old output: <strong>B</strong><strong>r</strong><strong>o</strong>…
-    //   New output: <strong>Bro…</strong>
-    //
-    // Space is still intercepted even in this case because a trailing regular
-    // space inside an inline element collapses in Chrome/Edge; &nbsp; prevents it.
+    // ── Escape from suppressed format elements first ──────────────────────────
+    // Before checking if we can extend an existing run, escape the cursor from
+    // any suppressed format elements. This ensures new characters are typed
+    // OUTSIDE the suppressed formatting.
+    if (pendingFormatState.suppressedFormats?.length > 0) {
+        escapeCursorFromSuppressedElements(pendingFormatState.suppressedFormats);
+    }
     // ─────────────────────────────────────────────────────────────────────────
+
+    // ── Extend existing run ───────────────────────────────────────────────────
     if (cursorIsInsideMatchingFormats()) {
         if (event.key === ' ') {
             event.preventDefault();
@@ -197,6 +196,19 @@ const FORMAT_TAGS = {
     superscript:   ['sup']
 };
 
+// Add this helper function near the other helpers
+function normalizeColor(color) {
+    if (!color) return null;
+
+    // Create a temporary element to normalize the color
+    const temp = document.createElement('div');
+    temp.style.color = color;
+    document.body.appendChild(temp);
+    const computed = getComputedStyle(temp).color;
+    document.body.removeChild(temp);
+    return computed;
+}
+
 /**
  * Physically moves the cursor to just AFTER the outermost element that matches
  * a suppressed format, but only when the cursor is already at the trailing edge
@@ -268,13 +280,31 @@ function escapeCursorFromSuppressedElements(suppressedFormats) {
 
 /**
  * Returns true when the cursor sits inside ancestor elements that collectively
- * satisfy every pending format requirement (bold, italic, color, etc.).
- * When true, the next keypress can be handled natively by the browser — the
- * character will be appended inside the existing element automatically.
+ * satisfy every pending format requirement (bold, italic, color, etc.)
+ * AND none of those formats are suppressed.
  */
 function cursorIsInsideMatchingFormats() {
     const selection = window.getSelection();
     if (!selection.rangeCount || !selection.isCollapsed) return false;
+
+    // If there are suppressed formats and we're inside their elements,
+    // we must NOT let the browser handle natively — we need to escape.
+    if (pendingFormatState.suppressedFormats?.length > 0) {
+        const range = selection.getRangeAt(0);
+        let node = range.startContainer;
+        if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+
+        let current = node;
+        while (current && current !== document.body) {
+            const tag = current.tagName?.toLowerCase();
+            for (const fmt of pendingFormatState.suppressedFormats) {
+                if (FORMAT_TAGS[fmt]?.includes(tag)) {
+                    return false;
+                }
+            }
+            current = current.parentElement;
+        }
+    }
 
     const range = selection.getRangeAt(0);
     let node = range.startContainer;
@@ -286,6 +316,11 @@ function cursorIsInsideMatchingFormats() {
     let needsSize   = !!pendingFormatState.fontSize;
     let needsFamily = !!pendingFormatState.fontFamily;
 
+    // Normalize the pending color once for comparison
+    const pendingColorNorm = pendingFormatState.textColor 
+        ? normalizeColor(pendingFormatState.textColor) 
+        : null;
+
     let current = node;
     while (current && current !== document.body) {
         const tag = current.tagName?.toLowerCase();
@@ -295,12 +330,35 @@ function cursorIsInsideMatchingFormats() {
         if (tag === 'del'    || tag === 's')  remaining.delete('strikeThrough');
         if (tag === 'sub')                    remaining.delete('subscript');
         if (tag === 'sup')                    remaining.delete('superscript');
+        
         if (tag === 'font') {
-            if (current.color) needsColor  = false;
-            if (current.size)  needsSize   = false;
-            if (current.face)  needsFamily = false;
+            // Only satisfy color requirement if colors MATCH
+            if (current.color && needsColor) {
+                const elementColorNorm = normalizeColor(current.color);
+                if (elementColorNorm === pendingColorNorm) {
+                    needsColor = false;
+                }
+            }
+            if (current.size && pendingFormatState.fontSize) {
+                if (current.size === pendingFormatState.fontSize) {
+                    needsSize = false;
+                }
+            }
+            if (current.face && pendingFormatState.fontFamily) {
+                if (current.face.toLowerCase() === pendingFormatState.fontFamily.toLowerCase()) {
+                    needsFamily = false;
+                }
+            }
         }
-        if (current.style?.backgroundColor)  needsBg = false;
+        
+        if (current.style?.backgroundColor && needsBg) {
+            const elementBgNorm = normalizeColor(current.style.backgroundColor);
+            const pendingBgNorm = normalizeColor(pendingFormatState.backgroundColor);
+            if (elementBgNorm === pendingBgNorm) {
+                needsBg = false;
+            }
+        }
+        
         current = current.parentElement;
     }
 

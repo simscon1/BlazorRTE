@@ -346,7 +346,7 @@
                                             aria-selected="@(_currentTextColor.Equals(color.Key, StringComparison.OrdinalIgnoreCase))"
                                             aria-label="@color.Value"
                                             style="background-color: @color.Key;"
-                                            @onclick="@(() => SelectTextColor(color.Key))"
+                                            @onclick="@(() => SelectTextColorWithPending(color.Key))"
                                             title="@color.Value">
                                         <span class="visually-hidden">@color.Value</span>
                                     </button>
@@ -358,7 +358,7 @@
                                        id="custom-text-color"
                                        class="rte-color-input"
                                        value="@_currentTextColor"
-                                       @onchange="@(e => SelectTextColor(e.Value?.ToString() ?? "#000000"))"
+                                       @onchange="@(e => SelectTextColorWithPending(e.Value?.ToString() ?? "#000000"))"
                                        aria-label="Choose custom text color" />
                             </div>
                         </div>
@@ -405,7 +405,7 @@
                                                 role="option"
                                                 aria-selected="@(_currentHighlightColor == "transparent")"
                                                 aria-label="@color.Value"
-                                                @onclick="@(() => SelectBackgroundColor(color.Key))"
+                                                @onclick="@(() => SelectBackgroundColorWithPending(color.Key))"
                                                 title="@color.Value">
                                             <span class="visually-hidden">@color.Value</span>
                                         </button>
@@ -418,7 +418,7 @@
                                                 aria-selected="@(_currentHighlightColor.Equals(color.Key, StringComparison.OrdinalIgnoreCase))"
                                                 aria-label="@color.Value"
                                                 style="background-color: @color.Key;"
-                                                @onclick="@(() => SelectBackgroundColor(color.Key))"
+                                                @onclick="@(() => SelectBackgroundColorWithPending(color.Key))"
                                                 title="@color.Value">
                                             <span class="visually-hidden">@color.Value</span>
                                         </button>

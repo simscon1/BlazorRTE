@@ -100,7 +100,7 @@ public partial class RichTextEditor
             FontFamily        = _pendingFontFamily
         });
     }
-
+     
     /// <summary>
     /// Handles color selection with pending format logic.
     /// </summary>
@@ -119,8 +119,13 @@ public partial class RichTextEditor
         {
             _pendingTextColor = _pendingTextColor == color ? null : color;
             _currentTextColor = color;
+            await SyncPendingFormatsToJs();
+            _showTextColorPicker = false;  // ← ADD: Close the picker
             StateHasChanged();
         }
+
+        // Refocus toolbar button after selection
+        await FocusToolbarButton(_toolbarFocusIndex);
     }
 
     /// <summary>
@@ -141,8 +146,13 @@ public partial class RichTextEditor
         {
             _pendingBackgroundColor = _pendingBackgroundColor == color ? null : color;
             _currentHighlightColor = color;
+            await SyncPendingFormatsToJs();
+            _showBackgroundColorPicker = false;  // ← ADD: Close the picker
             StateHasChanged();
         }
+
+        // Refocus toolbar button after selection
+        await FocusToolbarButton(_toolbarFocusIndex);
     }
 
     /// <summary>
