@@ -159,14 +159,12 @@ public partial class RichTextEditor
         }
     }
 
-    private async Task UpdateToolbarForPendingFormats()
+    private Task UpdateToolbarForPendingFormats()
     {
-        // Merge pending formats with active formats for visual feedback
-        foreach (var format in _pendingFormats)
-        {
-            _activeFormats.Add(format);
-        }
+        // Do NOT merge into _activeFormats - IsFormatActiveOrPending() checks _pendingFormats
+        // directly, so adding them here only causes stale state after ClearPendingFormats().
         StateHasChanged();
+        return Task.CompletedTask;
     }
 
     private static string? GetFormatName(FormatCommand command) => command switch
@@ -190,7 +188,6 @@ public partial class RichTextEditor
 
         try
         {
-            // Build pending format data for JS
             var pendingData = new PendingFormatData
             {
                 Formats = [.. _pendingFormats],
@@ -202,6 +199,7 @@ public partial class RichTextEditor
 
             await _jsModule.InvokeVoidAsync("applyPendingFormats", pendingData);
             ClearPendingFormats();
+            await InvokeAsync(UpdateToolbarState); // ← re-sync toolbar with actual DOM state
         }
         catch (Exception ex)
         {
