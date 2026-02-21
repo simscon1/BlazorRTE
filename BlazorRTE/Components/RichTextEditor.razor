@@ -429,8 +429,10 @@
                                 <label for="custom-highlight-color">Custom:</label>
                                 <input type="color"
                                        id="custom-highlight-color"
+                                       class="rte-color-input"
                                        value="@(_currentHighlightColor == "transparent" ? "#FFFFFF" : _currentHighlightColor)"
-                                       @onchange="@(e => SelectBackgroundColor(e.Value?.ToString() ?? "#FFFFFF"))" />
+                                       @onchange="@(e => SelectBackgroundColor(e.Value?.ToString() ?? "#FFFFFF"))"
+                                       aria-label="Choose custom highlight color" />
                             </div>
                         </div>
                     }

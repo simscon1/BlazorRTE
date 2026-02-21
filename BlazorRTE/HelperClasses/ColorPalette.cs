@@ -47,6 +47,7 @@ public static class ColorPalette
     public static readonly Dictionary<string, string> BackgroundColors = new()
     {
         // Row 1 - Bright + None
+        { "transparent", "None" },
         { "#FFFF00", "Yellow" },
         { "#00FF00", "Lime" },
         { "#00FFFF", "Cyan" },
@@ -54,7 +55,6 @@ public static class ColorPalette
         { "#FF0000", "Red" },
         { "#FF9900", "Orange" },
         { "#FFFFFF", "White" },
-        { "transparent", "None" },
         
         // Row 2 - Warm pastels
         { "#FCE5CD", "Peach" },
