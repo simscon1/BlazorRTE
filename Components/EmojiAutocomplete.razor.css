@@ -1,0 +1,176 @@
+.emoji-autocomplete {
+    position: absolute;
+    z-index: 10000;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 320px;
+    max-height: 380px;
+    overflow-y: auto;
+    display: none;
+    pointer-events: auto;
+}
+
+.emoji-autocomplete-list {
+    padding: 4px 0;
+}
+
+.emoji-autocomplete-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    gap: 12px;
+    transition: background-color 0.15s;
+    outline: none;
+    border: 1px solid transparent;  /* ADD: for selected border */
+    border-radius: 4px;              /* ADD: match heading options */
+    margin: 0 4px;                   /* ADD: spacing for border */
+}
+
+.emoji-autocomplete-item:hover {
+    background-color: #f3f4f6;       /* CHANGE: match heading hover */
+    border-color: #d1d5db;
+}
+
+.emoji-autocomplete-item.selected {
+    background-color: #dbeafe;       /* CHANGE: match heading selected */
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.emoji-autocomplete-item:active {
+    background-color: #bfdbfe;       /* CHANGE: lighter blue on click */
+}
+
+.emoji-char {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.emoji-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+
+.emoji-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.emoji-code {
+    font-size: 12px;
+    color: #666;
+    font-family: 'Courier New', monospace;
+}
+
+/* Scrollbar styling */
+.emoji-autocomplete::-webkit-scrollbar {
+    width: 8px;
+}
+
+.emoji-autocomplete::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 0 8px 8px 0;
+}
+
+.emoji-autocomplete::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.emoji-autocomplete::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Dark mode support - explicit class */
+.emoji-autocomplete.dark-mode {
+    background: #1f2937;
+    border-color: #4b5563;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.emoji-autocomplete.dark-mode .emoji-autocomplete-item:hover {
+    background-color: #374151;       /* CHANGE: match heading hover */
+    border-color: #4b5563;
+}
+
+.emoji-autocomplete.dark-mode .emoji-autocomplete-item.selected {
+    background-color: #1e3a8a;       /* CHANGE: match heading selected */
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.emoji-autocomplete.dark-mode .emoji-autocomplete-item:active {
+    background-color: #1e40af;
+}
+
+.emoji-autocomplete.dark-mode .emoji-name {
+    color: #f9fafb;
+}
+
+.emoji-autocomplete.dark-mode .emoji-code {
+    color: #9ca3af;
+}
+
+.emoji-autocomplete.dark-mode::-webkit-scrollbar-track {
+    background: #111827;
+}
+
+.emoji-autocomplete.dark-mode::-webkit-scrollbar-thumb {
+    background: #4b5563;
+}
+
+.emoji-autocomplete.dark-mode::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+
+/* System preference fallback */
+@media (prefers-color-scheme: dark) {
+    .emoji-autocomplete:not(.light-mode) {
+        background: #1f2937;
+        border-color: #4b5563;
+    }
+
+    .emoji-autocomplete:not(.light-mode) .emoji-autocomplete-item:hover {
+        background-color: #374151;
+        border-color: #4b5563;
+    }
+
+    .emoji-autocomplete:not(.light-mode) .emoji-autocomplete-item.selected {
+        background-color: #1e3a8a;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    }
+
+    .emoji-autocomplete:not(.light-mode) .emoji-autocomplete-item:active {
+        background-color: #1e40af;
+    }
+
+    .emoji-autocomplete:not(.light-mode) .emoji-name {
+        color: #f9fafb;
+    }
+
+    .emoji-autocomplete:not(.light-mode) .emoji-code {
+        color: #9ca3af;
+    }
+
+    .emoji-autocomplete:not(.light-mode)::-webkit-scrollbar-track {
+        background: #111827;
+    }
+
+    .emoji-autocomplete:not(.light-mode)::-webkit-scrollbar-thumb {
+        background: #4b5563;
+    }
+
+    .emoji-autocomplete:not(.light-mode)::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+    }
+}

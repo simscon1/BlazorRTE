@@ -1,0 +1,77 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<!-- NuGet Package Metadata -->
+		<PackageId>BlazorRTE</PackageId>
+		<Version>1.2.0</Version>
+		<Authors>simscon1</Authors>
+		<Company>LoneWorx LLC</Company>
+		<Product>BlazorRTE</Product>
+		<Description>Rich text editor for Blazor (.NET 10) with keyboard accessibility, ARIA support, emoji picker (1800+ emojis via BlazorEmo), emoji autocomplete, XSS protection. Tested on Chrome, Edge, Firefox. Native Blazor component. GPL-3.0 for open-source projects.</Description>
+		<PackageTags>blazor;rich-text-editor;wysiwyg;rte;editor;text-editor;emoji;emoji-picker;emoji-autocomplete;formatting;blazor-component;razor;contenteditable;gpl;accessibility;wcag;keyboard-shortcuts;testing;bunit;aria</PackageTags>
+		<PackageProjectUrl>https://github.com/simscon1/BlazorRTE</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/simscon1/BlazorRTE</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+		<Copyright>Copyright (c) 2024-2026 LoneWorx LLC</Copyright>
+		<PackageReleaseNotes><![CDATA[v1.2.0 Keyboard Accessibility (2026-02-20)
+
+Added:
+- Toolbar keyboard navigation (Arrow keys, Home, End)
+- Dropdown keyboard support (ArrowDown opens, Escape closes)
+- Pending format support (Bold/Italic/Underline with no selection)
+- Firefox Ctrl+B/I/U keyboard shortcut support
+- Source Link for debugging
+- GPL-3.0 license headers in source files
+
+Fixed:
+- Firefox browser shortcuts conflicting with editor formatting
+- Toolbar button focus management
+
+Tested on: Chrome, Edge, Firefox
+Not tested: Safari
+
+See: https://github.com/simscon1/BlazorRTE/blob/master/Docs/CHANGELOG.md]]></PackageReleaseNotes>
+		
+		<PackageIcon>icon.png</PackageIcon>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources> 
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Content Include="icon.png">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BlazorEmo" Version="1.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.2" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+	</ItemGroup>
+
+	<!-- Include README and LICENSE in NuGet package -->
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\" />
+		<None Include="LICENSE.txt" Pack="true" PackagePath="\" />
+		<None Include="icon.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Docs\" />
+	</ItemGroup>
+</Project>

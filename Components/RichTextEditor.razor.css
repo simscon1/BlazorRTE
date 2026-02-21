@@ -1,0 +1,1160 @@
+/*
+ * ============================================================================
+ * BlazorRTE - Rich Text Editor for Blazor
+ * Copyright (C) 2024-2026 LoneWorx LLC
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ * ============================================================================
+ */
+
+/* Rich Text Editor Styles */
+
+.rich-text-editor {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: white;
+    position: relative; /* ← ADD: Position relative to contain absolutely positioned children */
+    overflow: visible; /* ← CHANGE: Allow overflow for autocomplete */
+    transition: border-color 0.2s ease;
+    min-height: var(--rte-min-height, 200px); /* ✅ Industry standard min */
+    max-height: var(--rte-max-height, 600px); /* ✅ Industry standard max, user customizable */
+}
+
+    .rich-text-editor.focused {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+/* Toolbar */
+.rte-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 8px;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    border-top-left-radius: 8px; /* ← ADD: Fix top-left corner */
+    border-top-right-radius: 8px; /* ← ADD: Fix top-right corner */
+}
+
+    /* Button groups - display inline */
+    .rte-toolbar [role="group"] {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+    }
+
+/* Heading Dropdown */
+.rte-dropdown {
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: white;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    outline: none;
+}
+
+/* ADD THIS - Wider dropdown for font family */
+.rte-dropdown-wide {
+    min-width: 140px;
+}
+
+.rte-dropdown:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.rte-dropdown:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.rte-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+    .rte-btn:hover {
+        background: #e5e7eb;
+        border-color: #d1d5db;
+    }
+
+    .rte-btn:active {
+        background: #d1d5db;
+    }
+
+    .rte-btn.active {
+        background: #dbeafe;
+        border-color: #3b82f6;
+        color: #1e40af;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
+
+/* ADD THIS - Wider buttons for typography options */
+.rte-btn-wide {
+    min-width: 48px;
+}
+
+/* ========================================
+   ACCESSIBLE FOCUS STYLES (WAI-ARIA)
+   ======================================== */
+
+/*
+  This rule provides a high-contrast outline that is drawn OUTSIDE the button,
+  so it is always visible, even when a button is in its 'active' state.
+  The outline-offset creates a small gap between the button and the focus ring.
+*/
+.rte-btn:focus-visible {
+    /* High-contrast outline that is always visible */
+    outline: 2px solid #005a9e;
+    outline-offset: 2px;
+    /* Original background/shadow for an extra visual cue */
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Dark mode focus style */
+.rich-text-editor.dark-mode .rte-btn:focus-visible {
+    /* High-contrast outline for dark mode */
+    outline-color: #00b2ff;
+    /* Original dark mode background/shadow */
+    border-color: #60a5fa;
+    background-color: #1e3a8a;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+}
+
+
+.rte-separator {
+    width: 1px;
+    height: 24px;
+    background: #d1d5db;
+    margin: 0 4px;
+}
+
+/* Color Picker */
+.rte-color-picker {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+}
+
+.rte-color-btn {
+    width: 20px;
+    height: 20px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.15s ease;
+}
+
+    .rte-color-btn:hover {
+        transform: scale(1.15);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .rte-color-btn:active {
+        transform: scale(1.0);
+    }
+
+/* ========================================
+   COLOR PALETTE STYLES (shared)
+   ======================================== */
+
+.rte-color-palette {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 4px;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    z-index: 9999;
+    min-width: 220px;
+}
+
+    .rte-color-palette.align-right {
+        left: auto;
+        right: 0;
+        transform: none;
+    }
+
+    .rte-color-palette.align-left {
+        left: 0;
+        right: auto;
+        transform: none;
+    }
+
+.rte-color-palette-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    padding: 0 2px;
+}
+
+/* 8-column color grid */
+.rte-color-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+}
+
+/* Individual color swatch - SQUARE */
+.rte-color-swatch {
+    width: 24px;
+    height: 24px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.1s ease;
+    position: relative;
+    /* Ensure square aspect ratio */
+    aspect-ratio: 1 / 1;
+    min-width: 24px;
+    min-height: 24px;
+}
+
+    .rte-color-swatch:hover {
+        transform: scale(1.15);
+        border-color: #000;
+        z-index: 1;
+    }
+
+    .rte-color-swatch:focus {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+    }
+
+    .rte-color-swatch.selected {
+        outline: 3px solid #3b82f6;
+        outline-offset: 1px;
+    }
+
+/* White swatch needs visible border */
+.rte-color-swatch-white {
+    border: 1px solid #999;
+}
+
+/* "No color" swatch with diagonal slash */
+.rte-color-swatch-none {
+    background: linear-gradient(135deg, #fff 45%, #ff0000 45%, #ff0000 55%, #fff 55%);
+    border: 1px solid #ccc;
+}
+
+/* Custom color picker section */
+.rte-color-custom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e5e7eb;
+}
+
+    .rte-color-custom label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #6b7280;
+        white-space: nowrap;
+    }
+
+.rte-color-input {
+    flex: 1;
+    height: 28px;
+    padding: 0;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    cursor: pointer;
+    background: transparent;
+}
+
+    .rte-color-input:hover {
+        border-color: #3b82f6;
+    }
+
+    .rte-color-input::-webkit-color-swatch-wrapper {
+        padding: 2px;
+    }
+
+    .rte-color-input::-webkit-color-swatch {
+        border: none;
+        border-radius: 2px;
+    }
+
+/* Visually hidden for screen readers */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ===== REMOVE OLD CONFLICTING CLASSES ===== */
+/* DELETE these if they exist in your CSS:
+   - .rte-color-palette-wide
+   - .rte-color-palette-grid
+   - .rte-color-grid-6
+   - .rte-palette-color
+   - .rte-palette-color-none
+*/
+
+
+/* Dark mode focus style */
+.rich-text-editor.dark-mode .rte-btn:focus-visible {
+    /* High-contrast outline for dark mode */
+    outline-color: #00b2ff;
+    /* Original dark mode background/shadow */
+    border-color: #60a5fa;
+    background-color: #1e3a8a;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+}
+
+
+.rte-separator {
+    width: 1px;
+    height: 24px;
+    background: #d1d5db;
+    margin: 0 4px;
+}
+
+/* Color Picker */
+.rte-color-picker {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+}
+
+.rte-color-btn {
+    width: 20px;
+    height: 20px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.15s ease;
+}
+
+    .rte-color-btn:hover {
+        transform: scale(1.15);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .rte-color-btn:active {
+        transform: scale(1.0);
+    }
+
+/* Color Dropdown Container */
+.rte-color-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dark mode support for custom color picker */
+.rich-text-editor.dark-mode .rte-color-custom {
+    border-top-color: #4b5563;
+}
+
+    .rich-text-editor.dark-mode .rte-color-custom label {
+        color: #9ca3af;
+    }
+
+    .rich-text-editor.dark-mode .rte-color-custom input[type="color"] {
+        border-color: #4b5563;
+    }
+
+        .rich-text-editor.dark-mode .rte-color-custom input[type="color"]:hover {
+            border-color: #60a5fa;
+        }
+
+/* When button is near RIGHT edge - align palette to right */
+.rte-color-palette.align-right {
+    left: auto;
+    right: 0;
+    transform: none;
+}
+
+/* When button is near LEFT edge - align palette to left */
+.rte-color-palette.align-left {
+    left: 0;
+    right: auto;
+    transform: none;
+}
+
+.rte-color-palette-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    padding: 0 4px;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .rich-text-editor {
+        background: #1f2937;
+        border-color: #374151;
+    }
+
+    .rte-toolbar {
+        background: #111827;
+        border-bottom-color: #374151;
+    }
+
+    .rte-dropdown {
+        background: #1f2937;
+        border-color: #374151;
+        color: #e5e7eb;
+    }
+
+        .rte-dropdown:hover {
+            background: #374151;
+            border-color: #4b5563;
+        }
+
+    .rte-btn {
+        color: #e7e9eb;
+    }
+
+        .rte-btn:hover {
+            background: #374151;
+            border-color: #4b5563;
+        }
+
+        .rte-btn.active {
+            background: #1e3a8a;
+            border-color: #3b82f6;
+            color: #93c5fd;
+        }
+
+    .rte-content {
+        color: #f9fafb;
+        font-family: Arial, sans-serif;
+    }
+
+        .rte-content:empty::before {
+            color: #6b7280;
+        }
+
+        .rte-content hr {
+            border-top-color: #4b5563;
+        }
+
+    .rte-footer {
+        background: #111827;
+        border-top-color: #374151;
+    }
+
+    .rte-char-count {
+        color: #9ca3af;
+    }
+
+    .rte-color-palette {
+        background: #1f2937;
+        border-color: #374151;
+    }
+
+    .rte-color-palette-title {
+        color: #9ca3af;
+    }
+
+    .rte-palette-color {
+        border-color: #4b5563;
+    }
+
+    .rte-btn .rte-icon {
+        stroke: #e5e7eb;
+        fill: transparent; /* ✅ Transparent for stroke icons */
+    }
+
+    .rte-btn.active .rte-icon {
+        stroke: #60a5fa;
+        fill: transparent;
+    }
+
+    /* ✅ Fill-based icons in prefers-dark-mode */
+    .rte-btn .rte-icon path[fill="currentColor"] {
+        fill: #e5e7eb !important;
+    }
+
+    .rte-btn.active .rte-icon path[fill="currentColor"] {
+        fill: #60a5fa !important;
+    }
+
+    .rte-font-option {
+        color: #d1d5db;
+    }
+
+        .rte-font-option:hover {
+            background: #374151;
+        }
+
+    /* ADD THESE - Scrollbar dark mode colors */
+    .rte-font-family-list::-webkit-scrollbar-track {
+        background: #1f2937;
+    }
+
+    .rte-font-family-list::-webkit-scrollbar-thumb {
+        background: #4b5563;
+    }
+
+        .rte-font-family-list::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+}
+
+/* Dark Mode Styles */
+.rich-text-editor.dark-mode {
+    background: #1f2937;
+    border-color: #4b5563;
+}
+
+    .rich-text-editor.dark-mode .rte-toolbar {
+        background: #374151;
+        border-color: #4b5563;
+    }
+
+    .rich-text-editor.dark-mode .rte-btn {
+        color: #f3f4f6;
+        background: transparent;
+    }
+
+        .rich-text-editor.dark-mode .rte-btn:hover {
+            background: #4b5563;
+        }
+
+        .rich-text-editor.dark-mode .rte-btn.active {
+            background: #6b21a8; /* ✅ Darker purple for better contrast */
+            border-color: #a78bfa;
+            color: white;
+        }
+
+    /* Dark Mode - Editor text color */
+    .rich-text-editor.dark-mode .rte-content {
+        background: #1f2937;
+        color: #f3f4f6; /* ✅ Light text for dark mode */
+        border-color: #4b5563;
+    }
+
+        /* Dark Mode - Placeholder text */
+        .rich-text-editor.dark-mode .rte-content:empty::before {
+            color: #6b7280; /* ✅ Dimmed placeholder in dark mode */
+        }
+
+/* SVG ICONS - CLEAN SOLUTION */
+
+/* Base icon sizing */
+.rte-icon {
+    width: 18px;
+    height: 18px;
+    display: block;
+    pointer-events: none;
+}
+
+/* Light Mode - Default icon colors */
+.rte-btn .rte-icon {
+    color: currentColor; /* Let SVG inherit from button */
+}
+
+.rte-btn:hover .rte-icon {
+    color: currentColor;
+}
+
+.rte-btn.active .rte-icon {
+    color: #3b82f6;
+}
+
+/* Dark Mode - Icon colors */
+.rich-text-editor.dark-mode .rte-btn .rte-icon {
+    color: #f3f4f6;
+}
+
+.rich-text-editor.dark-mode .rte-btn:hover .rte-icon {
+    color: #f3f4f6;
+}
+
+.rich-text-editor.dark-mode .rte-btn.active .rte-icon {
+    color: #a78bfa;
+}
+
+/* Media query dark mode */
+@media (prefers-color-scheme: dark) {
+    .rte-btn .rte-icon {
+        color: #e5e7eb;
+    }
+
+    .rte-btn.active .rte-icon {
+        color: #60a5fa;
+    }
+}
+
+.rte-content sub {
+    font-size: 0.75em;
+    vertical-align: sub;
+}
+
+.rte-content sup {
+    font-size: 0.75em;
+    vertical-align: super;
+}
+
+/* ========================================
+   CUSTOM TOOLTIPS
+   ======================================== */
+
+/* Tooltip container positioning */
+.rte-btn,
+.rte-dropdown {
+    position: relative;
+}
+
+    /* Tooltip text - positioned BELOW button */
+    .rte-btn[data-tooltip]:hover::after,
+    .rte-font-option[data-tooltip]:hover::after,
+    .rte-palette-color[data-tooltip]:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        top: calc(100% + 8px); /* BELOW the button */
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 6px 10px;
+        background: #1f2937;
+        color: white;
+        font-size: 12px;
+        font-weight: 500;
+        white-space: nowrap;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        z-index: 10001;
+        pointer-events: none;
+    }
+
+    /* Tooltip arrow - pointed UP (since tooltip is below) */
+    .rte-btn[data-tooltip]:hover::before,
+    .rte-font-option[data-tooltip]:hover::before,
+    .rte-palette-color[data-tooltip]:hover::before {
+        content: '';
+        position: absolute;
+        top: calc(100% + 2px); /* BELOW the button */
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid transparent;
+        border-bottom-color: #1f2937; /* Arrow points UP */
+        z-index: 10001;
+        pointer-events: none;
+    }
+
+/* Dark mode tooltip colors */
+@media (prefers-color-scheme: dark) {
+    .rte-btn[data-tooltip]:hover::after,
+    .rte-font-option[data-tooltip]:hover::after,
+    .rte-palette-color[data-tooltip]:hover::after {
+        background: #374151;
+        color: #f9fafb;
+    }
+
+    .rte-btn[data-tooltip]:hover::before,
+    .rte-font-option[data-tooltip]:hover::before,
+    .rte-palette-color[data-tooltip]:hover::before {
+        border-bottom-color: #374151;
+    }
+}
+
+/* Screen reader only text (visible to voice control) */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+.rte-editor-container {
+    position: relative; /* Important for absolute positioning of autocomplete */
+    width: 100%;
+}
+
+.emoji-picker-portal {
+    position: fixed;
+    z-index: 10000;
+    /* Position will be set by JavaScript */
+}
+
+/* Highlight color indicator */
+.rte-highlight-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    font-weight: bold;
+    color: #000; /* Black text */
+    border: 1px solid #374151;
+    border-radius: 4px;
+    font-size: 12px;
+    /* Outline effect ensures "A" is visible on any background */
+    text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 2px #fff;
+}
+
+/* Dark mode - lighter border, same text approach */
+.rich-text-editor.dark-mode .rte-highlight-indicator {
+    border-color: #9ca3af;
+    /* Keep text dark with white outline - works for most highlight colors */
+    color: #000;
+    text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 2px #fff;
+}
+
+/* ✅ DARK MODE ICON COLOR OVERRIDE - IF NEEDED */
+.rich-text-editor.dark-mode .rte-btn .rte-icon {
+    stroke: #f3f4f6 !important;
+    fill: transparent !important; /* ✅ Transparent for stroke icons */
+}
+
+.rich-text-editor.dark-mode .rte-btn:hover .rte-icon {
+    stroke: #f3f4f6 !important;
+    fill: transparent !important;
+}
+
+.rich-text-editor.dark-mode .rte-btn.active .rte-icon {
+    stroke: #a78bfa !important;
+    fill: transparent !important;
+}
+
+/* ✅ FILL-BASED ICONS (LINK) IN DARK MODE */
+.rich-text-editor.dark-mode .rte-btn .rte-icon path[fill="currentColor"] {
+    fill: #f3f4f6 !important;
+}
+
+.rich-text-editor.dark-mode .rte-btn:hover .rte-icon path[fill="currentColor"] {
+    fill: #f3f4f6 !important;
+}
+
+.rich-text-editor.dark-mode .rte-btn.active .rte-icon path[fill="currentColor"] {
+    fill: #a78bfa !important;
+}
+
+/* ========================================
+   CONTENT AREA STYLES
+   ======================================== */
+
+.rte-content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    overflow: auto;
+}
+
+.rte-content {
+    flex: 1;
+    padding: 12px;
+    outline: none;
+    font-family: Arial, sans-serif; /* ← Changed from system fonts */
+    font-size: 14px;
+    line-height: 1.3;
+    color: #111827;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+    .rte-content:empty::before {
+        content: attr(placeholder);
+        color: #9ca3af;
+        pointer-events: none;
+    }
+
+    .rte-content p {
+        margin: 0;
+    }
+
+    .rte-content h1 {
+        font-size: 2em;
+        font-weight: 700;
+        margin: 0.5em 0;
+        line-height: 1.2;
+    }
+
+    .rte-content h2 {
+        font-size: 1.5em;
+        font-weight: 600;
+        margin: 0.5em 0;
+        line-height: 1.3;
+    }
+
+    .rte-content h3 {
+        font-size: 1.25em;
+        font-weight: 600;
+        margin: 0.5em 0;
+        line-height: 1.4;
+    }
+
+    .rte-content ul,
+    .rte-content ol {
+        margin: 0.5em 0;
+        padding-left: 24px;
+    }
+
+    .rte-content li {
+        margin: 0.25em 0;
+    }
+
+    .rte-content hr {
+        border: none;
+        border-top: 2px solid #d1d5db;
+        margin: 1em 0;
+    }
+
+    .rte-content a {
+        color: #2563eb;
+        text-decoration: underline;
+    }
+
+        .rte-content a:hover {
+            color: #1d4ed8;
+        }
+
+/* ========================================
+   FOOTER STYLES
+   ======================================== */
+
+.rte-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 6px 12px;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    flex-shrink: 0;
+}
+
+.rte-char-count {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.rte-word-count {
+    margin-left: 8px;
+    color: #9ca3af;
+}
+
+/* ========================================
+   FONT PICKER STYLES
+   ======================================== */
+
+.rte-font-family-palette {
+    min-width: 260px;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+    /* Scrollbar styling for font family list */
+    .rte-font-family-palette::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .rte-font-family-palette::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .rte-font-family-palette::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
+
+        .rte-font-family-palette::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+
+/* Dark mode scrollbar */
+.rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
+.rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-thumb {
+    background: #4b5563;
+}
+
+    .rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+    }
+
+/* ========================================
+   DARK MODE - FOOTER & CONTENT
+   ======================================== */
+
+.rich-text-editor.dark-mode .rte-content-wrapper {
+    background: #1f2937;
+}
+
+.rich-text-editor.dark-mode .rte-content a {
+    color: #60a5fa;
+}
+
+    .rich-text-editor.dark-mode .rte-content a:hover {
+        color: #93c5fd;
+    }
+
+.rich-text-editor.dark-mode .rte-content hr {
+    border-top-color: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-footer {
+    background: #374151;
+    border-top-color: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-char-count {
+    color: #9ca3af;
+}
+
+.rich-text-editor.dark-mode .rte-word-count {
+    color: #6b7280;
+}
+
+.rich-text-editor.dark-mode .rte-color-palette {
+    background: #1f2937;
+    border-color: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-color-palette-title {
+    color: #9ca3af;
+}
+
+.rich-text-editor.dark-mode .rte-font-option {
+    color: #e5e7eb;
+}
+
+    .rich-text-editor.dark-mode .rte-font-option:hover {
+        background: #374151;
+    }
+
+.rich-text-editor.dark-mode .rte-color-swatch {
+    border-color: #4b5563;
+}
+
+    .rich-text-editor.dark-mode .rte-color-swatch:hover {
+        border-color: #fff;
+    }
+
+.rich-text-editor.dark-mode .rte-color-input {
+    border-color: #4b5563;
+}
+
+    .rich-text-editor.dark-mode .rte-color-input:hover {
+        border-color: #60a5fa;
+    }
+
+/* ========================================
+   BACKDROP FOR CLICK-OUTSIDE DETECTION
+   ======================================== */
+
+.rte-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9998; /* Just below the color palette (9999) */
+    background: transparent;
+    cursor: default;
+}
+
+/* ========================================
+   HEADING PICKER STYLES
+   ======================================== */
+
+.rte-heading-palette {
+    min-width: 260px;
+}
+
+.rte-heading-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.rte-heading-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid transparent;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+    .rte-heading-option:hover {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+    }
+
+    .rte-heading-option:focus {
+        outline: 2px solid #3b82f6;
+        outline-offset: -2px;
+    }
+
+    /* Selected state - matches .rte-btn.active */
+    .rte-heading-option.selected {
+        background: #dbeafe;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+
+.rte-heading-preview {
+    color: #374151;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.rte-heading-option.selected .rte-heading-preview {
+    color: #1e40af;
+}
+
+.rte-heading-shortcut {
+    font-size: 11px;
+    color: #9ca3af;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin-left: 16px;
+    flex-shrink: 0;
+}
+
+.rte-heading-option.selected .rte-heading-shortcut {
+    color: #3b82f6;
+}
+
+/* ===== DARK MODE - HEADING PICKER ===== */
+
+.rich-text-editor.dark-mode .rte-heading-option:hover {
+    background: #374151;
+    border-color: #4b5563;
+}
+
+.rich-text-editor.dark-mode .rte-heading-option.selected {
+    background: #1e3a8a;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.rich-text-editor.dark-mode .rte-heading-preview {
+    color: #e5e7eb;
+}
+
+.rich-text-editor.dark-mode .rte-heading-option.selected .rte-heading-preview {
+    color: #93c5fd;
+}
+
+.rich-text-editor.dark-mode .rte-heading-shortcut {
+    color: #6b7280;
+}
+
+.rich-text-editor.dark-mode .rte-heading-option.selected .rte-heading-shortcut {
+    color: #60a5fa;
+}
+
+/* ========================================
+   FONT SIZE PALETTE - MATCHES HEADING STYLE
+   ======================================== */
+
+.rte-font-size-palette {
+    min-width: 200px;
+}
+
+/* ========================================
+   FONT FAMILY PALETTE - MATCHES HEADING STYLE
+   ======================================== */
+
+.rte-font-family-palette {
+    min-width: 260px;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+    /* Scrollbar styling for font family list */
+    .rte-font-family-palette::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .rte-font-family-palette::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .rte-font-family-palette::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
+
+        .rte-font-family-palette::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+
+/* Dark mode scrollbar */
+.rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-track {
+    background: #1f2937;
+}
+
+.rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-thumb {
+    background: #4b5563;
+}
+
+    .rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+    }
