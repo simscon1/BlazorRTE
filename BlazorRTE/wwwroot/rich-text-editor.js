@@ -1,8 +1,27 @@
-﻿let editorInstances = new Map();
+﻿/**
+ * ============================================================================
+ * BlazorRTE - Rich Text Editor for Blazor
+ * Copyright (C) 2024-2026 LoneWorx LLC
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ * ============================================================================
+ */
+
+let editorInstances = new Map();
 let savedSelection = null; 
 let lastCommandTime = 0;
 let lastCommand = null;
-//let toolbarUpdateCts = null;
 
 // ===== PENDING FORMAT MODULE =====
 import * as pendingModule from './rich-text-editor.pending.js';
@@ -13,7 +32,7 @@ export const keepSelectionAfterFormat = pendingModule.keepSelectionAfterFormat;
 export const applyPendingFormats = pendingModule.applyPendingFormats;
 export const clearPendingFormats = pendingModule.clearPendingFormats;
 
-let knownFontFamilies = []; // Module-level variable
+let knownFontFamilies = [];
 
 export function initializeEditor(element, dotNetRef, editorId, fontFamilies = []) {
     if (!element) {
@@ -21,7 +40,6 @@ export function initializeEditor(element, dotNetRef, editorId, fontFamilies = []
         return;
     }
 
-    // Store known fonts passed from C#
     if (fontFamilies && fontFamilies.length > 0) {
         knownFontFamilies = fontFamilies;
     }
@@ -31,11 +49,9 @@ export function initializeEditor(element, dotNetRef, editorId, fontFamilies = []
     // ===== KEYBOARD SHORTCUTS - Prevent browser defaults =====
     element.addEventListener('keydown', function (e) {
         if (!(e.ctrlKey || e.metaKey)) return;
-        if (e.shiftKey || e.altKey) return; // Let C# handle Ctrl+Shift and Ctrl+Alt
+        if (e.shiftKey || e.altKey) return;
 
         const key = e.key.toLowerCase();
-
-        // Only handle shortcuts that conflict with browser (Firefox Ctrl+B = bookmarks)
         const shortcuts = {
             'b': 'bold',
             'i': 'italic',
@@ -49,13 +65,12 @@ export function initializeEditor(element, dotNetRef, editorId, fontFamilies = []
             saveSelection();
         }
     }, true);
-    // ===== END KEYBOARD SHORTCUTS =====
     
-    // *** Autocomplete variables (inside initializeEditor scope) ***
+    // *** Autocomplete variables ***
     let shortcodeStart = -1;
     let shortcodeText = '';
-    
-    // *** Autocomplete helper functions ***
+    let autocompleteVisible = false;
+
     function checkShortcode() {
         const selection = window.getSelection();
         if (!selection.rangeCount) return;
@@ -99,6 +114,7 @@ export function initializeEditor(element, dotNetRef, editorId, fontFamilies = []
         if (afterColon.length >= 2) {
             shortcodeStart = colonPos;
             shortcodeText = afterColon;
+            autocompleteVisible = true;
             
             // Get cursor position in VIEWPORT coordinates
             const tempRange = document.createRange();
@@ -147,6 +163,7 @@ export function initializeEditor(element, dotNetRef, editorId, fontFamilies = []
     function clearShortcode() {
         shortcodeStart = -1;
         shortcodeText = '';
+        autocompleteVisible = false;
     }
     
     function insertEmojiAtShortcode(emoji) {
@@ -244,15 +261,10 @@ export function initializeEditor(element, dotNetRef, editorId, fontFamilies = []
         return textNodes;
     }
     
-    // Store function for external access
     element._insertEmojiAtShortcode = insertEmojiAtShortcode;
  
     element.addEventListener('blur', (e) => {
-        // Always save selection on blur
         saveSelection();
-        
-        // Clear pending formats when focus leaves the editor
-        // (toolbar buttons use preventDefault, so this won't trigger when clicking toolbar)
         pendingModule.clearPendingFormats();
     });
 
@@ -273,17 +285,14 @@ export function initializeEditor(element, dotNetRef, editorId, fontFamilies = []
 
     element.addEventListener('drop', (e) => e.preventDefault());
 
-    // ← ADD: apply pending bold/italic/underline/strikethrough on each typed character
     element.addEventListener('keypress', (e) => {
         pendingModule.handleKeyPressWithPendingFormats(element, e, dotNetRef);
     });
 
-    // Input event for autocomplete
     element.addEventListener('input', function(e) {
         checkShortcode();
     });
 
-    // Emoji shortcode detection on keyup
     element.addEventListener('keyup', async (e) => {
         if (e.ctrlKey || e.metaKey || e.altKey || 
             ['Shift', 'Control', 'Alt', 'Meta', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 
@@ -308,12 +317,10 @@ export function initializeEditor(element, dotNetRef, editorId, fontFamilies = []
         const shortcode = match[1];
         const fullMatch = match[0];
 
-        // Skip if 2+ characters (autocomplete handles it)
         if (shortcode.length >= 2) {
             return;
         }
 
-        // Process single-character shortcodes
         try {
             const emojiChar = await dotNetRef.invokeMethodAsync('ProcessEmojiShortcode', shortcode);
             if (emojiChar) {
@@ -332,6 +339,23 @@ export function initializeEditor(element, dotNetRef, editorId, fontFamilies = []
             }
         } catch (err) { }
     });
+
+    // ===== AUTOCOMPLETE KEYBOARD NAVIGATION =====
+    element.addEventListener('keydown', function(e) {
+        if (!autocompleteVisible) return;
+        
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (e.key === 'Escape') {
+                clearShortcode();
+                dotNetRef.invokeMethodAsync('HideEmojiAutocomplete');
+            } else {
+                dotNetRef.invokeMethodAsync('HandleAutocompleteKey', e.key);
+            }
+        }
+    });
 }
 
 export function preventToolbarKeyRepeat(toolbarElement) {
@@ -341,8 +365,9 @@ export function preventToolbarKeyRepeat(toolbarElement) {
             e.preventDefault();
             e.stopImmediatePropagation();
         }
-    }, true); // capture phase — runs BEFORE Blazor's handler
+    }, true);
 }
+
 export function disposeEditor(element) {
     if (element && editorInstances.has(element)) {
         editorInstances.delete(element);
@@ -376,8 +401,6 @@ export function restoreSelection() {
 }
 
 export function executeCommand(command, value = null) {
-
-    // Throttle rapid repeated commands (WASM perf)
     const now = Date.now();
     if (command === lastCommand && (now - lastCommandTime) < 50) {
         return;
@@ -395,7 +418,6 @@ export function executeCommand(command, value = null) {
         return;
     }
 
-    // Handle subscript/superscript - manual implementation due to browser quirks
     if (command === 'subscript' || command === 'superscript') {
         const selection = window.getSelection();
         if (!selection.rangeCount) {
@@ -461,7 +483,6 @@ export function executeCommand(command, value = null) {
         return;
     }
     
-    // Handle alignment commands - they are mutually exclusive
     if (['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'].includes(command)) {
         document.execCommand(command, false, null);
     } else {
@@ -524,11 +545,8 @@ export function setHtml(element, html) {
     if (element) element.innerHTML = html;
 }
 
-// Restore focus to the editor with saved selection
 export function focusEditor(element) {
     element.focus();
-
-    // Restore saved selection if available
     if (savedSelection) {
         try {
             const selection = window.getSelection();
@@ -553,10 +571,8 @@ export function getActiveFormats() {
     if (document.queryCommandState('underline') && !insideLink) formats.push('underline');
     if (document.queryCommandState('strikeThrough')) formats.push('strikeThrough');
 
-    // Check for subscript/superscript - use both tag check AND queryCommandState
     let hasSubscript = false;
     let hasSuperscript = false;
-
 
     const selection = window.getSelection();
     if (selection.rangeCount > 0) {
@@ -571,7 +587,6 @@ export function getActiveFormats() {
         }
     }
 
-    // Fallback to queryCommandState
     if (!hasSubscript && document.queryCommandState('subscript')) hasSubscript = true;
     if (!hasSuperscript && document.queryCommandState('superscript')) hasSuperscript = true;
 
@@ -591,8 +606,6 @@ export function getActiveFormats() {
         formats.push('backColor');
     }
 
-    // Check alignment - use queryCommandState for each
-    // Note: justifyLeft often returns false when text is default left-aligned
     const isCenter = document.queryCommandState('justifyCenter');
     const isRight = document.queryCommandState('justifyRight');
     const isFull = document.queryCommandState('justifyFull');
@@ -602,7 +615,6 @@ export function getActiveFormats() {
     else if (isRight) formats.push('justifyRight');
     else if (isFull) formats.push('justifyFull');
     else if (isLeft) formats.push('justifyLeft');
-    // If none are active, default to left (don't push anything - C# defaults to "left")
 
     return formats;
 }
@@ -724,9 +736,7 @@ function isDefaultBackgroundColor(color) {
     ];
     return defaultBackgrounds.includes(normalized);
 }
- 
- 
-  
+
 export function getCurrentTextColor() {
     const color = document.queryCommandValue('foreColor');
     if (color && color.startsWith('rgb')) {
@@ -758,7 +768,7 @@ export function getCurrentBackgroundColor() {
 
 export function getCurrentFontSize() {
     const selection = window.getSelection();
-    if (!selection.rangeCount) return '3'; // Default Normal
+    if (!selection.rangeCount) return '3';
     
     const range = selection.getRangeAt(0);
     const parent = range.commonAncestorContainer.parentElement;
@@ -924,7 +934,6 @@ export function navigateDropdown(elementId, direction) {
     const buttonContainer = gridElement || container;
     const gridButtons = Array.from(buttonContainer.querySelectorAll('button'));
 
-    // Include custom color input for color palettes only
     const customColorInput = container.querySelector('.rte-color-custom input[type="color"]');
     const allFocusables = customColorInput ? [...gridButtons, customColorInput] : gridButtons;
 
@@ -935,7 +944,6 @@ export function navigateDropdown(elementId, direction) {
 
     let currentIndex = allFocusables.findIndex(el => el === focusedElement);
 
-    // If nothing is focused, start from the selected item or first item
     if (currentIndex === -1) {
         const selected = buttonContainer.querySelector('.selected, [aria-selected="true"]');
         if (selected) {
@@ -964,16 +972,14 @@ export function navigateDropdown(elementId, direction) {
         columnsInRow = columnsInRow || 1;
 
         if (isOnCustomInput) {
-            // Navigate from custom input back into grid
             if (direction === 'up') {
-                nextIndex = gridButtons.length - 1; // Last grid button
+                nextIndex = gridButtons.length - 1;
             } else if (direction === 'down') {
-                nextIndex = 0; // First grid button
+                nextIndex = 0;
             } else {
-                return; // Left/right do nothing on input
+                return;
             }
         } else {
-            // Currently in the grid
             switch (direction) {
                 case 'right':
                     nextIndex = currentIndex < gridButtons.length - 1 ? currentIndex + 1 : 0;
@@ -984,14 +990,12 @@ export function navigateDropdown(elementId, direction) {
                 case 'down':
                     nextIndex = currentIndex + columnsInRow;
                     if (nextIndex >= gridButtons.length) {
-                        // Move to custom input if available, otherwise wrap
                         nextIndex = customColorInput ? gridButtons.length : currentIndex % columnsInRow;
                     }
                     break;
                 case 'up':
                     nextIndex = currentIndex - columnsInRow;
                     if (nextIndex < 0) {
-                        // Wrap to last row
                         const lastRowStart = Math.floor((gridButtons.length - 1) / columnsInRow) * columnsInRow;
                         nextIndex = lastRowStart + (currentIndex % columnsInRow);
                         if (nextIndex >= gridButtons.length) nextIndex = gridButtons.length - 1;
@@ -1002,7 +1006,6 @@ export function navigateDropdown(elementId, direction) {
             }
         }
     } else {
-        // List navigation (non-grid) - unchanged
         if (direction === 'down' || direction === 'right') {
             nextIndex = currentIndex < allFocusables.length - 1 ? currentIndex + 1 : 0;
         } else {
@@ -1016,6 +1019,7 @@ export function navigateDropdown(elementId, direction) {
         nextElement.scrollIntoView({ block: 'nearest', behavior: 'instant' });
     }
 }
+
 export function clickFocusedElement() {
     const focused = document.activeElement;
     if (!focused) return;
@@ -1032,15 +1036,6 @@ export function clickFocusedElement() {
         return;
     }
 }
-
-//// Helper function to unwrap an element (remove tag but keep contents)
-//function unwrapElement(element) {
-//    const parent = element.parentNode;
-//    while (element.firstChild) {
-//        parent.insertBefore(element.firstChild, element);
-//    }
-//    parent.removeChild(element);
-//}
 
 export function getCurrentFontFamily() {
     const selection = window.getSelection();
@@ -1086,6 +1081,7 @@ export function getCurrentFontFamily() {
 
     return '';
 }
+
 // New function to scroll selected element into view
 export function scrollSelectedIntoView(elementId) {
     const container = document.getElementById(elementId);

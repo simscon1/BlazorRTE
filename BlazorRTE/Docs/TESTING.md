@@ -347,12 +347,14 @@ _Use this section to document any issues found during testing:_
 
 | Issue # | Description | Severity | Status |
 |---------|-------------|----------|--------|
-| | | | |
-| | | | |
-| | | | |
+| 1 | Ctrl+K (Link) not working in any browser | Medium | Known |
+| 2 | Ctrl+L (Align Left) not working in Firefox | Low | Known |
+| 3 | Ctrl+Enter (HR) not working in Firefox | Low | Known |
+| 4 | Ctrl+Shift+X causes right-align in Firefox | Low | Known |
+| 5 | Ctrl+Shift+E (Emoji picker) not verified | Low | Needs Test |
 
 ---
 
 **Tested by:** ________________  
 **Date:** ________________  
-**Version:** 1.0.0
+**Version:** 1.2.0

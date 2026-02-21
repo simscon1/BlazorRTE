@@ -5,6 +5,39 @@ All notable changes to BlazorRTE will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-02-20
+
+### Added
+- ♿ **Full keyboard accessibility for toolbar** (WCAG 2.1 compliant)
+  - Arrow key navigation between toolbar buttons
+  - ArrowDown opens dropdown menus
+  - Enter/Space activates buttons
+  - Escape closes dropdowns
+  - Home/End jumps to first/last button
+- ✨ **Pending format support** - Click Bold with no selection, then type
+- 🦊 **Firefox Ctrl+B/I/U support** - Prevents browser bookmark/info shortcuts
+- ⬆️⬇️ **Emoji autocomplete arrow key navigation** - Navigate suggestions with keyboard
+- 🔗 **Source Link** for NuGet package debugging
+- 📜 **GPL-3.0 license headers** in all source files
+
+### Fixed
+- Firefox browser shortcuts conflicting with editor formatting (Ctrl+B/I/U)
+- Emoji autocomplete arrow keys not working
+- Toolbar button focus management
+
+### Changed
+- Emoji autocomplete selection styling now matches heading/font dropdowns (blue highlight)
+- Updated feature count to 39 (accurate count)
+- Improved documentation accuracy (removed unverified claims)
+
+## [1.1.4] - 2026-02-15
+
+### Removed
+- Keyboard accessibility (temporarily removed due to issues - reimplemented in 1.2.0)
+
+### Fixed
+- Dependency issues
+
 ## [1.1.1] - 2026-02-06
 
 ### Added
@@ -174,6 +207,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Paste as plain text (strips external formatting)
 - Accessible (ARIA labels, keyboard navigation)
 
+[1.2.0]: https://github.com/simscon1/BlazorRTE/compare/v1.1.4...v1.2.0
+[1.1.4]: https://github.com/simscon1/BlazorRTE/compare/v1.1.1...v1.1.4
 [1.1.1]: https://github.com/simscon1/BlazorRTE/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/simscon1/BlazorRTE/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/simscon1/BlazorRTE/compare/v1.0.1...v1.0.2
