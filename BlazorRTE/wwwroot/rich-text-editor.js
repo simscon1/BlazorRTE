@@ -898,33 +898,41 @@ export function navigateDropdown(elementId, direction) {
 
     const gridElement = container.querySelector('[role="grid"]');
     const isGrid = gridElement !== null;
-    
-    const buttonContainer = gridElement || container;
-    const buttons = Array.from(buttonContainer.querySelectorAll('button'));
-    if (buttons.length === 0) return;
 
-    let currentIndex = buttons.findIndex(b => b === document.activeElement);
-    
+    const buttonContainer = gridElement || container;
+    const gridButtons = Array.from(buttonContainer.querySelectorAll('button'));
+
+    // Include custom color input for color palettes only
+    const customColorInput = container.querySelector('.rte-color-custom input[type="color"]');
+    const allFocusables = customColorInput ? [...gridButtons, customColorInput] : gridButtons;
+
+    if (allFocusables.length === 0) return;
+
+    const focusedElement = document.activeElement;
+    const isOnCustomInput = focusedElement === customColorInput;
+
+    let currentIndex = allFocusables.findIndex(el => el === focusedElement);
+
     // If nothing is focused, start from the selected item or first item
     if (currentIndex === -1) {
         const selected = buttonContainer.querySelector('.selected, [aria-selected="true"]');
         if (selected) {
-            currentIndex = buttons.indexOf(selected);
+            currentIndex = allFocusables.indexOf(selected);
         }
         if (currentIndex === -1) {
-            buttons[0]?.focus({ preventScroll: true });
-            buttons[0]?.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+            allFocusables[0]?.focus({ preventScroll: true });
+            allFocusables[0]?.scrollIntoView({ block: 'nearest', behavior: 'instant' });
             return;
         }
     }
 
     let nextIndex;
-    
-    if (isGrid) {
-        const firstButton = buttons[0];
+
+    if (isGrid && gridButtons.length > 0) {
+        const firstButton = gridButtons[0];
         const firstTop = firstButton.getBoundingClientRect().top;
         let columnsInRow = 0;
-        for (const btn of buttons) {
+        for (const btn of gridButtons) {
             if (Math.abs(btn.getBoundingClientRect().top - firstTop) < 2) {
                 columnsInRow++;
             } else {
@@ -933,48 +941,73 @@ export function navigateDropdown(elementId, direction) {
         }
         columnsInRow = columnsInRow || 1;
 
-        switch (direction) {
-            case 'right':
-                nextIndex = currentIndex < buttons.length - 1 ? currentIndex + 1 : 0;
-                break;
-            case 'left':
-                nextIndex = currentIndex > 0 ? currentIndex - 1 : buttons.length - 1;
-                break;
-            case 'down':
-                nextIndex = currentIndex + columnsInRow;
-                if (nextIndex >= buttons.length) nextIndex = currentIndex % columnsInRow;
-                break;
-            case 'up':
-                nextIndex = currentIndex - columnsInRow;
-                if (nextIndex < 0) {
-                    const lastRowStart = Math.floor((buttons.length - 1) / columnsInRow) * columnsInRow;
-                    nextIndex = lastRowStart + (currentIndex % columnsInRow);
-                    if (nextIndex >= buttons.length) nextIndex = buttons.length - 1;
-                }
-                break;
-            default:
-                return;
+        if (isOnCustomInput) {
+            // Navigate from custom input back into grid
+            if (direction === 'up') {
+                nextIndex = gridButtons.length - 1; // Last grid button
+            } else if (direction === 'down') {
+                nextIndex = 0; // First grid button
+            } else {
+                return; // Left/right do nothing on input
+            }
+        } else {
+            // Currently in the grid
+            switch (direction) {
+                case 'right':
+                    nextIndex = currentIndex < gridButtons.length - 1 ? currentIndex + 1 : 0;
+                    break;
+                case 'left':
+                    nextIndex = currentIndex > 0 ? currentIndex - 1 : gridButtons.length - 1;
+                    break;
+                case 'down':
+                    nextIndex = currentIndex + columnsInRow;
+                    if (nextIndex >= gridButtons.length) {
+                        // Move to custom input if available, otherwise wrap
+                        nextIndex = customColorInput ? gridButtons.length : currentIndex % columnsInRow;
+                    }
+                    break;
+                case 'up':
+                    nextIndex = currentIndex - columnsInRow;
+                    if (nextIndex < 0) {
+                        // Wrap to last row
+                        const lastRowStart = Math.floor((gridButtons.length - 1) / columnsInRow) * columnsInRow;
+                        nextIndex = lastRowStart + (currentIndex % columnsInRow);
+                        if (nextIndex >= gridButtons.length) nextIndex = gridButtons.length - 1;
+                    }
+                    break;
+                default:
+                    return;
+            }
         }
     } else {
+        // List navigation (non-grid) - unchanged
         if (direction === 'down' || direction === 'right') {
-            nextIndex = currentIndex < buttons.length - 1 ? currentIndex + 1 : 0;
+            nextIndex = currentIndex < allFocusables.length - 1 ? currentIndex + 1 : 0;
         } else {
-            nextIndex = currentIndex > 0 ? currentIndex - 1 : buttons.length - 1;
+            nextIndex = currentIndex > 0 ? currentIndex - 1 : allFocusables.length - 1;
         }
     }
 
-    const nextButton = buttons[nextIndex];
-    if (nextButton) {
-        nextButton.focus({ preventScroll: true });
-        // Scroll the button into view within the dropdown
-        nextButton.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+    const nextElement = allFocusables[nextIndex];
+    if (nextElement) {
+        nextElement.focus({ preventScroll: true });
+        nextElement.scrollIntoView({ block: 'nearest', behavior: 'instant' });
     }
 }
-
 export function clickFocusedElement() {
     const focused = document.activeElement;
-    if (focused && focused.tagName === 'BUTTON') {
+    if (!focused) return;
+
+    // Handle buttons
+    if (focused.tagName === 'BUTTON') {
         focused.click();
+        return;
+    }
+
+    // Handle color inputs - trigger click to open native picker
+    if (focused.tagName === 'INPUT' && focused.type === 'color') {
+        focused.click();
+        return;
     }
 }
 
