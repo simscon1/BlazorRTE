@@ -26,8 +26,10 @@ public partial class RichTextEditor
     private string? _pendingBackgroundColor;
     private string? _pendingFontSize;
     private string? _pendingFontFamily;
+    private bool _suppressBackgroundColor = false;
     private bool _hasPendingFormats => _pendingFormats.Count > 0
         || _suppressedFormats.Count > 0
+        || _suppressBackgroundColor
         || _pendingTextColor != null
         || _pendingBackgroundColor != null
         || _pendingFontSize != null
@@ -96,6 +98,7 @@ public partial class RichTextEditor
             SuppressedFormats = [.. _suppressedFormats],
             TextColor         = _pendingTextColor,
             BackgroundColor   = _pendingBackgroundColor,
+            SuppressBackgroundColor = _suppressBackgroundColor,
             FontSize          = _pendingFontSize,
             FontFamily        = _pendingFontFamily
         });
@@ -144,10 +147,22 @@ public partial class RichTextEditor
         }
         else
         {
-            _pendingBackgroundColor = _pendingBackgroundColor == color ? null : color;
+            bool turningOff = _pendingBackgroundColor == color || color == "transparent";
+            
+            if (turningOff)
+            {
+                _pendingBackgroundColor = null;
+                _suppressBackgroundColor = true;
+            }
+            else
+            {
+                _pendingBackgroundColor = color;
+                _suppressBackgroundColor = false;
+            }
+            
             _currentHighlightColor = color;
             await SyncPendingFormatsToJs();
-            _showBackgroundColorPicker = false;  // ← ADD: Close the picker
+            _showBackgroundColorPicker = false;
             StateHasChanged();
         }
 
@@ -249,6 +264,7 @@ public partial class RichTextEditor
                 SuppressedFormats = [.. _suppressedFormats],
                 TextColor         = _pendingTextColor,
                 BackgroundColor   = _pendingBackgroundColor,
+                SuppressBackgroundColor = _suppressBackgroundColor,
                 FontSize          = _pendingFontSize,
                 FontFamily        = _pendingFontFamily
             };
@@ -284,6 +300,7 @@ public partial class RichTextEditor
         _suppressedFormats.Clear();
         _pendingTextColor = null;
         _pendingBackgroundColor = null;
+        _suppressBackgroundColor = false;
         _pendingFontSize = null;
         _pendingFontFamily = null;
     }
@@ -321,6 +338,7 @@ public class PendingFormatData
 
     public string? TextColor { get; set; }
     public string? BackgroundColor { get; set; }
+    public bool SuppressBackgroundColor { get; set; }
     public string? FontSize { get; set; }
     public string? FontFamily { get; set; }
 }

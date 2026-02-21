@@ -69,6 +69,11 @@ export function applyPendingFormats(pendingData) {
     // the formatted run (e.g. <font color="..." style="font-weight: bold;">).
     escapeCursorFromSuppressedElements(pendingData.suppressedFormats);
 
+    // ADD THIS: Handle background color suppression
+    if (pendingData.suppressBackgroundColor) {
+        escapeCursorFromBackgroundColorSpan();
+    }
+
     // Belt-and-suspenders: also call execCommand for each suppressed format so
     // Chrome's internal caret state is reset in case the DOM escape wasn't needed.
     for (const fmt of (pendingData.suppressedFormats || [])) {
@@ -84,6 +89,7 @@ export function applyPendingFormats(pendingData) {
         suppressedFormats: pendingData.suppressedFormats || [],
         textColor:         pendingData.textColor,
         backgroundColor:   pendingData.backgroundColor,
+        suppressBackgroundColor: pendingData.suppressBackgroundColor || false,  // ADD THIS
         fontSize:          pendingData.fontSize,
         fontFamily:        pendingData.fontFamily,
         isApplying:        hasFormats
@@ -210,6 +216,103 @@ function normalizeColor(color) {
 }
 
 /**
+ * Returns true if the cursor is currently inside elements that already
+ * have all the requested pending formats applied. In that case the browser
+ * can handle the keypress naturally (extending the existing run) rather
+ * than manually inserting a new wrapped fragment.
+ */
+function cursorIsInsideMatchingFormats() {
+    const selection = window.getSelection();
+    if (!selection.rangeCount || !selection.isCollapsed) return false;
+
+    const range = selection.getRangeAt(0);
+    const cursorElement = range.startContainer.nodeType === Node.TEXT_NODE
+        ? range.startContainer.parentElement
+        : range.startContainer;
+
+    if (!cursorElement) return false;
+
+    // Check each pending format tag
+    for (const format of pendingFormatState.formats) {
+        const tags = FORMAT_TAGS[format];
+        if (!tags) continue;
+
+        let found = false;
+        let current = cursorElement;
+        while (current && current !== document.body) {
+            if (tags.includes(current.tagName?.toLowerCase())) {
+                found = true;
+                break;
+            }
+            current = current.parentElement;
+        }
+        if (!found) return false;
+    }
+
+    // Check text color
+    if (pendingFormatState.textColor) {
+        let found = false;
+        let current = cursorElement;
+        while (current && current !== document.body) {
+            if (current.tagName?.toLowerCase() === 'font' && current.color) {
+                if (normalizeColor(pendingFormatState.textColor) === normalizeColor(current.color)) {
+                    found = true;
+                    break;
+                }
+            }
+            current = current.parentElement;
+        }
+        if (!found) return false;
+    }
+
+    // Check background color
+    if (pendingFormatState.backgroundColor) {
+        let found = false;
+        let current = cursorElement;
+        while (current && current !== document.body) {
+            if (current.tagName?.toLowerCase() === 'span' && current.style?.backgroundColor) {
+                if (normalizeColor(pendingFormatState.backgroundColor) === normalizeColor(current.style.backgroundColor)) {
+                    found = true;
+                    break;
+                }
+            }
+            current = current.parentElement;
+        }
+        if (!found) return false;
+    }
+
+    // Check font size
+    if (pendingFormatState.fontSize) {
+        let found = false;
+        let current = cursorElement;
+        while (current && current !== document.body) {
+            if (current.tagName?.toLowerCase() === 'font' && current.size === pendingFormatState.fontSize) {
+                found = true;
+                break;
+            }
+            current = current.parentElement;
+        }
+        if (!found) return false;
+    }
+
+    // Check font family
+    if (pendingFormatState.fontFamily) {
+        let found = false;
+        let current = cursorElement;
+        while (current && current !== document.body) {
+            if (current.tagName?.toLowerCase() === 'font' && current.face === pendingFormatState.fontFamily) {
+                found = true;
+                break;
+            }
+            current = current.parentElement;
+        }
+        if (!found) return false;
+    }
+
+    return true;
+}
+
+/**
  * Physically moves the cursor to just AFTER the outermost element that matches
  * a suppressed format, but only when the cursor is already at the trailing edge
  * of that element's content.
@@ -279,90 +382,54 @@ function escapeCursorFromSuppressedElements(suppressedFormats) {
 }
 
 /**
- * Returns true when the cursor sits inside ancestor elements that collectively
- * satisfy every pending format requirement (bold, italic, color, etc.)
- * AND none of those formats are suppressed.
+ * Escapes cursor from background-color spans when background is being suppressed.
  */
-function cursorIsInsideMatchingFormats() {
+function escapeCursorFromBackgroundColorSpan() {
     const selection = window.getSelection();
-    if (!selection.rangeCount || !selection.isCollapsed) return false;
-
-    // If there are suppressed formats and we're inside their elements,
-    // we must NOT let the browser handle natively — we need to escape.
-    if (pendingFormatState.suppressedFormats?.length > 0) {
-        const range = selection.getRangeAt(0);
-        let node = range.startContainer;
-        if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
-
-        let current = node;
-        while (current && current !== document.body) {
-            const tag = current.tagName?.toLowerCase();
-            for (const fmt of pendingFormatState.suppressedFormats) {
-                if (FORMAT_TAGS[fmt]?.includes(tag)) {
-                    return false;
-                }
-            }
-            current = current.parentElement;
-        }
-    }
+    if (!selection.rangeCount || !selection.isCollapsed) return;
 
     const range = selection.getRangeAt(0);
-    let node = range.startContainer;
-    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+    const startNode = range.startContainer;
+    const startOffset = range.startOffset;
 
-    const remaining = new Set(pendingFormatState.formats);
-    let needsColor  = !!pendingFormatState.textColor;
-    let needsBg     = !!pendingFormatState.backgroundColor;
-    let needsSize   = !!pendingFormatState.fontSize;
-    let needsFamily = !!pendingFormatState.fontFamily;
+    // Only escape when cursor is at the END of its text node
+    if (startNode.nodeType === Node.TEXT_NODE &&
+        startOffset < startNode.textContent.length) {
+        return;
+    }
 
-    // Normalize the pending color once for comparison
-    const pendingColorNorm = pendingFormatState.textColor 
-        ? normalizeColor(pendingFormatState.textColor) 
-        : null;
+    const cursorElement = startNode.nodeType === Node.TEXT_NODE
+        ? startNode.parentElement
+        : startNode;
 
-    let current = node;
+    // Find outermost span with background-color
+    let outermost = null;
+    let current = cursorElement;
     while (current && current !== document.body) {
-        const tag = current.tagName?.toLowerCase();
-        if (tag === 'strong' || tag === 'b')  remaining.delete('bold');
-        if (tag === 'em'     || tag === 'i')  remaining.delete('italic');
-        if (tag === 'u')                      remaining.delete('underline');
-        if (tag === 'del'    || tag === 's')  remaining.delete('strikeThrough');
-        if (tag === 'sub')                    remaining.delete('subscript');
-        if (tag === 'sup')                    remaining.delete('superscript');
-        
-        if (tag === 'font') {
-            // Only satisfy color requirement if colors MATCH
-            if (current.color && needsColor) {
-                const elementColorNorm = normalizeColor(current.color);
-                if (elementColorNorm === pendingColorNorm) {
-                    needsColor = false;
-                }
-            }
-            if (current.size && pendingFormatState.fontSize) {
-                if (current.size === pendingFormatState.fontSize) {
-                    needsSize = false;
-                }
-            }
-            if (current.face && pendingFormatState.fontFamily) {
-                if (current.face.toLowerCase() === pendingFormatState.fontFamily.toLowerCase()) {
-                    needsFamily = false;
-                }
-            }
+        if (current.tagName?.toLowerCase() === 'span' && 
+            current.style?.backgroundColor) {
+            outermost = current;
         }
-        
-        if (current.style?.backgroundColor && needsBg) {
-            const elementBgNorm = normalizeColor(current.style.backgroundColor);
-            const pendingBgNorm = normalizeColor(pendingFormatState.backgroundColor);
-            if (elementBgNorm === pendingBgNorm) {
-                needsBg = false;
-            }
-        }
-        
         current = current.parentElement;
     }
 
-    return remaining.size === 0 && !needsColor && !needsBg && !needsSize && !needsFamily;
+    if (!outermost) return;
+
+    // Guard: only escape if at trailing edge
+    const deepestLast = getDeepestLastTextNode(outermost);
+    if (deepestLast) {
+        if (startNode !== deepestLast ||
+            startOffset < deepestLast.textContent.length) {
+            return;
+        }
+    }
+
+    // Move cursor to just after the outermost background span
+    const newRange = document.createRange();
+    newRange.setStartAfter(outermost);
+    newRange.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
 }
 
 function insertHtmlAtCursor(html) {

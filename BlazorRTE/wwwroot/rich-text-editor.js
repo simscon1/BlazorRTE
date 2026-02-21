@@ -228,6 +228,10 @@ export function initializeEditor(element, dotNetRef, editorId, fontFamilies = []
     element.addEventListener('blur', (e) => {
         // Always save selection on blur
         saveSelection();
+        
+        // Clear pending formats when focus leaves the editor
+        // (toolbar buttons use preventDefault, so this won't trigger when clicking toolbar)
+        pendingModule.clearPendingFormats();
     });
 
     element.addEventListener('paste', (e) => {
