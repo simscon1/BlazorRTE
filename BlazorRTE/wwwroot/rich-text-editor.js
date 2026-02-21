@@ -2,7 +2,7 @@
 let savedSelection = null; 
 let lastCommandTime = 0;
 let lastCommand = null;
-let toolbarUpdateCts = null;
+//let toolbarUpdateCts = null;
 
 // ===== PENDING FORMAT MODULE =====
 import * as pendingModule from './rich-text-editor.pending.js';
@@ -1033,14 +1033,14 @@ export function clickFocusedElement() {
     }
 }
 
-// Helper function to unwrap an element (remove tag but keep contents)
-function unwrapElement(element) {
-    const parent = element.parentNode;
-    while (element.firstChild) {
-        parent.insertBefore(element.firstChild, element);
-    }
-    parent.removeChild(element);
-}
+//// Helper function to unwrap an element (remove tag but keep contents)
+//function unwrapElement(element) {
+//    const parent = element.parentNode;
+//    while (element.firstChild) {
+//        parent.insertBefore(element.firstChild, element);
+//    }
+//    parent.removeChild(element);
+//}
 
 export function getCurrentFontFamily() {
     const selection = window.getSelection();

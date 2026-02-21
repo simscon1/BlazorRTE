@@ -1077,8 +1077,8 @@ namespace BlazorRTE.Components
             _isUpdating = false;
         }
 
-        [JSInvokable]
-        public void OnPastePlainText(string text) { }
+        //[JSInvokable]
+        //public void OnPastePlainText(string text) { }
 
         [JSInvokable]
         public async Task HandleCtrlK()
@@ -1559,12 +1559,7 @@ namespace BlazorRTE.Components
             }
             catch { }
         }
-
-        //private async Task ToggleBold()
-        //{
-        //    await ExecuteCommand(FormatCommand.Bold);
-        //}
-
+ 
         [JSInvokable]
         protected async Task ToggleEmojiPicker()
         {
@@ -1693,8 +1688,7 @@ namespace BlazorRTE.Components
             }
         }
 
-        // Add to RichTextEditor.razor.cs
-
+ 
         private EmojiAutocomplete? emojiAutocomplete;
 
         [JSInvokable]
@@ -1754,15 +1748,7 @@ namespace BlazorRTE.Components
 
 
         protected string GetCurrentFontSizeLabel() => FontSizes.GetButtonLabel(_currentFontSize);
-
-        // Add helper method to determine when to prevent default key behavior:
-
-        //protected bool ShouldPreventDefaultKey(KeyboardEventArgs e)
-        //{
-        //    // Prevent Enter when BypassEnterKey is true and no modifiers (except Shift is allowed for newlines)
-        //    return BypassEnterKey && e.Key == "Enter" && !e.ShiftKey && !e.CtrlKey && !e.MetaKey;
-        //}
-
+         
         // ===== TOOLBAR KEYBOARD NAVIGATION =====
         private int _toolbarFocusIndex = 0;
 
@@ -1902,59 +1888,7 @@ namespace BlazorRTE.Components
             return index == _toolbarFocusIndex ? "0" : "-1";
         }
 
-        // Add these methods to handle dropdown keyboard navigation
-
-        //private async Task OpenHeadingPickerWithFocus()
-        //{
-        //    await ToggleHeadingPicker();
-        //    if (_showHeadingPicker && _jsModule != null)
-        //    {
-        //        await Task.Delay(50);
-        //        await _jsModule.InvokeVoidAsync("focusFirstInElement", "heading-palette");
-        //    }
-        //}
-
-        //private async Task OpenFontFamilyPickerWithFocus()
-        //{
-        //    await ToggleFontFamilyPicker();
-        //    if (_showFontFamilyPicker && _jsModule != null)
-        //    {
-        //        await Task.Delay(50);
-        //        await _jsModule.InvokeVoidAsync("focusFirstInElement", "fontfamily-palette");
-        //    }
-        //}
-
-        //private async Task OpenFontSizePickerWithFocus()
-        //{
-        //    await ToggleFontSizePicker();
-        //    if (_showFontSizePicker && _jsModule != null)
-        //    {
-        //        await Task.Delay(50);
-        //        await _jsModule.InvokeVoidAsync("focusFirstInElement", "fontsize-palette");
-        //    }
-        //}
-
-        //private async Task OpenTextColorPickerWithFocus()
-        //{
-        //    await ToggleTextColorPicker();
-        //    if (_showTextColorPicker && _jsModule != null)
-        //    {
-        //        await Task.Delay(50);
-        //        await _jsModule.InvokeVoidAsync("focusFirstInElement", "textcolor-palette");
-        //    }
-        //}
-
-        //private async Task OpenHighlightPickerWithFocus()
-        //{
-        //    await ToggleBackgroundColorPicker();
-        //    if (_showBackgroundColorPicker && _jsModule != null)
-        //    {
-        //        await Task.Delay(50);
-        //        await _jsModule.InvokeVoidAsync("focusFirstInElement", "highlight-palette");
-        //    }
-        //}
-
-        protected async Task OnDropdownKeyDown(KeyboardEventArgs e, string paletteId)
+         protected async Task OnDropdownKeyDown(KeyboardEventArgs e, string paletteId)
         {
             if (_jsModule == null) return;
 
