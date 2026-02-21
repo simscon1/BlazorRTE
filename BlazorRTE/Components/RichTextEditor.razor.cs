@@ -82,7 +82,6 @@ namespace BlazorRTE.Components
         // ===== Use simple provider instead of injected service =====
         private readonly EmojiProvider _emojiProvider = new();
 
-        protected ElementReference _editorRef;
         protected bool IsFocused { get; set; }
 
         private IJSObjectReference? _jsModule;
@@ -96,14 +95,16 @@ namespace BlazorRTE.Components
         private bool _showFontSizePicker;
         private bool _showFontFamilyPicker;
         private bool _showHeadingPicker;
-        private ElementReference _headingButton;
-        private ElementReference _headingPalette;
+
         private string _currentFontSize = "3";
         private string _currentFontFamily = "Arial";
         protected readonly string _editorId = $"rte-{Guid.NewGuid():N}";
 
         private string alignment = "left";
 
+        protected ElementReference _editorRef;
+        private ElementReference _headingButton;
+        private ElementReference _headingPalette;
         private ElementReference _toolbarRef;
         private ElementReference _fontFamilyButton;
         private ElementReference _fontFamilyPalette;
@@ -114,7 +115,7 @@ namespace BlazorRTE.Components
         private ElementReference _fontSizeButton;
         private ElementReference _fontSizePalette;
 
-        private const int ColorGridColumns = 6;
+        //private const int ColorGridColumns = 6;
 
         private string _currentTextColor = "#000000";
         private string _currentHighlightColor = "#FFFFFF";
@@ -126,7 +127,7 @@ namespace BlazorRTE.Components
 
         private bool _isEmojiSelected;
 
-        private bool _preventTabDefault = false;
+        //private bool _preventTabDefault = false;
 
         private bool _commandInProgress;
         private CancellationTokenSource? _toolbarUpdateCts;
@@ -609,40 +610,40 @@ namespace BlazorRTE.Components
         }
 
         // NEW: Update current text color based on cursor position
-        private async Task UpdateCurrentTextColorAsync()
-        {
-            try
-            {
-                if (_jsModule != null)
-                {
-                    var color = await _jsModule.InvokeAsync<string>("getCurrentTextColor");
-                    if (!string.IsNullOrEmpty(color))
-                    {
-                        _currentTextColor = color;
-                        StateHasChanged();
-                    }
-                }
-            }
-            catch { /* Silently fail */ }
-        }
+        //private async Task UpdateCurrentTextColorAsync()
+        //{
+        //    try
+        //    {
+        //        if (_jsModule != null)
+        //        {
+        //            var color = await _jsModule.InvokeAsync<string>("getCurrentTextColor");
+        //            if (!string.IsNullOrEmpty(color))
+        //            {
+        //                _currentTextColor = color;
+        //                StateHasChanged();
+        //            }
+        //        }
+        //    }
+        //    catch { /* Silently fail */ }
+        //}
 
-        // NEW: Update current background color based on cursor position
-        private async Task UpdateCurrentBackColorAsync()
-        {
-            try
-            {
-                if (_jsModule != null)
-                {
-                    var color = await _jsModule.InvokeAsync<string>("getCurrentBackgroundColor");
-                    if (!string.IsNullOrEmpty(color))
-                    {
-                        _currentHighlightColor = color;
-                        StateHasChanged();
-                    }
-                }
-            }
-            catch { /* Silently fail */ }
-        }
+        //// NEW: Update current background color based on cursor position
+        //private async Task UpdateCurrentBackColorAsync()
+        //{
+        //    try
+        //    {
+        //        if (_jsModule != null)
+        //        {
+        //            var color = await _jsModule.InvokeAsync<string>("getCurrentBackgroundColor");
+        //            if (!string.IsNullOrEmpty(color))
+        //            {
+        //                _currentHighlightColor = color;
+        //                StateHasChanged();
+        //            }
+        //        }
+        //    }
+        //    catch { /* Silently fail */ }
+        //}
 
         protected async Task ExecuteCommand(FormatCommand command)
         {
@@ -892,7 +893,7 @@ namespace BlazorRTE.Components
 
         protected bool IsFormatActive(string format) => _activeFormats.Contains(format);
 
-        protected bool IsHeadingActive(string heading) => _currentHeadingLevel == heading;
+        //protected bool IsHeadingActive(string heading) => _currentHeadingLevel == heading;
 
         protected int GetCharacterCount()
         {
@@ -1310,15 +1311,15 @@ namespace BlazorRTE.Components
 
         protected string GetCurrentHeadingLabel() => HeadingStyles.GetButtonLabel(_currentHeadingLevel);
 
-        protected void CloseColorPickers()
-        {
-            _showTextColorPicker = false;
-            _showBackgroundColorPicker = false;
-            _showFontSizePicker = false;
-            _showFontFamilyPicker = false;
-            _showHeadingPicker = false;
-            _showEmojiPicker = false;
-        }
+        //protected void CloseColorPickers()
+        //{
+        //    _showTextColorPicker = false;
+        //    _showBackgroundColorPicker = false;
+        //    _showFontSizePicker = false;
+        //    _showFontFamilyPicker = false;
+        //    _showHeadingPicker = false;
+        //    _showEmojiPicker = false;
+        //}
 
         protected async Task SelectTextColor(string color)
         {
@@ -1362,6 +1363,7 @@ namespace BlazorRTE.Components
                 await FocusToolbarButton(_toolbarFocusIndex);
             }
         }
+
         protected async Task SelectFontFamily(string fontName)
         {
             if (_jsModule == null) return;
@@ -1558,10 +1560,10 @@ namespace BlazorRTE.Components
             catch { }
         }
 
-        private async Task ToggleBold()
-        {
-            await ExecuteCommand(FormatCommand.Bold);
-        }
+        //private async Task ToggleBold()
+        //{
+        //    await ExecuteCommand(FormatCommand.Bold);
+        //}
 
         [JSInvokable]
         protected async Task ToggleEmojiPicker()
@@ -1755,11 +1757,11 @@ namespace BlazorRTE.Components
 
         // Add helper method to determine when to prevent default key behavior:
 
-        protected bool ShouldPreventDefaultKey(KeyboardEventArgs e)
-        {
-            // Prevent Enter when BypassEnterKey is true and no modifiers (except Shift is allowed for newlines)
-            return BypassEnterKey && e.Key == "Enter" && !e.ShiftKey && !e.CtrlKey && !e.MetaKey;
-        }
+        //protected bool ShouldPreventDefaultKey(KeyboardEventArgs e)
+        //{
+        //    // Prevent Enter when BypassEnterKey is true and no modifiers (except Shift is allowed for newlines)
+        //    return BypassEnterKey && e.Key == "Enter" && !e.ShiftKey && !e.CtrlKey && !e.MetaKey;
+        //}
 
         // ===== TOOLBAR KEYBOARD NAVIGATION =====
         private int _toolbarFocusIndex = 0;
@@ -1902,55 +1904,55 @@ namespace BlazorRTE.Components
 
         // Add these methods to handle dropdown keyboard navigation
 
-        private async Task OpenHeadingPickerWithFocus()
-        {
-            await ToggleHeadingPicker();
-            if (_showHeadingPicker && _jsModule != null)
-            {
-                await Task.Delay(50);
-                await _jsModule.InvokeVoidAsync("focusFirstInElement", "heading-palette");
-            }
-        }
+        //private async Task OpenHeadingPickerWithFocus()
+        //{
+        //    await ToggleHeadingPicker();
+        //    if (_showHeadingPicker && _jsModule != null)
+        //    {
+        //        await Task.Delay(50);
+        //        await _jsModule.InvokeVoidAsync("focusFirstInElement", "heading-palette");
+        //    }
+        //}
 
-        private async Task OpenFontFamilyPickerWithFocus()
-        {
-            await ToggleFontFamilyPicker();
-            if (_showFontFamilyPicker && _jsModule != null)
-            {
-                await Task.Delay(50);
-                await _jsModule.InvokeVoidAsync("focusFirstInElement", "fontfamily-palette");
-            }
-        }
+        //private async Task OpenFontFamilyPickerWithFocus()
+        //{
+        //    await ToggleFontFamilyPicker();
+        //    if (_showFontFamilyPicker && _jsModule != null)
+        //    {
+        //        await Task.Delay(50);
+        //        await _jsModule.InvokeVoidAsync("focusFirstInElement", "fontfamily-palette");
+        //    }
+        //}
 
-        private async Task OpenFontSizePickerWithFocus()
-        {
-            await ToggleFontSizePicker();
-            if (_showFontSizePicker && _jsModule != null)
-            {
-                await Task.Delay(50);
-                await _jsModule.InvokeVoidAsync("focusFirstInElement", "fontsize-palette");
-            }
-        }
+        //private async Task OpenFontSizePickerWithFocus()
+        //{
+        //    await ToggleFontSizePicker();
+        //    if (_showFontSizePicker && _jsModule != null)
+        //    {
+        //        await Task.Delay(50);
+        //        await _jsModule.InvokeVoidAsync("focusFirstInElement", "fontsize-palette");
+        //    }
+        //}
 
-        private async Task OpenTextColorPickerWithFocus()
-        {
-            await ToggleTextColorPicker();
-            if (_showTextColorPicker && _jsModule != null)
-            {
-                await Task.Delay(50);
-                await _jsModule.InvokeVoidAsync("focusFirstInElement", "textcolor-palette");
-            }
-        }
+        //private async Task OpenTextColorPickerWithFocus()
+        //{
+        //    await ToggleTextColorPicker();
+        //    if (_showTextColorPicker && _jsModule != null)
+        //    {
+        //        await Task.Delay(50);
+        //        await _jsModule.InvokeVoidAsync("focusFirstInElement", "textcolor-palette");
+        //    }
+        //}
 
-        private async Task OpenHighlightPickerWithFocus()
-        {
-            await ToggleBackgroundColorPicker();
-            if (_showBackgroundColorPicker && _jsModule != null)
-            {
-                await Task.Delay(50);
-                await _jsModule.InvokeVoidAsync("focusFirstInElement", "highlight-palette");
-            }
-        }
+        //private async Task OpenHighlightPickerWithFocus()
+        //{
+        //    await ToggleBackgroundColorPicker();
+        //    if (_showBackgroundColorPicker && _jsModule != null)
+        //    {
+        //        await Task.Delay(50);
+        //        await _jsModule.InvokeVoidAsync("focusFirstInElement", "highlight-palette");
+        //    }
+        //}
 
         protected async Task OnDropdownKeyDown(KeyboardEventArgs e, string paletteId)
         {
