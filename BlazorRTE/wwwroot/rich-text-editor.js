@@ -27,7 +27,29 @@ export function initializeEditor(element, dotNetRef, editorId, fontFamilies = []
     }
 
     editorInstances.set(element, { dotNetRef });
- 
+
+    // ===== KEYBOARD SHORTCUTS - Prevent browser defaults =====
+    element.addEventListener('keydown', function (e) {
+        if (!(e.ctrlKey || e.metaKey)) return;
+        if (e.shiftKey || e.altKey) return; // Let C# handle Ctrl+Shift and Ctrl+Alt
+
+        const key = e.key.toLowerCase();
+
+        // Only handle shortcuts that conflict with browser (Firefox Ctrl+B = bookmarks)
+        const shortcuts = {
+            'b': 'bold',
+            'i': 'italic',
+            'u': 'underline'
+        };
+
+        if (shortcuts[key]) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.execCommand(shortcuts[key], false, null);
+            saveSelection();
+        }
+    }, true);
+    // ===== END KEYBOARD SHORTCUTS =====
     
     // *** Autocomplete variables (inside initializeEditor scope) ***
     let shortcodeStart = -1;
