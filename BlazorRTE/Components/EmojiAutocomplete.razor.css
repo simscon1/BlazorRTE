@@ -24,15 +24,24 @@
     gap: 12px;
     transition: background-color 0.15s;
     outline: none;
+    border: 1px solid transparent;  /* ADD: for selected border */
+    border-radius: 4px;              /* ADD: match heading options */
+    margin: 0 4px;                   /* ADD: spacing for border */
 }
 
-.emoji-autocomplete-item:hover,
+.emoji-autocomplete-item:hover {
+    background-color: #f3f4f6;       /* CHANGE: match heading hover */
+    border-color: #d1d5db;
+}
+
 .emoji-autocomplete-item.selected {
-    background-color: #f5f5f5;
+    background-color: #dbeafe;       /* CHANGE: match heading selected */
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .emoji-autocomplete-item:active {
-    background-color: #e5e7eb;
+    background-color: #bfdbfe;       /* CHANGE: lighter blue on click */
 }
 
 .emoji-char {
@@ -88,13 +97,19 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-.emoji-autocomplete.dark-mode .emoji-autocomplete-item:hover,
+.emoji-autocomplete.dark-mode .emoji-autocomplete-item:hover {
+    background-color: #374151;       /* CHANGE: match heading hover */
+    border-color: #4b5563;
+}
+
 .emoji-autocomplete.dark-mode .emoji-autocomplete-item.selected {
-    background-color: #374151;
+    background-color: #1e3a8a;       /* CHANGE: match heading selected */
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
 }
 
 .emoji-autocomplete.dark-mode .emoji-autocomplete-item:active {
-    background-color: #4b5563;
+    background-color: #1e40af;
 }
 
 .emoji-autocomplete.dark-mode .emoji-name {
@@ -124,13 +139,19 @@
         border-color: #4b5563;
     }
 
-    .emoji-autocomplete:not(.light-mode) .emoji-autocomplete-item:hover,
-    .emoji-autocomplete:not(.light-mode) .emoji-autocomplete-item.selected {
+    .emoji-autocomplete:not(.light-mode) .emoji-autocomplete-item:hover {
         background-color: #374151;
+        border-color: #4b5563;
+    }
+
+    .emoji-autocomplete:not(.light-mode) .emoji-autocomplete-item.selected {
+        background-color: #1e3a8a;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
     }
 
     .emoji-autocomplete:not(.light-mode) .emoji-autocomplete-item:active {
-        background-color: #4b5563;
+        background-color: #1e40af;
     }
 
     .emoji-autocomplete:not(.light-mode) .emoji-name {

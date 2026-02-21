@@ -1,13 +1,22 @@
-# BlazorRTE - Professional Rich Text Editor for Blazor
+# BlazorRTE - Rich Text Editor for Blazor
 
-**Native Blazor • 51 Features • Zero JavaScript Dependencies • Production-Ready**
+**Native Blazor • Keyboard Accessible • Zero External Dependencies**
 
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE.txt)
-[![.NET 8+](https://img.shields.io/badge/.NET-8.0%2B-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
+[![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
+
+## 🌐 Browser Support
+
+| Browser | Status |
+|---------|--------|
+| Chrome | ✅ Tested |
+| Edge | ✅ Tested |
+| Firefox | ✅ Tested |
+| Safari | ⚠️ Not tested |
 
 ## 🚀 Quick Start
 
-**⚠️ Important:** For Blazor Server, BlazorRTE requires interactive rendering. Add `@rendermode InteractiveServer` to your page.
+**⚠️ Important:** BlazorRTE requires interactive rendering.
 
 ### Installation
 
@@ -33,74 +42,116 @@ dotnet add package BlazorRTE
 **Why is @rendermode required?**
 - BlazorRTE uses JavaScript interop for contenteditable functionality
 - Static SSR mode won't work - the component needs client-side interactivity
-- Supported modes: `InteractiveServer`, `InteractiveWebAssembly`, or `InteractiveAuto`
+- Supported modes: `InteractiveServer`, `InteractiveWebAssembly`, `InteractiveAuto`
 
 ---
 
 ## 🎯 Features
 
 ### Text Formatting
-- ✅ Rich text formatting (Bold, Italic, Underline, Strikethrough)
+- ✅ Bold, Italic, Underline, Strikethrough
 - ✅ Subscript & Superscript
-- ✅ Headings (H1, H2, H3), Lists, Alignment
-- ✅ Text & Highlight Colors (9 + 7 preset colors)
-- ✅ Font Family (10 web-safe fonts) & Font Size (6 sizes)
+- ✅ Headings (H1, H2, H3)
+- ✅ Bulleted & Numbered Lists
+- ✅ Text Alignment (Left, Center, Right, Justify)
+- ✅ Indent / Outdent
+- ✅ Text & Highlight Colors (preset palette + custom picker)
+- ✅ Font Family (10 web-safe fonts)
+- ✅ Font Size (6 sizes)
 
 ### Functionality
-- ✅ Links (with URL prompts), Horizontal Rules
-- ✅ Undo/Redo (Ctrl+Z/Y)
-- ✅ **🎭 Emoji Picker** - 1800+ emojis with search
-- ✅ **⚡ Emoji Autocomplete** - Type `:smile` for inline suggestions
+- ✅ Links with URL prompts
+- ✅ Horizontal Rules
+- ✅ Undo/Redo
+- ✅ **Emoji Picker** - 1800+ emojis via BlazorEmo
+- ✅ **Emoji Autocomplete** - Type `:smile` for suggestions
 - ✅ Character & Word Count
 - ✅ Max length enforcement
 - ✅ HTML sanitization (XSS protection)
+- ✅ Dark mode support
 
-### Dynamic Toolbar Indicators ✨
-- ✅ **Font size button** - Shows current size (10, 14, 16, 18, 24, 32)
-- ✅ **Heading button** - Shows current level (¶, H1, H2, H3)
-- ✅ **Text color button** - Shows current color with colored underline
-- ✅ **Highlight button** - Shows current color with colored background
-
-### Developer Experience
-- ✅ **Two-way data binding** (`@bind-Value`)
-- ✅ **Comprehensive API** - 20+ event callbacks, methods, parameters
-- ✅ **Dark mode support** - Automatic theme switching
-- ✅ **Responsive design** - Works on desktop, tablet, mobile
-- ✅ **Zero dependencies** - ~25KB, fully self-contained 
+### Accessibility (v1.2.0)
+- ✅ Full keyboard navigation for toolbar
+- ✅ ARIA labels on all controls
+- ✅ Pending format support (click Bold with no selection, then type)
 
 ---
 
-## 💬 Chat Integration - Enter Key Bypass (NEW in v1.1.4)
+## ⌨️ Keyboard Shortcuts
 
-Perfect for chat applications where Enter sends the message:
+| Shortcut | Action | Chrome | Edge | Firefox |
+|----------|--------|--------|------|---------|
+| `Ctrl+B` | Bold | ✅ | ✅ | ✅ |
+| `Ctrl+I` | Italic | ✅ | ✅ | ✅ |
+| `Ctrl+U` | Underline | ✅ | ✅ | ✅ |
+| `Ctrl+Z` | Undo | ✅ | ✅ | ✅ |
+| `Ctrl+Y` | Redo | ✅ | ✅ | ✅ |
+| `Ctrl+Alt+1` | Heading 1 | ✅ | ✅ | ✅ |
+| `Ctrl+Alt+2` | Heading 2 | ✅ | ✅ | ✅ |
+| `Ctrl+Alt+3` | Heading 3 | ✅ | ✅ | ✅ |
+| `Ctrl+L` | Align Left | ✅ | ✅ | ❌ |
+| `Ctrl+Enter` | Horizontal Rule | ✅ | ✅ | ❌ |
 
-- **Auto-submit on Enter** - Send messages with the Enter key
-- **Shift+Enter** - Insert newline
-- **Control over behavior** - `EnterKeyBehavior` parameter:
-  - `EnterKeyBehavior.AlwaysSubmit` - Always send on Enter
-  - `EnterKeyBehavior.WithModifier` - Send only with Shift/Ctrl
-  - `EnterKeyBehavior.NeverSubmit` - Disable Enter to send
+### Known Issues
+- **Firefox `Ctrl+Shift+X`**: Applies strikethrough but also right-aligns text
 
-**Example:**
-```razor
-<RichTextEditor @bind-Value="@message" EnterKeyBehavior="EnterKeyBehavior.WithModifier" />
+### Toolbar Navigation (v1.2.0)
+
+| Key | Action |
+|-----|--------|
+| `←` `→` | Move between buttons |
+| `↓` | Open dropdown |
+| `Enter` / `Space` | Activate button |
+| `Escape` | Close dropdown |
+| `Home` | First button |
+| `End` | Last button |
+
+---
+
+## 💬 Chat Mode (Enter to Send)
+
+For chat applications where Enter sends the message:
+
+```
+<RichTextEditor @bind-Value="@message" 
+				BypassEnterKey="true" O
+				nEnterKeyPressed="SendMessage" />
+
+@code { 
+		private string message = "";
+		private async Task SendMessage()
+		{
+		    // Send the message
+		    await SendAsync(message);
+		    message = "";
+		}
+}
 ```
 
+- `BypassEnterKey="true"` - Enter triggers `OnEnterKeyPressed` instead of newline
+- `Shift+Enter` - Insert newline when bypass is enabled
+
 ---
- 
-## 📖 Documentation
 
-**Full API Documentation:** [Docs/FEATURES.md](Docs/FEATURES.md)
+## 📖 Component Parameters
 
+---
+  
 ### Component Parameters
-```razor
+```razor 
 [Parameter] public string Value { get; set; } 
 [Parameter] public EventCallback<string> ValueChanged { get; set; } 
 [Parameter] public string Placeholder { get; set; } = "Type your message..."; 
 [Parameter] public bool ShowToolbar { get; set; } = true; 
-[Parameter] public int MaxLength { get; set; } = 5000;
+[Parameter] public int MaxLength { get; set; } = 5000; 
 [Parameter] public bool ShowCharacterCount { get; set; } = true; 
+[Parameter] public string MinHeight { get; set; } = "200px"; 
+[Parameter] public string MaxHeight { get; set; } = "600px"; 
+[Parameter] public bool DarkMode { get; set; } = false; 
+[Parameter] public bool EnableEmojiShortcodes { get; set; } = true; 
+[Parameter] public bool BypassEnterKey { get; set; } = false; 
 [Parameter] public string AriaLabel { get; set; } = "Rich text editor";
+
 ```
 ### Public Methods
 
@@ -108,19 +159,10 @@ Perfect for chat applications where Enter sends the message:
 await ClearAsync();           // Clear all content
 await FocusAsync();           // Focus the editor
 string text = GetPlainText(); // Get plain text without HTML
-```
-### Height Control
-```razor
-<!-- Default: 200px min, 600px max (industry standard) --> <RichTextEditor @bind-Value="@content" />
-<!-- Custom heights --> <RichTextEditor MinHeight="300px" MaxHeight="800px" />
-<!-- Values without 'px' are auto-converted --> <RichTextEditor MinHeight="300" MaxHeight="800" />
-```
---- 
-
- 
+``` 
 
 
- ## 🎭 Emoji Support
+## 🎭 Emoji Support
 
 BlazorRTE includes **two ways** to insert emojis:
 
@@ -183,14 +225,14 @@ BlazorRTE includes **enterprise-grade XSS protection**:
 - ✅ **JavaScript protocol blocking** (`javascript:` URLs)
 - ✅ **Attribute sanitization** (removes `onclick`, `onerror`, etc.)
 
-**Allowed tags:** `p`, `br`, `strong`, `em`, `u`, `s`, `h1-h3`, `ul`, `ol`, `li`, `a`, `hr`, `sub`, `sup`, `span`, `font`
+**Allowed tags:** `p`, `br`, `strong`, `em`, `u`, `s`, `h1-h6`, `ul`, `ol`, `li`, `a`, `hr`, `sub`, `sup`, `span`, `font`
 
 ---
 
 ## 📜 License
 
 ### Community Edition (Free - GPL v3)
-- ✅ All 51 features included
+- ✅ All 39 features included
 - ✅ Free for open-source projects
 - ✅ Community support via GitHub Issues
 - ⚠️ **GPL v3 Requirement:** Your application must also be open-source under GPL v3
@@ -204,6 +246,3 @@ BlazorRTE includes **enterprise-grade XSS protection**:
 - [Heroicons](https://heroicons.com/) - Beautiful SVG icons (MIT License)
 - [Material Icons](https://fonts.google.com/icons) - Link icon (Apache 2.0)
 - [BlazorEmo](https://github.com/simscon1/BlazorEmo) - Emoji picker component
-
----
- 
