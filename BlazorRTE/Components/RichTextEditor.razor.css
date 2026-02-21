@@ -6,17 +6,17 @@
     border: 1px solid #d1d5db;
     border-radius: 8px;
     background: white;
-    position: relative;   /* ← ADD: Position relative to contain absolutely positioned children */
-    overflow: visible;    /* ← CHANGE: Allow overflow for autocomplete */
+    position: relative; /* ← ADD: Position relative to contain absolutely positioned children */
+    overflow: visible; /* ← CHANGE: Allow overflow for autocomplete */
     transition: border-color 0.2s ease;
-    min-height: var(--rte-min-height, 200px);  /* ✅ Industry standard min */
-    max-height: var(--rte-max-height, 600px);  /* ✅ Industry standard max, user customizable */
+    min-height: var(--rte-min-height, 200px); /* ✅ Industry standard min */
+    max-height: var(--rte-max-height, 600px); /* ✅ Industry standard max, user customizable */
 }
 
-.rich-text-editor.focused {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
+    .rich-text-editor.focused {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
 
 /* Toolbar */
 .rte-toolbar {
@@ -28,16 +28,16 @@
     border-bottom: 1px solid #e5e7eb;
     flex-wrap: wrap;
     flex-shrink: 0;
-    border-top-left-radius: 8px;   /* ← ADD: Fix top-left corner */
-    border-top-right-radius: 8px;  /* ← ADD: Fix top-right corner */
+    border-top-left-radius: 8px; /* ← ADD: Fix top-left corner */
+    border-top-right-radius: 8px; /* ← ADD: Fix top-right corner */
 }
 
-/* Button groups - display inline */
-.rte-toolbar [role="group"] {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-}
+    /* Button groups - display inline */
+    .rte-toolbar [role="group"] {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+    }
 
 /* Heading Dropdown */
 .rte-dropdown {
@@ -87,20 +87,20 @@
     user-select: none;
 }
 
-.rte-btn:hover {
-    background: #e5e7eb;
-    border-color: #d1d5db;
-}
+    .rte-btn:hover {
+        background: #e5e7eb;
+        border-color: #d1d5db;
+    }
 
-.rte-btn:active {
-    background: #d1d5db;
-}
+    .rte-btn:active {
+        background: #d1d5db;
+    }
 
     .rte-btn.active {
         background: #dbeafe;
         border-color: #3b82f6;
         color: #1e40af;
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);        
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
     }
 
 
@@ -163,14 +163,14 @@
     transition: all 0.15s ease;
 }
 
-.rte-color-btn:hover {
-    transform: scale(1.15);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
+    .rte-color-btn:hover {
+        transform: scale(1.15);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
 
-.rte-color-btn:active {
-    transform: scale(1.0);
-}
+    .rte-color-btn:active {
+        transform: scale(1.0);
+    }
 
 /* ========================================
    COLOR PALETTE STYLES (shared)
@@ -191,17 +191,17 @@
     min-width: 220px;
 }
 
-.rte-color-palette.align-right {
-    left: auto;
-    right: 0;
-    transform: none;
-}
+    .rte-color-palette.align-right {
+        left: auto;
+        right: 0;
+        transform: none;
+    }
 
-.rte-color-palette.align-left {
-    left: 0;
-    right: auto;
-    transform: none;
-}
+    .rte-color-palette.align-left {
+        left: 0;
+        right: auto;
+        transform: none;
+    }
 
 .rte-color-palette-title {
     font-size: 11px;
@@ -235,21 +235,21 @@
     min-height: 24px;
 }
 
-.rte-color-swatch:hover {
-    transform: scale(1.15);
-    border-color: #000;
-    z-index: 1;
-}
+    .rte-color-swatch:hover {
+        transform: scale(1.15);
+        border-color: #000;
+        z-index: 1;
+    }
 
-.rte-color-swatch:focus {
-    outline: 2px solid #3b82f6;
-    outline-offset: 2px;
-}
+    .rte-color-swatch:focus {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+    }
 
-.rte-color-swatch.selected {
-    outline: 3px solid #3b82f6;
-    outline-offset: 1px;
-}
+    .rte-color-swatch.selected {
+        outline: 3px solid #3b82f6;
+        outline-offset: 1px;
+    }
 
 /* White swatch needs visible border */
 .rte-color-swatch-white {
@@ -272,12 +272,12 @@
     border-top: 1px solid #e5e7eb;
 }
 
-.rte-color-custom label {
-    font-size: 12px;
-    font-weight: 500;
-    color: #6b7280;
-    white-space: nowrap;
-}
+    .rte-color-custom label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #6b7280;
+        white-space: nowrap;
+    }
 
 .rte-color-input {
     flex: 1;
@@ -289,18 +289,18 @@
     background: transparent;
 }
 
-.rte-color-input:hover {
-    border-color: #3b82f6;
-}
+    .rte-color-input:hover {
+        border-color: #3b82f6;
+    }
 
-.rte-color-input::-webkit-color-swatch-wrapper {
-    padding: 2px;
-}
+    .rte-color-input::-webkit-color-swatch-wrapper {
+        padding: 2px;
+    }
 
-.rte-color-input::-webkit-color-swatch {
-    border: none;
-    border-radius: 2px;
-}
+    .rte-color-input::-webkit-color-swatch {
+        border: none;
+        border-radius: 2px;
+    }
 
 /* Visually hidden for screen readers */
 .visually-hidden {
@@ -360,14 +360,14 @@
     transition: all 0.15s ease;
 }
 
-.rte-color-btn:hover {
-    transform: scale(1.15);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
+    .rte-color-btn:hover {
+        transform: scale(1.15);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
 
-.rte-color-btn:active {
-    transform: scale(1.0);
-}
+    .rte-color-btn:active {
+        transform: scale(1.0);
+    }
 
 /* Color Dropdown Container */
 .rte-color-dropdown {
@@ -380,17 +380,17 @@
     border-top-color: #4b5563;
 }
 
-.rich-text-editor.dark-mode .rte-color-custom label {
-    color: #9ca3af;
-}
+    .rich-text-editor.dark-mode .rte-color-custom label {
+        color: #9ca3af;
+    }
 
-.rich-text-editor.dark-mode .rte-color-custom input[type="color"] {
-    border-color: #4b5563;
-}
+    .rich-text-editor.dark-mode .rte-color-custom input[type="color"] {
+        border-color: #4b5563;
+    }
 
-.rich-text-editor.dark-mode .rte-color-custom input[type="color"]:hover {
-    border-color: #60a5fa;
-}
+        .rich-text-editor.dark-mode .rte-color-custom input[type="color"]:hover {
+            border-color: #60a5fa;
+        }
 
 /* When button is near RIGHT edge - align palette to right */
 .rte-color-palette.align-right {
@@ -433,38 +433,38 @@
         color: #e5e7eb;
     }
 
-    .rte-dropdown:hover {
-        background: #374151;
-        border-color: #4b5563;
-    }
+        .rte-dropdown:hover {
+            background: #374151;
+            border-color: #4b5563;
+        }
 
     .rte-btn {
         color: #e7e9eb;
     }
 
-    .rte-btn:hover {
-        background: #374151;
-        border-color: #4b5563;
-    }
+        .rte-btn:hover {
+            background: #374151;
+            border-color: #4b5563;
+        }
 
-    .rte-btn.active {
-        background: #1e3a8a;
-        border-color: #3b82f6;
-        color: #93c5fd;
-    }
+        .rte-btn.active {
+            background: #1e3a8a;
+            border-color: #3b82f6;
+            color: #93c5fd;
+        }
 
     .rte-content {
         color: #f9fafb;
         font-family: Arial, sans-serif;
     }
 
-    .rte-content:empty::before {
-        color: #6b7280;
-    }
+        .rte-content:empty::before {
+            color: #6b7280;
+        }
 
-    .rte-content hr {
-        border-top-color: #4b5563;
-    }
+        .rte-content hr {
+            border-top-color: #4b5563;
+        }
 
     .rte-footer {
         background: #111827;
@@ -490,9 +490,9 @@
 
     .rte-btn .rte-icon {
         stroke: #e5e7eb;
-        fill: transparent;  /* ✅ Transparent for stroke icons */
+        fill: transparent; /* ✅ Transparent for stroke icons */
     }
-    
+
     .rte-btn.active .rte-icon {
         stroke: #60a5fa;
         fill: transparent;
@@ -502,7 +502,7 @@
     .rte-btn .rte-icon path[fill="currentColor"] {
         fill: #e5e7eb !important;
     }
-    
+
     .rte-btn.active .rte-icon path[fill="currentColor"] {
         fill: #60a5fa !important;
     }
@@ -511,10 +511,10 @@
         color: #d1d5db;
     }
 
-    .rte-font-option:hover {
-        background: #374151;
-    }
-    
+        .rte-font-option:hover {
+            background: #374151;
+        }
+
     /* ADD THESE - Scrollbar dark mode colors */
     .rte-font-family-list::-webkit-scrollbar-track {
         background: #1f2937;
@@ -524,9 +524,9 @@
         background: #4b5563;
     }
 
-    .rte-font-family-list::-webkit-scrollbar-thumb:hover {
-        background: #6b7280;
-    }
+        .rte-font-family-list::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
 }
 
 /* Dark Mode Styles */
@@ -535,37 +535,37 @@
     border-color: #4b5563;
 }
 
-.rich-text-editor.dark-mode .rte-toolbar {
-    background: #374151;
-    border-color: #4b5563;
-}
+    .rich-text-editor.dark-mode .rte-toolbar {
+        background: #374151;
+        border-color: #4b5563;
+    }
 
-.rich-text-editor.dark-mode .rte-btn {
-    color: #f3f4f6;
-    background: transparent;
-}
+    .rich-text-editor.dark-mode .rte-btn {
+        color: #f3f4f6;
+        background: transparent;
+    }
 
-.rich-text-editor.dark-mode .rte-btn:hover {
-    background: #4b5563;
-}
+        .rich-text-editor.dark-mode .rte-btn:hover {
+            background: #4b5563;
+        }
 
-.rich-text-editor.dark-mode .rte-btn.active {   
-    background: #6b21a8;  /* ✅ Darker purple for better contrast */
-    border-color: #a78bfa;
-    color: white;
-}
+        .rich-text-editor.dark-mode .rte-btn.active {
+            background: #6b21a8; /* ✅ Darker purple for better contrast */
+            border-color: #a78bfa;
+            color: white;
+        }
 
-/* Dark Mode - Editor text color */
-.rich-text-editor.dark-mode .rte-content {
-    background: #1f2937;
-    color: #f3f4f6;  /* ✅ Light text for dark mode */
-    border-color: #4b5563;
-}
+    /* Dark Mode - Editor text color */
+    .rich-text-editor.dark-mode .rte-content {
+        background: #1f2937;
+        color: #f3f4f6; /* ✅ Light text for dark mode */
+        border-color: #4b5563;
+    }
 
-/* Dark Mode - Placeholder text */
-.rich-text-editor.dark-mode .rte-content:empty::before {
-    color: #6b7280;  /* ✅ Dimmed placeholder in dark mode */
-}
+        /* Dark Mode - Placeholder text */
+        .rich-text-editor.dark-mode .rte-content:empty::before {
+            color: #6b7280; /* ✅ Dimmed placeholder in dark mode */
+        }
 
 /* SVG ICONS - CLEAN SOLUTION */
 
@@ -579,7 +579,7 @@
 
 /* Light Mode - Default icon colors */
 .rte-btn .rte-icon {
-    color: currentColor;  /* Let SVG inherit from button */
+    color: currentColor; /* Let SVG inherit from button */
 }
 
 .rte-btn:hover .rte-icon {
@@ -608,7 +608,7 @@
     .rte-btn .rte-icon {
         color: #e5e7eb;
     }
-    
+
     .rte-btn.active .rte-icon {
         color: #60a5fa;
     }
@@ -623,7 +623,7 @@
     font-size: 0.75em;
     vertical-align: super;
 }
- 
+
 /* ========================================
    CUSTOM TOOLTIPS
    ======================================== */
@@ -634,41 +634,41 @@
     position: relative;
 }
 
-/* Tooltip text - positioned BELOW button */
-.rte-btn[data-tooltip]:hover::after,
-.rte-font-option[data-tooltip]:hover::after,
-.rte-palette-color[data-tooltip]:hover::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    top: calc(100% + 8px);  /* BELOW the button */
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 6px 10px;
-    background: #1f2937;
-    color: white;
-    font-size: 12px;
-    font-weight: 500;
-    white-space: nowrap;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    z-index: 10001;
-    pointer-events: none;
-}
+    /* Tooltip text - positioned BELOW button */
+    .rte-btn[data-tooltip]:hover::after,
+    .rte-font-option[data-tooltip]:hover::after,
+    .rte-palette-color[data-tooltip]:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        top: calc(100% + 8px); /* BELOW the button */
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 6px 10px;
+        background: #1f2937;
+        color: white;
+        font-size: 12px;
+        font-weight: 500;
+        white-space: nowrap;
+        border-radius: 6px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        z-index: 10001;
+        pointer-events: none;
+    }
 
-/* Tooltip arrow - pointed UP (since tooltip is below) */
-.rte-btn[data-tooltip]:hover::before,
-.rte-font-option[data-tooltip]:hover::before,
-.rte-palette-color[data-tooltip]:hover::before {
-    content: '';
-    position: absolute;
-    top: calc(100% + 2px);  /* BELOW the button */
-    left: 50%;
-    transform: translateX(-50%);
-    border: 4px solid transparent;
-    border-bottom-color: #1f2937;  /* Arrow points UP */
-    z-index: 10001;
-    pointer-events: none;
-}
+    /* Tooltip arrow - pointed UP (since tooltip is below) */
+    .rte-btn[data-tooltip]:hover::before,
+    .rte-font-option[data-tooltip]:hover::before,
+    .rte-palette-color[data-tooltip]:hover::before {
+        content: '';
+        position: absolute;
+        top: calc(100% + 2px); /* BELOW the button */
+        left: 50%;
+        transform: translateX(-50%);
+        border: 4px solid transparent;
+        border-bottom-color: #1f2937; /* Arrow points UP */
+        z-index: 10001;
+        pointer-events: none;
+    }
 
 /* Dark mode tooltip colors */
 @media (prefers-color-scheme: dark) {
@@ -678,7 +678,7 @@
         background: #374151;
         color: #f9fafb;
     }
-    
+
     .rte-btn[data-tooltip]:hover::before,
     .rte-font-option[data-tooltip]:hover::before,
     .rte-palette-color[data-tooltip]:hover::before {
@@ -723,10 +723,7 @@
     border-radius: 4px;
     font-size: 12px;
     /* Outline effect ensures "A" is visible on any background */
-    text-shadow: 
-        0 0 2px #fff,
-        0 0 2px #fff,
-        0 0 2px #fff;
+    text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 2px #fff;
 }
 
 /* Dark mode - lighter border, same text approach */
@@ -734,16 +731,13 @@
     border-color: #9ca3af;
     /* Keep text dark with white outline - works for most highlight colors */
     color: #000;
-    text-shadow: 
-        0 0 2px #fff,
-        0 0 2px #fff,
-        0 0 2px #fff;
+    text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 2px #fff;
 }
 
 /* ✅ DARK MODE ICON COLOR OVERRIDE - IF NEEDED */
 .rich-text-editor.dark-mode .rte-btn .rte-icon {
     stroke: #f3f4f6 !important;
-    fill: transparent !important;  /* ✅ Transparent for stroke icons */
+    fill: transparent !important; /* ✅ Transparent for stroke icons */
 }
 
 .rich-text-editor.dark-mode .rte-btn:hover .rte-icon {
@@ -786,73 +780,69 @@
     flex: 1;
     padding: 12px;
     outline: none;
-    font-family: Arial, sans-serif;  /* ← Changed from system fonts */
+    font-family: Arial, sans-serif; /* ← Changed from system fonts */
     font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.3;
     color: #111827;
     overflow-wrap: break-word;
     word-wrap: break-word;
 }
 
-.rte-content:empty::before {
-    content: attr(placeholder);
-    color: #9ca3af;
-    pointer-events: none;
-}
+    .rte-content:empty::before {
+        content: attr(placeholder);
+        color: #9ca3af;
+        pointer-events: none;
+    }
 
-.rte-content p {
-    margin: 0 0 0.5em 0;
-}
+    .rte-content p {
+        margin: 0;
+    }
 
-.rte-content p:last-child {
-    margin-bottom: 0;
-}
+    .rte-content h1 {
+        font-size: 2em;
+        font-weight: 700;
+        margin: 0.5em 0;
+        line-height: 1.2;
+    }
 
-.rte-content h1 {
-    font-size: 2em;
-    font-weight: 700;
-    margin: 0.5em 0;
-    line-height: 1.2;
-}
+    .rte-content h2 {
+        font-size: 1.5em;
+        font-weight: 600;
+        margin: 0.5em 0;
+        line-height: 1.3;
+    }
 
-.rte-content h2 {
-    font-size: 1.5em;
-    font-weight: 600;
-    margin: 0.5em 0;
-    line-height: 1.3;
-}
+    .rte-content h3 {
+        font-size: 1.25em;
+        font-weight: 600;
+        margin: 0.5em 0;
+        line-height: 1.4;
+    }
 
-.rte-content h3 {
-    font-size: 1.25em;
-    font-weight: 600;
-    margin: 0.5em 0;
-    line-height: 1.4;
-}
+    .rte-content ul,
+    .rte-content ol {
+        margin: 0.5em 0;
+        padding-left: 24px;
+    }
 
-.rte-content ul,
-.rte-content ol {
-    margin: 0.5em 0;
-    padding-left: 24px;
-}
+    .rte-content li {
+        margin: 0.25em 0;
+    }
 
-.rte-content li {
-    margin: 0.25em 0;
-}
+    .rte-content hr {
+        border: none;
+        border-top: 2px solid #d1d5db;
+        margin: 1em 0;
+    }
 
-.rte-content hr {
-    border: none;
-    border-top: 2px solid #d1d5db;
-    margin: 1em 0;
-}
+    .rte-content a {
+        color: #2563eb;
+        text-decoration: underline;
+    }
 
-.rte-content a {
-    color: #2563eb;
-    text-decoration: underline;
-}
-
-.rte-content a:hover {
-    color: #1d4ed8;
-}
+        .rte-content a:hover {
+            color: #1d4ed8;
+        }
 
 /* ========================================
    FOOTER STYLES
@@ -890,24 +880,24 @@
     overflow-y: auto;
 }
 
-/* Scrollbar styling for font family list */
-.rte-font-family-palette::-webkit-scrollbar {
-    width: 8px;
-}
+    /* Scrollbar styling for font family list */
+    .rte-font-family-palette::-webkit-scrollbar {
+        width: 8px;
+    }
 
-.rte-font-family-palette::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
+    .rte-font-family-palette::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
 
-.rte-font-family-palette::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-}
+    .rte-font-family-palette::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
 
-.rte-font-family-palette::-webkit-scrollbar-thumb:hover {
-    background: #a1a1a1;
-}
+        .rte-font-family-palette::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
 
 /* Dark mode scrollbar */
 .rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-track {
@@ -918,9 +908,9 @@
     background: #4b5563;
 }
 
-.rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-thumb:hover {
-    background: #6b7280;
-}
+    .rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+    }
 
 /* ========================================
    DARK MODE - FOOTER & CONTENT
@@ -934,9 +924,9 @@
     color: #60a5fa;
 }
 
-.rich-text-editor.dark-mode .rte-content a:hover {
-    color: #93c5fd;
-}
+    .rich-text-editor.dark-mode .rte-content a:hover {
+        color: #93c5fd;
+    }
 
 .rich-text-editor.dark-mode .rte-content hr {
     border-top-color: #4b5563;
@@ -968,25 +958,25 @@
     color: #e5e7eb;
 }
 
-.rich-text-editor.dark-mode .rte-font-option:hover {
-    background: #374151;
-}
+    .rich-text-editor.dark-mode .rte-font-option:hover {
+        background: #374151;
+    }
 
 .rich-text-editor.dark-mode .rte-color-swatch {
     border-color: #4b5563;
 }
 
-.rich-text-editor.dark-mode .rte-color-swatch:hover {
-    border-color: #fff;
-}
+    .rich-text-editor.dark-mode .rte-color-swatch:hover {
+        border-color: #fff;
+    }
 
 .rich-text-editor.dark-mode .rte-color-input {
     border-color: #4b5563;
 }
 
-.rich-text-editor.dark-mode .rte-color-input:hover {
-    border-color: #60a5fa;
-}
+    .rich-text-editor.dark-mode .rte-color-input:hover {
+        border-color: #60a5fa;
+    }
 
 /* ========================================
    BACKDROP FOR CLICK-OUTSIDE DETECTION
@@ -1031,22 +1021,22 @@
     transition: all 0.15s ease;
 }
 
-.rte-heading-option:hover {
-    background: #f3f4f6;
-    border-color: #d1d5db;
-}
+    .rte-heading-option:hover {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+    }
 
-.rte-heading-option:focus {
-    outline: 2px solid #3b82f6;
-    outline-offset: -2px;
-}
+    .rte-heading-option:focus {
+        outline: 2px solid #3b82f6;
+        outline-offset: -2px;
+    }
 
-/* Selected state - matches .rte-btn.active */
-.rte-heading-option.selected {
-    background: #dbeafe;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-}
+    /* Selected state - matches .rte-btn.active */
+    .rte-heading-option.selected {
+        background: #dbeafe;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
 
 .rte-heading-preview {
     color: #374151;
@@ -1117,24 +1107,24 @@
     overflow-y: auto;
 }
 
-/* Scrollbar styling for font family list */
-.rte-font-family-palette::-webkit-scrollbar {
-    width: 8px;
-}
+    /* Scrollbar styling for font family list */
+    .rte-font-family-palette::-webkit-scrollbar {
+        width: 8px;
+    }
 
-.rte-font-family-palette::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
+    .rte-font-family-palette::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
 
-.rte-font-family-palette::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-}
+    .rte-font-family-palette::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
 
-.rte-font-family-palette::-webkit-scrollbar-thumb:hover {
-    background: #a1a1a1;
-}
+        .rte-font-family-palette::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
 
 /* Dark mode scrollbar */
 .rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-track {
@@ -1145,6 +1135,6 @@
     background: #4b5563;
 }
 
-.rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-thumb:hover {
-    background: #6b7280;
-}
+    .rich-text-editor.dark-mode .rte-font-family-palette::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+    }
