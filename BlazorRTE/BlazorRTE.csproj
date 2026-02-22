@@ -7,11 +7,11 @@
 
 		<!-- NuGet Package Metadata -->
 		<PackageId>BlazorRTE</PackageId>
-		<Version>1.2.0</Version>
+		<Version>1.2.1</Version>
 		<Authors>simscon1</Authors>
 		<Company>LoneWorx LLC</Company>
 		<Product>BlazorRTE</Product>
-		<Description>Rich text editor for Blazor (.NET 10) with keyboard accessibility, ARIA support, emoji picker (1800+ emojis via BlazorEmo), emoji autocomplete, XSS protection. Tested on Chrome, Edge, Firefox. Native Blazor component. GPL-3.0 for open-source projects.</Description>
+		<Description>Rich text editor for Blazor (.NET 10) with keyboard accessibility, ARIA support, emoji picker (1800+ emojis via BlazorEmo), emoji autocomplete (first-item auto-selected on open), XSS protection. Tested on Chrome, Edge, Firefox. Native Blazor component. GPL-3.0 for open-source.</Description>
 		<PackageTags>blazor;rich-text-editor;wysiwyg;rte;editor;text-editor;emoji;emoji-picker;emoji-autocomplete;formatting;blazor-component;razor;contenteditable;gpl;accessibility;wcag;keyboard-shortcuts;testing;bunit;aria</PackageTags>
 		<PackageProjectUrl>https://github.com/simscon1/BlazorRTE</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/simscon1/BlazorRTE</RepositoryUrl>
@@ -21,22 +21,10 @@
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<Copyright>Copyright (c) 2024-2026 LoneWorx LLC</Copyright>
-		<PackageReleaseNotes><![CDATA[v1.2.0 Keyboard Accessibility (2026-02-20)
-
-Added:
-- Toolbar keyboard navigation (Arrow keys, Home, End)
-- Dropdown keyboard support (ArrowDown opens, Escape closes)
-- Pending format support (Bold/Italic/Underline with no selection)
-- Firefox Ctrl+B/I/U keyboard shortcut support
-- Source Link for debugging
-- GPL-3.0 license headers in source files
+		<PackageReleaseNotes><![CDATA[v1.2.1 Bug Fix (2026-02-22)
 
 Fixed:
-- Firefox browser shortcuts conflicting with editor formatting
-- Toolbar button focus management
-
-Tested on: Chrome, Edge, Firefox
-Not tested: Safari
+- Emoji autocomplete popup now highlights the first item on open (was showing last item)
 
 See: https://github.com/simscon1/BlazorRTE/blob/master/Docs/CHANGELOG.md]]></PackageReleaseNotes>
 		
